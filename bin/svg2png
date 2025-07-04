@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+set -e
+
+TMP=$(mktemp -d)
+
+trap 'rm -rf "$TMP"' EXIT
+
+show_help () {
+  echo "Usage: svg2png [FILE.svg...] [WIDTH]"
+  echo "       svg2png [FILE.svg] FILE.png [WIDTH]"
+  echo ""
+  echo "If no SVG file, read standard input and write to"
+  echo "standard output or PNG file."
+  exit 0
+}
+
+show_err () {
+  >&2 echo "*** ERROR: $1"
+  exit 1
+}
+
+command -v rsvg-convert >/dev/null 2>&1 || show_err "rsvg-convert command not found"
+
+PIPE=
+SVG=()
+PNG=
+WIDTH=
+
+while [ $# != 0 ]; do
+  if [[ $1 == "-h" || $1 == "--help" ]]; then
+    show_help
+  elif [[ $1 == *.svg ]]; then
+    if [[ $PNG != "" ]]; then
+      show_err "An svg file cannot be given after the png file"
+    fi
+    SVG+=("$1")
+  elif [[ $1 == *.png ]]; then
+    if [[ ${#SVG[@]} -gt 1 ]]; then
+      show_err "Multiple svg files cannot be given before the png file"
+    fi
+    if [[ $PNG != "" ]]; then
+      show_err "Only one png file can be given"
+    fi
+    PNG=$1
+  elif [[ $1 =~ ^[1-9][0-9]*$ ]]; then
+    if [[ $WIDTH != "" ]]; then
+      show_err "Only one width can be given"
+    fi
+    WIDTH=$1
+  else
+    show_err "Invalid argument ($1)"
+  fi
+  shift
+done
+
+if [[ ${#SVG[@]} == 0 ]]; then
+  PIPE=1
+  SVG+=("-")
+fi
+
+for SVG_FILE in "${SVG[@]}"; do
+  SF="$SVG_FILE"
+  if [[ $PIPE == 1 ]]; then
+    SF="$TMP/input.svg"
+    cat - >"$SF"
+  fi
+
+  DF="${PNG:-${SF/%.svg/.png}}"
+  if [[ $PIPE == 1 && $PNG == "" ]]; then
+    DF="$TMP/output.png"
+  fi
+
+  if [[ ! -f "$SF" || ! -r "$SF" ]]; then
+    show_err "File not readable: $SF"
+  fi
+
+  if [[ ! -w "$DF" && ( -e "$DF" || ! -w "$(dirname "$DF")" ) ]]; then
+    show_err "File not writable: $DF"
+  fi
+  rm -f "$DF"
+
+  if [[ $PIPE != 1 ]]; then
+    >&2 echo "$DF"
+  fi
+
+  ARGS=(-o "$DF")
+  [[ $WIDTH != "" ]] && ARGS+=(-w "$WIDTH")
+  ARGS+=("$SF")
+
+  rsvg-convert "${ARGS[@]}"
+
+  if [[ ! -f "$DF" || ! -r "$DF" ]]; then
+    show_err "Image generation failed"
+  fi
+
+  if [[ $PIPE == 1 && $PNG == "" ]]; then
+    cat "$DF"
+  fi
+done
