@@ -608,7 +608,8 @@ function createCategoryBoxes(x, y, axis) {
       line.setAttribute("y2", (sy > 0) ? chart.area.y2 : chart.area.y1);
     }
     group.appendChild(line);
-  } else {
+  }
+  {
     let line_g = newObj("g");
     line_g.setAttribute("stroke-dasharray", "12 8");
     lst.forEach(e => {
