@@ -61,7 +61,6 @@ public:
   SVG::U MarginY( bool framed );
 
   void CalcLegendDims(
-    bool framed,
     SVG::Group* g, Legend::LegendDims& legend_dims
   );
 

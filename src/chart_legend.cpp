@@ -57,13 +57,13 @@ SVG::U Legend::MarginX( bool framed )
 
 SVG::U Legend::MarginY( bool framed )
 {
+  (void)framed;
   return box_spacing;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 void Legend::CalcLegendDims(
-  bool framed,
   Group* g, Legend::LegendDims& legend_dims
 )
 {
@@ -362,7 +362,7 @@ void Legend::BuildLegends(
 {
   g->Attr()->SetTextAnchor( AnchorX::Min, AnchorY::Max );
   Legend::LegendDims legend_dims;
-  CalcLegendDims( framed, g, legend_dims );
+  CalcLegendDims( g, legend_dims );
   int ny = (Cnt() + nx - 1) / nx;
 
   {

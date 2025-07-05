@@ -1,7 +1,7 @@
 # Makefile for Chartus
 
 CXX      := g++
-CXXFLAGS := -std=c++17 -Wall -O3 -Wfatal-errors
+CXXFLAGS := -std=c++17 -Wall -Wextra -O3 -Wfatal-errors
 SRC_DIR  := src
 SVG_DIR  := svg
 INCLUDES := -I$(SRC_DIR) -I$(SVG_DIR)
@@ -15,7 +15,7 @@ BINDIR   := $(PREFIX)/bin
 all: $(TARGET)
 
 $(TARGET): $(SRCS) $(INCS)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(SRCS) -o $(TARGET)
+	@$(CXX) $(CXXFLAGS) $(INCLUDES) $(SRCS) -o $(TARGET)
 
 install: $(TARGET) $(SCRIPT)
 	install -d $(BINDIR)

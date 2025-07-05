@@ -1729,9 +1729,9 @@ void ApplyMarkerSize( Chart::Series* series )
         state.series_type == Chart::SeriesType::Point
       )
     ) {
-      state.series_list.back()->SetMarkerSize( 12 );
+      series->SetMarkerSize( 12 );
     } else {
-      state.series_list.back()->SetMarkerSize( state.marker_size );
+      series->SetMarkerSize( state.marker_size );
     }
   }
 }
@@ -2500,6 +2500,7 @@ std::jmp_buf sigfpe_jmp;
 
 void sigfpe_handler( int signum )
 {
+  (void)signum;
   longjmp( sigfpe_jmp, 1 );
 }
 

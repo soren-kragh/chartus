@@ -307,7 +307,7 @@ void Ensemble::BuildLegends( void )
     legend_frame_specified ? legend_frame : !legend_obj->heading.empty();
 
   Legend::LegendDims legend_dims;
-  legend_obj->CalcLegendDims( framed, legend_g, legend_dims );
+  legend_obj->CalcLegendDims( legend_g, legend_dims );
 
   U padding = 2 * std::max( grid_padding, area_padding );
   U in_grid_mx = std::max( 0.0, legend_obj->MarginX( framed ) - padding );

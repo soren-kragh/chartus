@@ -171,10 +171,7 @@ void Main::CalcLegendBoxes(
 )
 {
   Legend::LegendDims legend_dims;
-  legend_obj->CalcLegendDims(
-    legend_frame_specified ? legend_frame : true,
-    g, legend_dims
-  );
+  legend_obj->CalcLegendDims( g, legend_dims );
   uint32_t lc = legend_obj->Cnt();
 
   bool framed = legend_frame_specified ? legend_frame : true;
@@ -400,7 +397,7 @@ void Main::PlaceLegends(
     legend_frame_specified ? legend_frame : !legend_obj->heading.empty();
 
   Legend::LegendDims legend_dims;
-  legend_obj->CalcLegendDims( framed, legend_g, legend_dims );
+  legend_obj->CalcLegendDims( legend_g, legend_dims );
 
   if ( legend_obj->pos == Pos::Left || legend_obj->pos == Pos::Right ) {
 

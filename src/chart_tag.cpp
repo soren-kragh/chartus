@@ -214,6 +214,7 @@ SVG::Group* Tag::AddLineTag( void )
       break;
     case Pos::Center:
       if ( place( -1, false ) ) goto Placed;
+      [[fallthrough]];
     case Pos::Top:
       dir_cur = 2;
       dir_inc = (tag.p.x < cx) ? -1 : +1;
