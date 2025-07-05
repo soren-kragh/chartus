@@ -51,7 +51,7 @@ namespace Chart {
   };
 
   enum class MarkerShape {
-    Circle, Square, Triangle, InvTriangle, Diamond, Cross, LineX, LineY
+    Circle, Square, Triangle, InvTriangle, Diamond, Cross, Star, LineX, LineY
   };
 
   // Determines if coordinates are so near as to be considered the same.

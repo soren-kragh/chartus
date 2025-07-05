@@ -1907,6 +1907,7 @@ void do_Series_MarkerShape( void )
   if ( id == "InvTriangle" ) state.marker_shape = Chart::MarkerShape::InvTriangle; else
   if ( id == "Diamond"     ) state.marker_shape = Chart::MarkerShape::Diamond    ; else
   if ( id == "Cross"       ) state.marker_shape = Chart::MarkerShape::Cross      ; else
+  if ( id == "Star"        ) state.marker_shape = Chart::MarkerShape::Star       ; else
   if ( id == "LineX"       ) state.marker_shape = Chart::MarkerShape::LineX      ; else
   if ( id == "LineY"       ) state.marker_shape = Chart::MarkerShape::LineY      ; else
   if ( id == "" ) parse_err( "marker shape expected" ); else

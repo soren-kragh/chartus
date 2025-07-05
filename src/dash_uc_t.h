@@ -512,7 +512,7 @@ Series.Base: 0
 #Series.Style: 4
 
 # The point marker shape may be Circle, Square, Triangle, InvTriangle, Diamond,
-# Cross, LineX, or LineY; default is Circle. LineX/LineY is a small line
+# Cross, Star, LineX, or LineY; default is Circle. LineX/LineY is a small line
 # parallel with the X- or Y-axis. This persistent attribute applies to the
 # current series and all subsequent series, or until it is redefined.
 #Series.MarkerShape: Circle

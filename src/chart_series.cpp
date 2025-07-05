@@ -694,6 +694,12 @@ void Series::DetermineVisualProperties( void )
         m.y1 = -1.4142 * (0.9 * radius + delta);
         m.y2 = +1.4142 * (0.9 * radius + delta);
         break;
+      case MarkerShape::Star :
+        m.x1 = -2.0 * (0.7 * radius + delta);
+        m.x2 = +2.0 * (0.7 * radius + delta);
+        m.y1 = -2.0 * (0.7 * radius + delta);
+        m.y2 = +2.0 * (0.7 * radius + delta);
+        break;
       case MarkerShape::LineX :
         m.x1 = (axis_x->angle == 0) ? -radius : 0.0;
         m.x2 = (axis_x->angle == 0) ? +radius : 0.0;
@@ -900,6 +906,24 @@ void Series::BuildMarker( Group* g, const MarkerDims& m, SVG::Point p )
         )
       );
       break;
+    case MarkerShape::Star : {
+      const double d = 0.35;
+      poly =
+        new Poly(
+          { p.x + m.x2, p.y,
+            p.x + m.x2 * d, p.y + m.y2 * d,
+            p.x, p.y + m.y2,
+            p.x + m.x1 * d, p.y + m.y2 * d,
+            p.x + m.x1, p.y,
+            p.x + m.x1 * d, p.y + m.y1 * d,
+            p.x, p.y + m.y1,
+            p.x + m.x2 * d, p.y + m.y1 * d
+          }
+        );
+      poly->Close();
+      g->Add( poly );
+      break;
+    }
     case MarkerShape::LineX :
     case MarkerShape::LineY :
       g->Add(
