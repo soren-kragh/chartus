@@ -267,6 +267,11 @@ void gen_example( int N )
       std::cout << '\n';
       break;
     }
+    case 7:
+    {
+      #include <dash_e7.h>
+      break;
+    }
   }
   return;
 }
@@ -2597,6 +2602,10 @@ int main( int argc, char* argv[] )
       }
       if ( a == "-e6" ) {
         gen_example( 6 );
+        return 0;
+      }
+      if ( a == "-e7" ) {
+        gen_example( 7 );
         return 0;
       }
       if ( a != "-" && a[ 0 ] == '-' ) {
