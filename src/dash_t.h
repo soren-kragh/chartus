@@ -22,6 +22,7 @@ Series.Data :
 # Padding: 10
 # ForegroundColor: skyblue
 # BackgroundColor: darkslategray
+# TitleHTML: Chartus
 # GlobalTitle: Global Title
 # GlobalSubTitle: Smaller Global Title
 # GlobalSubSubTitle: Even Smaller Global Title

@@ -107,6 +107,11 @@ void Ensemble::SetLetterSpacing(
 
 ////////////////////////////////////////////////////////////////////////////////
 
+void Ensemble::TitleHTML( const std::string& txt )
+{
+  title_html = txt;
+}
+
 void Ensemble::SetTitle( const std::string& txt )
 {
   title = txt;

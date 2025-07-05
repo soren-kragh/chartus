@@ -5,7 +5,6 @@ oss << R"EOF(
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chartus</title>
   <style>
     text {
       font-family: monospace;
@@ -27,7 +26,4 @@ oss << R"EOF(
       transform: translateZ(0);
     }
   </style>
-</head>
-<body>
-
 )EOF";

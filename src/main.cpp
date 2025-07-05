@@ -1119,6 +1119,13 @@ void do_FrameColor( void )
 
 //------------------------------------------------------------------------------
 
+void do_TitleHTML( void )
+{
+  std::string txt;
+  get_text( txt, false );
+  ensemble.TitleHTML( txt );
+}
+
 void do_GlobalTitle( void )
 {
   std::string txt;
@@ -2282,6 +2289,7 @@ std::unordered_map< std::string, ChartAction > chart_actions = {
   { "GridColor"              , do_GridColor               },
   { "TextColor"              , do_TextColor               },
   { "FrameColor"             , do_FrameColor              },
+  { "TitleHTML"              , do_TitleHTML               },
   { "GlobalTitle"            , do_GlobalTitle             },
   { "GlobalSubTitle"         , do_GlobalSubTitle          },
   { "GlobalSubSubTitle"      , do_GlobalSubSubTitle       },

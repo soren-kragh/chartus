@@ -469,6 +469,10 @@ std::string HTML::GenHTML( SVG::Canvas* canvas )
 
   #include <chart_html_part1.h>
 
+  oss << "<title>" << ensemble->title_html << "</title>\n";
+  oss << "</head>\n";
+  oss << "<body>\n";
+
   BoundaryBox ensemble_bb = canvas->TopGroup()->GetBB();
 
   {

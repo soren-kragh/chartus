@@ -62,6 +62,9 @@ std::cout << R"EOF(
 #ForegroundColor: brown
 #BackgroundColor: darkslategray
 
+# The HTML tab title to show in the HTML browser. Cannot be multi-line.
+#TitleHTML: Chartus
+
 # See Title, which is normally what should be used for single charts. Global
 # titles are placed at the top and are typically used for when multiple charts
 # are organized in a grid (see New).

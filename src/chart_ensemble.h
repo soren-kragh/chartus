@@ -45,6 +45,8 @@ public:
 
   void EnableHTML( bool enable = true ) { enable_html = enable; }
 
+  void TitleHTML( const std::string& txt );
+
   void SetTitle( const std::string& txt );
   void SetSubTitle( const std::string& txt );
   void SetSubSubTitle( const std::string& txt );
@@ -123,6 +125,7 @@ public:
   void InitGrid( void );
   void SolveGrid( void );
 
+  std::string title_html = "Chartus";
   std::string title;
   std::string sub_title;
   std::string sub_sub_title;
