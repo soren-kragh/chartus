@@ -1041,7 +1041,7 @@ void Main::SeriesPrepare(
     series->lb_list = lb_list;
     series->tag_db = tag_db;
     if ( ensemble->enable_html ) {
-      if ( !series->name.empty() || series->anonymous_snap ) {
+      if ( series->snap_enable ) {
         series->html_db = ensemble->html_db;
       }
     }

@@ -438,7 +438,6 @@ Axis.Y2.NumberUnit: Ω
 # the X-value is interpreted as a text string. This attribute applies to all
 # subsequent series, or until it is redefined.
 #
-
 # (*) If you do mix, the underlying X-value on a textual X-axis is just the
 # position starting from 0, so for a Bar plot with 10 bars the X-values will go
 # from 0 to 9. This knowledge can be used to show XY or Scatter plots on top of
@@ -455,6 +454,11 @@ Series.Type: XY
 Series.New: Name of series
 
 # The following Series specifiers associate to the above newly created series.
+
+# Defines if snapping to data points is enabled in HTML; may be On or Off,
+# default is On. This attribute applies to the current series and all subsequent
+# series, or until it is redefined.
+#Series.Snap: On
 
 # Set the prune distance in points. For very large data sets, graphical details
 # are removed if it is judged that they do not contribute significantly to the

@@ -10,36 +10,39 @@ Axis.PriY.NumberSign: On
 
 Axis.X.Unit: Year
 
-# StackedArea could also be used instead of StackedBar.
-
-# Width of error bars.
+# For the uncertainty interval, StackedBar could also be used instead of
+# StackedArea in which case BarWidth defines the width of these error bars.
 BarWidth: 0.7
+Series.Type: StackedArea
 
-Series.Type: StackedBar
 Series.New:
 # Set the base below the lowest lower confidence limit so
 # we do not get negative stack values relative to the base.
 Series.Base: -1.5
 Series.LineColor: None
 Series.FillColor: None
+# We do not want to snap to the error bars in the HTML.
+Series.Snap: Off
 
-Series.Type: StackedBar
 Series.New:
 # Reset base so we only stack the confidence interval
 # size on top of the lower confidence interval limit.
 Series.Base: 0
-Series.LineWidth: 0
+Series.LineColor: None
 # Do not lighten the color, but make it very transparent.
 Series.FillColor: crimson 0.0 0.8
 
+# Use Line plot for the actual data.
 Series.Type: Line
+
 Series.New:
   BEST global land/ocean mean
   with 95% confidence interval
 Series.LineColor: crimson
 Series.LineWidth: 1
+# Enable HTML snapping again.
+Series.Snap: On
 
-Series.Type: Line
 Series.New:
   Mauna Loa atmospheric CO₂
 Series.LineColor: deepskyblue

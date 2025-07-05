@@ -32,10 +32,10 @@ public:
 
   void SetName( const std::string& name );
 
-  // Defines if HTML should snap to the series even if it is nameless.
-  void SetAnonymousSnap( bool anonymous_snap = true )
+  // Defines if HTML should snap to the series; default is enabled.
+  void SetSnap( bool snap_enable = true )
   {
-    this-> anonymous_snap = anonymous_snap;
+    this->snap_enable = snap_enable;
   }
 
   // Indicate if legend should be global and potentially shared with other
@@ -203,7 +203,7 @@ public:
 
   SeriesType type;
   std::string name;
-  bool anonymous_snap = false;
+  bool snap_enable = true;
   double base;
 
   std::vector< LegendBox >* lb_list;

@@ -86,6 +86,7 @@ Series.Data :
 # BarMargin: 0
 # Series.Type: XY
 # Series.New: Name of series
+# Series.Snap: Off
 # Series.Prune: 0.5
 # Series.GlobalLegend: On
 # Series.LegendOutline: Off

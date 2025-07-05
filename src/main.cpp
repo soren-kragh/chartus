@@ -37,6 +37,7 @@ struct state_t {
   bool defining_series = false;
   bool series_type_defined = false;
   Chart::SeriesType series_type = Chart::SeriesType::XY;
+  bool snap = true;
   double prune_dist = 0.3;
   int32_t category_idx = 0;
   bool global_legend = false;
@@ -1743,7 +1744,7 @@ void ApplyMarkerSize( Chart::Series* series )
   }
 }
 
-void AddSeries( std::string name = "", bool anonymous_snap = false )
+void AddSeries( std::string name = "" )
 {
   if ( !state.series_type_defined ) {
     cur_col = 0;
@@ -1752,7 +1753,7 @@ void AddSeries( std::string name = "", bool anonymous_snap = false )
   state.type_list.push_back( state.series_type );
   state.series_list.push_back( CurChart()->AddSeries( state.series_type ) );
   state.series_list.back()->SetName( name );
-  state.series_list.back()->SetAnonymousSnap( anonymous_snap );
+  state.series_list.back()->SetSnap( state.snap );
   state.series_list.back()->SetPruneDist( state.prune_dist );
   state.series_list.back()->SetGlobalLegend( state.global_legend );
   state.series_list.back()->SetLegendOutline( state.legend_outline );
@@ -1808,6 +1809,15 @@ void do_Series_New( void )
   std::string txt;
   get_text( txt, true );
   AddSeries( txt );
+}
+
+void do_Series_Snap( void )
+{
+  do_Switch( state.snap );
+  expect_eol();
+  if ( state.defining_series ) {
+    state.series_list.back()->SetSnap( state.snap );
+  }
 }
 
 void do_Series_Prune( void )
@@ -2101,7 +2111,7 @@ void do_Series_TagLineColor( void )
 
 //------------------------------------------------------------------------------
 
-void parse_series_data( bool anonymous_snap = false )
+void parse_series_data( void )
 {
   state.defining_series = false;
 
@@ -2184,7 +2194,7 @@ void parse_series_data( bool anonymous_snap = false )
       state.series_list.size() == i ||
       state.series_list[ state.series_list.size() - i - 1 ]->Size() > 0
     )
-      AddSeries( "", anonymous_snap );
+      AddSeries( "" );
   }
 
   // Detect series types.
@@ -2317,6 +2327,7 @@ std::unordered_map< std::string, ChartAction > chart_actions = {
   { "BarMargin"              , do_BarMargin               },
   { "Series.Type"            , do_Series_Type             },
   { "Series.New"             , do_Series_New              },
+  { "Series.Snap"            , do_Series_Snap             },
   { "Series.Prune"           , do_Series_Prune            },
   { "Series.GlobalLegend"    , do_Series_GlobalLegend     },
   { "Series.LegendOutline"   , do_Series_LegendOutline    },
@@ -2416,7 +2427,7 @@ void parse_lines( void )
   cur_col = 0;
 
   // Support delivering nothing but data (implicit Series.Data).
-  parse_series_data( true );
+  parse_series_data();
 
   while ( parse_spec() ) {}
 }
