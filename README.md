@@ -16,7 +16,7 @@ hence the SVG, is very large.
 ```sh
 git clone --recurse-submodules https://github.com/soren-kragh/chartus.git
 cd chartus
-git checkout RELEASE_TAG        # Replace RELEASE_TAG with actual release tag.
+git checkout VERSION    # Replace VERSION with actual release tag, e.g. v1.0.0
 git submodule update --init --recursive
 make
 ```
