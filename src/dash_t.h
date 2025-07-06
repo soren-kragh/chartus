@@ -6,23 +6,24 @@ Axis.X.Label: X-Axis Label
 Axis.Y.Label: Y-Axis Label
 
 Series.Type : XY
-Series.New  : Name of series
+Series.New  : Series A
+Series.New  : Series B
 Series.Data :
-        0       23.7
-        7.0     2.3
-        40      20
-        47      10.0
-        71      4.3
-        97      14
+        0       23.7    -15
+        7.0     2.3     10
+        40      20      -4
+        47      10.0    5
+        71      4.3     1
+        97      14      -17
 
 # Summary of all available specifiers (see -T template for details):
+# TitleHTML: Chartus
 # Margin: 5
 # BorderWidth: 5
 # BorderColor: navy
 # Padding: 10
 # ForegroundColor: skyblue
 # BackgroundColor: darkslategray
-# TitleHTML: Chartus
 # GlobalTitle: Global Title
 # GlobalSubTitle: Smaller Global Title
 # GlobalSubSubTitle: Even Smaller Global Title
