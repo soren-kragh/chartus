@@ -272,6 +272,35 @@ void gen_example( int N )
       #include <dash_e7.h>
       break;
     }
+    case 8:
+    {
+      #include <dash_e8.h>
+      std::uniform_real_distribution< double > rnd{ 0.0, 1.0 };
+      for ( int server = 1; server <= 4; server++ ) {
+        std::cout << '\n';
+        std::cout << "New:\n";
+        std::cout << "Title: Server " << server << '\n';
+        std::cout << "SubTitle: 192.42.100." << server << '\n';
+        std::cout << "Macro: Setup\n";
+        std::cout << "Series.Data:\n";
+        double load = 0;
+        double usrs = 0;
+        for ( int sample = 0; sample <= 4 * 24; sample++ ) {
+          load = 0.2 * load + 1.0 * rnd( gen );
+          usrs = 0.5 * usrs + 0.6 * rnd( gen );
+          load = std::min( 1.0, std::max( 0.0, load ) );
+          usrs = std::min( 1.0, std::max( 0.0, usrs ) );
+          std::cout << ' ' << sample << 'h';
+          std::cout << ' ' << static_cast< int >( 100 * load );
+          std::cout << ' ' << static_cast< int >(  20 * usrs );
+          std::cout << '\n';
+        }
+      }
+      std::cout << '\n';
+      std::cout << "# Add X-axis label for the last chart only.\n";
+      std::cout << "Axis.X.Label: Time\n";
+      break;
+    }
   }
   return;
 }
@@ -2606,6 +2635,10 @@ int main( int argc, char* argv[] )
       }
       if ( a == "-e7" ) {
         gen_example( 7 );
+        return 0;
+      }
+      if ( a == "-e8" ) {
+        gen_example( 8 );
         return 0;
       }
       if ( a != "-" && a[ 0 ] == '-' ) {
