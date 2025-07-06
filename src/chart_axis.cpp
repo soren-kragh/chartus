@@ -329,7 +329,8 @@ void Axis::LegalizeMajor( void ) {
         int32_t d = 1;
         while ( 1 ) {
           major = std::pow( double( 10 ), p ) * m / d;
-          if ( (max - min) * 2 * min_space > length * major ) break;
+          double major_ticks = std::ceil( (max - min) / major );
+          if ( min_space * major_ticks * 2 > length ) break;
           switch ( d ) {
             case 1  : d = 2; break;
             case 2  : d = 4; break;
@@ -339,7 +340,8 @@ void Axis::LegalizeMajor( void ) {
         }
         while ( p >= 0 && d == 1 ) {
           major = std::pow( double( 10 ), p ) * m / d;
-          if ( (max - min) * min_space < length * major ) break;
+          double major_ticks = std::ceil( (max - min) / major );
+          if ( min_space * major_ticks <= length ) break;
           switch ( m ) {
             case 1  : m = 2; break;
             case 2  : m = 5; break;
