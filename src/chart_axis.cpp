@@ -1269,8 +1269,8 @@ void Axis::BuildCategories(
             cat_g->DeleteFront();
           } else {
             cat_objects.push_back( obj );
-            if ( commit ) mn_list.push_back( cat_idx );
           }
+          if ( commit ) mn_list.push_back( cat_idx );
         }
         ++cat_idx;
       }
