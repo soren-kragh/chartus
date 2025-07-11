@@ -2,6 +2,7 @@ std::cout << R"EOF(
 GlobalLegendPos: Top
 
 # The styling is shared for all charts, so define it in a macro.
+#vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv#
 MacroDef: Setup
 
 ChartArea: 1000 120
@@ -21,11 +22,16 @@ Series.GlobalLegend: On
 # When there is no room to show all the X-axis bins, TickSpacing is very useful
 # to control what is shown. Here we choose to only show every 6th hour.
 Axis.X.TickSpacing: 0 6
-Axis.X.Grid: On
+Axis.X.Unit: hour
+Axis.X.UnitPos: Above
 
+Axis.Y1.Tick: 25 1
 Axis.Y1.NumberUnit: %
 Axis.Y1.Label: Load
 Axis.Y2.Label: Users
+
+# Try this.
+#Macro: Condensed
 
 # Make it a little easier to see area plot through the bar plot by
 # making the bars a little thinner.
@@ -44,6 +50,27 @@ Series.LineColor: orange
 Series.FillColor: orange 0 0.5
 
 MacroEnd: Setup
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+
+# Optional condensed layout example (see above macro call).
+#vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv#
+MacroDef: Condensed
+
+# Zero padding so chart boxes abut.
+GridPadding: 0
+
+ChartBox: On
+
+# Don't show hours for abutted charts, we show it only for
+# the last chart (see bottom of this file).
+Axis.X.TickSpacing: 999
+
+# Flip axis numbers into chart area.
+Axis.Y1.NumberPos: Right
+Axis.Y2.NumberPos: Left
+
+MacroEnd: Condensed
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
 Footnote: https://github.com/soren-kragh/chartus
 FootnotePos: Right

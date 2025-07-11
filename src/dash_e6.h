@@ -47,13 +47,15 @@ Macro: Series
 Footnote: https://github.com/soren-kragh/chartus
 FootnotePos: Right
 
+#vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv#
 MacroDef: Setup
-ChartArea: 500 200
+ChartArea: 500 160
 TitlePos: Left
 TitleSize: 0.7
 TitleInside: On
 Series.GlobalLegend: On
 MacroEnd: Setup
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
 MacroDef: Series
 Series.New: Series A

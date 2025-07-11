@@ -14,6 +14,8 @@ ChartAreaColor: dimgray
 GridColor: black
 AxisColor: white
 TextColor: yellow 0.8
+
+# Make title frame and legend frame fill color semi transparent.
 FrameColor: darkslategray 0 0.5
 
 LegendFrame: On

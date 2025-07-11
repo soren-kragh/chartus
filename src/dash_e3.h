@@ -90,6 +90,7 @@ Series.Data:
 Macro: 2d_data
 
 # Use a macro for the side panel layout.
+#vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv#
 MacroDef: SidePanel
 ChartBox: On
 # Adjust so the center of the bars are placed exactly at "whole" fractional
@@ -111,6 +112,7 @@ TitleInside: On
 TitleFrame: Off
 TitlePos: Right Bottom
 MacroEnd: SidePanel
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
 # Define grid position of new chart for the X side panel.
 New: 1 0

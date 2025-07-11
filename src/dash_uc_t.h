@@ -135,12 +135,12 @@ FootnotePos: Right
 # and the third optional number is the baseline adjustment factor.
 #LetterSpacing: 1.8 1.1 0.8
 
-# Padding (in points) around individual charts in the grid; default is 4. This
+# Padding (in points) around individual charts in the grid; default is 12. This
 # setting only has any effect when having multiple charts. A negative value
 # means that only the core chart areas are considered when placing the charts in
 # a grid. An optional second number specify the minimal padding around the core
 # chart areas.
-#GridPadding: 4
+#GridPadding: 12
 
 # Start creation of of new chart; not needed if you only have one chart. When
 # having multiple charts, these are organized in a grid as specified. The first

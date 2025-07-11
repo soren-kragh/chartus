@@ -276,7 +276,7 @@ void gen_example( int N )
     {
       #include <dash_e8.h>
       std::uniform_real_distribution< double > rnd{ 0.0, 1.0 };
-      for ( int server = 1; server <= 4; server++ ) {
+      for ( int server = 1; server <= 3; server++ ) {
         std::cout << '\n';
         std::cout << "New:\n";
         std::cout << "Title: Server " << server << '\n';
@@ -297,8 +297,9 @@ void gen_example( int N )
         }
       }
       std::cout << '\n';
-      std::cout << "# Add X-axis label for the last chart only.\n";
-      std::cout << "Axis.X.Label: Time\n";
+      std::cout << "# In case Condensed layout is used (see above) make\n";
+      std::cout << "# sure we get the hour ticks for the last chart.\n";
+      std::cout << "Axis.X.TickSpacing: 0 6\n";
       break;
     }
   }

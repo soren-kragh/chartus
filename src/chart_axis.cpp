@@ -1175,7 +1175,10 @@ void Axis::BuildCategories(
     cat_char_h = bb.max.y - bb.min.y;
   }
 
-  int text_angle = 45;
+  U dist_x = tick_major_len;
+  U dist_y = tick_major_len;
+
+  int text_angle = 0;
   AnchorX ax = AnchorX::Mid;
   AnchorY ay = AnchorY::Mid;
   U dx = 0;
@@ -1183,10 +1186,10 @@ void Axis::BuildCategories(
   if ( angle == 0 ) {
     if ( number_pos == Pos::Top ) {
       ay = AnchorY::Min;
-      dy = 0 + tick_major_len + num_space_y;
+      dy = 0 + dist_y + num_space_y;
     } else {
       ay = AnchorY::Max;
-      dy = 0 - tick_major_len - num_space_y;
+      dy = 0 - dist_y - num_space_y;
     }
     U x1 = Coor( 0 );
     U x2 = Coor( category_list.size() );
@@ -1197,14 +1200,18 @@ void Axis::BuildCategories(
       )
     ) {
       text_angle = 90;
+      dist_y = 0;
+    } else {
+      text_angle = 45;
+      dist_y = cat_char_h * ((dy > 0) ? +0.36 : -0.36);
     }
   } else {
     if ( number_pos == Pos::Right ) {
       ax = AnchorX::Min;
-      dx = 0 + tick_major_len + num_space_x * number_size;
+      dx = 0 + dist_x + num_space_x * number_size;
     } else {
       ax = AnchorX::Max;
-      dx = 0 - tick_major_len - num_space_x * number_size;
+      dx = 0 - dist_x - num_space_x * number_size;
     }
   }
 
@@ -1249,7 +1256,7 @@ void Axis::BuildCategories(
         if ( trial == 2 ) {
           ax = (number_pos == Pos::Top) ? AnchorX::Min : AnchorX::Max;
           ay = AnchorY::Mid;
-          obj->MoveTo( ax, ay, x + dx, y + dy );
+          obj->MoveTo( ax, ay, x + dx, y + dy + dist_y );
           obj->Rotate( text_angle, ax, ay );
         }
         if (
@@ -1380,12 +1387,23 @@ void Axis::BuildUnit(
     U cx = length / 2;
     U cy = length / 2;
 
+    U dist_x = tick_major_len;
+    U dist_y = tick_major_len;
+
+    if ( category_axis || style == AxisStyle::None ) {
+      dist_x = tick_minor_len;
+      dist_y = 0;
+    }
+
     if ( px == Pos::Left ) {
       if ( angle == 0 ) {
         cx = (py == Pos::Center) ? outer_min : inner_min;
         ax = (py == Pos::Center) ? AnchorX::Max : AnchorX::Min;
       } else {
-        cx = coor - tick_major_len - num_space_x * number_size;
+        if ( style == AxisStyle::Edge && number_pos != Pos::Left ) {
+          dist_x = tick_minor_len;
+        }
+        cx = coor - dist_x - num_space_x * number_size;
         ax = AnchorX::Max;
       }
     }
@@ -1394,7 +1412,10 @@ void Axis::BuildUnit(
         cx = (py == Pos::Center) ? outer_max : inner_max;
         ax = (py == Pos::Center) ? AnchorX::Min : AnchorX::Max;
       } else {
-        cx = coor + tick_major_len + num_space_x * number_size;
+        if ( style == AxisStyle::Edge && number_pos != Pos::Right ) {
+          dist_x = tick_minor_len;
+        }
+        cx = coor + dist_x + num_space_x * number_size;
         ax = AnchorX::Min;
       }
     }
@@ -1405,7 +1426,10 @@ void Axis::BuildUnit(
 
     if ( py == Pos::Bottom ) {
       if ( angle == 0 ) {
-        cy = coor - tick_major_len - num_space_y;
+        if ( style == AxisStyle::Edge && number_pos != Pos::Bottom ) {
+          dist_y = 0;
+        }
+        cy = coor - dist_y - num_space_y;
         ay = AnchorY::Max;
       } else {
         cy = (px == Pos::Center) ? outer_min : inner_min;
@@ -1414,7 +1438,10 @@ void Axis::BuildUnit(
     }
     if ( py == Pos::Top ) {
       if ( angle == 0 ) {
-        cy = coor + tick_major_len + num_space_y;
+        if ( style == AxisStyle::Edge && number_pos != Pos::Top ) {
+          dist_y = 0;
+        }
+        cy = coor + dist_y + num_space_y;
         ay = AnchorY::Min;
       } else {
         cy = (px == Pos::Center) ? outer_max : inner_max;
@@ -1478,8 +1505,8 @@ void Axis::BuildUnit(
       collision = true;
     }
     if ( chart_box ) {
-      U mx = tick_major_len - epsilon;
-      U my = tick_major_len - epsilon;
+      U mx = std::abs( dist_x ) - epsilon;
+      U my = std::abs( dist_y ) - epsilon;
       bb.min.x -= mx; bb.max.x += mx;
       bb.min.y -= my; bb.max.y += my;
       BoundaryBox cb;

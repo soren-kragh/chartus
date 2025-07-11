@@ -10,8 +10,8 @@ Series.New  : Series A
 Series.New  : Series B
 Series.Data :
         0       23.7    -15
-        7.0     2.3     10
-        40      20      -4
+        7.0     2.3     27
+        40      20      -12
         47      10.0    5
         71      4.3     1
         97      14      -17

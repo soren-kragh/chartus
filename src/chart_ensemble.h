@@ -115,7 +115,7 @@ public:
   SVG::U border_width = 0;
   SVG::U margin       = 0;
   SVG::U padding      = 8;
-  SVG::U grid_padding = 4;
+  SVG::U grid_padding = 12;
   SVG::U area_padding = 0;
 
   SVG::U max_area_pad = 0;

@@ -21,9 +21,6 @@ GridColor: skyblue
 
 Axis.Y.LogScale: On
 Axis.Y.NumberFormat: Fixed
-Axis.Y.Unit:
-  logarithmic
-  scale
 
 Series.FillTransparency: 0.6
 
