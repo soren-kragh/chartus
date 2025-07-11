@@ -512,7 +512,7 @@ SubSubTitle:
 
 # Specify if line style legends are shown with an outline around the legend text
 # (On), or with a small line segment in front of the legend text (Off); default
-# is On. Note that the outline is suppressed for thick lines no matter what.
+# is On. Note that the outline may be suppressed irrespective of this setting.
 # This attribute applies to the current series and all subsequent series, or
 # until it is redefined.
 #Series.LegendOutline: Off

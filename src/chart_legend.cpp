@@ -100,8 +100,37 @@ void Legend::CalcLegendDims(
   U ox = char_h / 3;    // Text to outline X spacing.
   U oy = char_h / 5;    // Text to outline Y spacing.
 
+  bool symbol_shown = false;
+  bool line_wo_symbol = false;
   for ( auto series : series_list ) {
     if ( series->name.empty() ) continue;
+    if (
+      ( series->marker_show &&
+        ( ( series->marker_shape != MarkerShape::LineX &&
+            series->marker_shape != MarkerShape::LineY
+          ) ||
+          series->type == SeriesType::Scatter ||
+          series->type == SeriesType::Point
+        )
+      ) ||
+      series->type == SeriesType::Bar ||
+      series->type == SeriesType::StackedBar ||
+      series->type == SeriesType::LayeredBar ||
+      series->type == SeriesType::Area ||
+      series->type == SeriesType::StackedArea
+    ) {
+      symbol_shown = true;
+    } else {
+      line_wo_symbol = true;
+    }
+  }
+
+  for ( auto series : series_list ) {
+    if ( series->name.empty() ) continue;
+    if ( symbol_shown && line_wo_symbol ) {
+      // Disable outline if there is a chance that it'll look misaligned.
+      series->legend_outline = false;
+    }
     if ( series->line_width > char_h * 0.8 ) {
       // No outline if it is too fat.
       series->legend_outline = false;
@@ -126,8 +155,12 @@ void Legend::CalcLegendDims(
       series->marker_show &&
       series->type != SeriesType::Area &&
       series->type != SeriesType::StackedArea &&
-      series->marker_shape != MarkerShape::LineX &&
-      series->marker_shape != MarkerShape::LineY
+      ( ( series->marker_shape != MarkerShape::LineX &&
+          series->marker_shape != MarkerShape::LineY
+        ) ||
+        series->type == SeriesType::Scatter ||
+        series->type == SeriesType::Point
+      )
     ) {
       Series::MarkerDims md = series->marker_out;
       legend_dims.mw = std::max( +legend_dims.mw, md.x2 - md.x1 );
@@ -462,8 +495,12 @@ void Legend::BuildLegends(
       series->marker_show &&
       series->type != SeriesType::Area &&
       series->type != SeriesType::StackedArea &&
-      series->marker_shape != MarkerShape::LineX &&
-      series->marker_shape != MarkerShape::LineY
+      ( ( series->marker_shape != MarkerShape::LineX &&
+          series->marker_shape != MarkerShape::LineY
+        ) ||
+        series->type == SeriesType::Scatter ||
+        series->type == SeriesType::Point
+      )
     ) {
       marker_p.y -= (series->marker_out.y1 + series->marker_out.y2) / 2;
       if ( series->marker_show_out ) {

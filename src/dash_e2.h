@@ -21,7 +21,7 @@ FrameColor: darkslategray 0 0.5
 LegendFrame: On
 LegendPos: Auto
 
-# Disables outlining individual legends.
+# Disables outlining individual line type legends.
 Series.LegendOutline: Off
 
 Axis.X.Label: Year
