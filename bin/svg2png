@@ -6,8 +6,10 @@ TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
 show_help () {
-  echo "Usage: svg2png [FILE.svg...] [WIDTH]"
-  echo "       svg2png [FILE.svg] FILE.png [WIDTH]"
+  echo "Usage: svg2png [FILE.svg...] [WIDTH|ZOOM]"
+  echo "       svg2png [FILE.svg] FILE.png [WIDTH|ZOOM]"
+  echo ""
+  echo "A zoom factor has a decimal point while a width does not."
   echo ""
   echo "If no SVG file, read standard input and write to"
   echo "standard output or PNG file."
@@ -25,6 +27,7 @@ PIPE=
 SVG=()
 PNG=
 WIDTH=
+ZOOM=
 
 while [ $# != 0 ]; do
   if [[ $1 == "-h" || $1 == "--help" ]]; then
@@ -43,10 +46,15 @@ while [ $# != 0 ]; do
     fi
     PNG=$1
   elif [[ $1 =~ ^[1-9][0-9]*$ ]]; then
-    if [[ $WIDTH != "" ]]; then
-      show_err "Only one width can be given"
+    if [[ $WIDTH != "" || $ZOOM != "" ]]; then
+      show_err "Only one width or zoom can be given"
     fi
     WIDTH=$1
+  elif [[ $1 =~ ^[0-9]+\.[0-9]+$ ]]; then
+    if [[ $WIDTH != "" || $ZOOM != "" ]]; then
+      show_err "Only one width or zoom can be given"
+    fi
+    ZOOM=$1
   else
     show_err "Invalid argument ($1)"
   fi
@@ -85,6 +93,7 @@ for SVG_FILE in "${SVG[@]}"; do
 
   ARGS=(-o "$DF")
   [[ $WIDTH != "" ]] && ARGS+=(-w "$WIDTH")
+  [[ $ZOOM != "" ]] && ARGS+=(-z "$ZOOM")
   ARGS+=("$SF")
 
   rsvg-convert "${ARGS[@]}"
