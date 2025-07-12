@@ -126,6 +126,11 @@ void gen_example( int N )
   std::random_device rd{};
   std::mt19937 gen{ rd() };
   switch ( N ) {
+    case 0:
+    {
+      #include <dash_e0.h>
+      break;
+    }
     case 1:
     {
       #include <dash_e1.h>
@@ -2690,6 +2695,10 @@ int main( int argc, char* argv[] )
       }
       if ( a == "-T" ) {
         gen_template( true );
+        return 0;
+      }
+      if ( a == "-e0" ) {
+        gen_example( 0 );
         return 0;
       }
       if ( a == "-e1" ) {
