@@ -302,6 +302,88 @@ void gen_example( int N )
       std::cout << "Axis.X.TickSpacing: 0 6\n";
       break;
     }
+    case 9:
+    {
+      #include <dash_e9.h>
+
+      double n_min = 0.0;
+      double n_max = 3.0;
+
+      auto GetX = [&]( double n ) {
+        return std::pow( 10, n );
+      };
+      auto GetY = [&]( double n ) {
+        double x = GetX( n_max - n );
+        double y = std::pow( x - 10, 4 ) / (1.0 + std::pow( 1.01, x + 100 ));
+        return 0.9e3 + y;
+      };
+
+      {
+        std::cout << '\n';
+        std::cout << "MacroDef: ModelData\n";
+        std::cout << "Series.Data:\n";
+        uint32_t N = 100;
+        for ( uint32_t i = 0; i < N; ++i ) {
+          double n = n_min + (n_max - n_min) * i / (N - 1);
+          std::cout << ' ' << GetX( n );
+          std::cout << ' ' << GetY( n );
+          std::cout << '\n';
+        }
+        std::cout << "MacroEnd: ModelData\n";
+      }
+
+      auto field_measurement = [&](
+        uint32_t N, std::string name, double error, double uncertainty
+      ) {
+        std::vector< std::pair< double, double > > points;
+        std::uniform_real_distribution< double > n_dev{ -0.2, +0.2 };
+        std::uniform_real_distribution< double > y_dev(
+          -std::log( error ),
+          +std::log( error )
+        );
+        for ( uint32_t i = 0; i < N; ++i ) {
+          double my_min = n_min + 0.3;
+          double my_max = n_max - 0.3;
+          double n = my_min + (my_max - my_min) * i / (N - 1);
+          n += n_dev( gen );
+          std::pair< double, double > p;
+          p.first  = GetX( n );
+          p.second = GetY( n ) * std::exp( y_dev( gen ) );
+          points.push_back( p );
+        }
+
+        std::cout << '\n';
+        std::cout << "MacroDef: " << name << "Data\n";
+        std::cout << "Series.Data:\n";
+        for ( auto p : points ) {
+          std::cout << ' ' << p.first;
+          std::cout << ' ' << p.second;
+          std::cout << '\n';
+        }
+        std::cout << "MacroEnd: " << name << "Data\n";
+
+        std::cout << '\n';
+        std::cout << "MacroDef: " << name << "Uncertainty\n";
+        std::cout << "Series.Data:\n";
+        for ( auto p : points ) {
+          std::cout << ' ' << p.first;
+          std::cout << ' ' << p.second / uncertainty;
+          std::cout << '\n';
+          std::cout << ' ' << p.first;
+          std::cout << ' ' << p.second * uncertainty;
+          std::cout << '\n';
+          std::cout << " ! !\n";
+        }
+        std::cout << "MacroEnd: " << name << "Uncertainty\n";
+
+        return;
+      };
+
+      field_measurement( 5, "Bozo", 5, 7 );
+      field_measurement( 7, "Krusty", 1.3, 1.7 );
+
+      break;
+    }
   }
   return;
 }
@@ -2640,6 +2722,10 @@ int main( int argc, char* argv[] )
       }
       if ( a == "-e8" ) {
         gen_example( 8 );
+        return 0;
+      }
+      if ( a == "-e9" ) {
+        gen_example( 9 );
         return 0;
       }
       if ( a != "-" && a[ 0 ] == '-' ) {
