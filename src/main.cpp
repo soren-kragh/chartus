@@ -143,9 +143,110 @@ void gen_example( int N )
     }
     case 3:
     {
+      #include <dash_e3.h>
+      std::uniform_real_distribution< double > rnd{ 0.0, 1.0 };
+      for ( int server = 1; server <= 3; server++ ) {
+        std::cout << '\n';
+        std::cout << "New:\n";
+        std::cout << "Title: Server " << server << '\n';
+        std::cout << "SubTitle: 192.42.100." << server << '\n';
+        std::cout << "Macro: Setup\n";
+        std::cout << "Series.Data:\n";
+        double load = 0;
+        double usrs = 0;
+        for ( int sample = 0; sample <= 4 * 24; sample++ ) {
+          load = 0.2 * load + 1.0 * rnd( gen );
+          usrs = 0.5 * usrs + 0.6 * rnd( gen );
+          load = std::min( 1.0, std::max( 0.0, load ) );
+          usrs = std::min( 1.0, std::max( 0.0, usrs ) );
+          std::cout << ' ' << sample << 'h';
+          std::cout << ' ' << static_cast< int >( 100 * load );
+          std::cout << ' ' << static_cast< int >(  20 * usrs );
+          std::cout << '\n';
+        }
+      }
+      std::cout << '\n';
+      std::cout << "# In case Condensed layout is used (see above) make\n";
+      std::cout << "# sure we get the hour ticks for the last chart.\n";
+      std::cout << "Axis.X.TickSpacing: 0 6\n";
+      break;
+    }
+    case 4:
+    {
+      double a[ 4 ] = { 5, 10, 12 };
+      double b[ 4 ] = { 8, 10, 40 };
+      double c[ 4 ] = { 4, 10,  8 };
+      #include <dash_e4.h>
+      std::cout << std::fixed << std::setprecision( 1 );
+      for ( int x = 0; x < 16; x++ ) {
+        std::cout << ' ' << x;
+        for ( int series = 0; series < 3; series++ ) {
+          double y =
+            c[ series ] *
+            std::exp( -std::pow( x - a[ series ], 2 ) / b[ series ] );
+          std::cout << ' ' << y;
+        }
+        std::cout << '\n';
+      }
+      std::cout << "MacroEnd: Series\n";
+      std::cout << '\n';
+      break;
+    }
+    case 5:
+    {
+      std::uniform_real_distribution< double > rnd_dy{ -10e12, +10e12 };
+      int number = 3;
+      std::vector< double > pos_y( number, 0.0 );
+      std::vector< double > neg_y( number, 0.0 );
+      for ( int i = 0; i < 3; i++ ) {
+        double dy = 0;
+        for ( int i = 0; i < number; i++ ) {
+          do dy = rnd_dy( gen ); while ( pos_y[ i ] + dy < 0.0 );
+          pos_y[ i ] += dy;
+          do dy = rnd_dy( gen ); while ( neg_y[ i ] + dy > 0.0 );
+          neg_y[ i ] += dy;
+        }
+      }
+      #include <dash_e5.h>
+      std::cout << std::scientific << std::setprecision( 1 );
+      for ( int sample = 0; sample < 24; sample++ ) {
+        double sum = 0;
+        double dy = 0;
+        for ( int i = 0; i < number; i++ ) {
+          do dy = rnd_dy( gen ); while ( pos_y[ i ] + dy < 0.0 );
+          pos_y[ i ] += dy;
+          do dy = rnd_dy( gen ); while ( neg_y[ i ] + dy > 0.0 );
+          neg_y[ i ] += dy;
+        }
+        std::cout << " \"Hour " << std::setw( 2 ) << sample << '"';
+        for ( int i = 0; i < number; i++ ) {
+          std::cout << ' ' << pos_y[ i ];
+          sum += pos_y[ i ];
+        }
+        for ( int i = 0; i < number; i++ ) {
+          std::cout << ' ' << neg_y[ i ];
+          sum += neg_y[ i ];
+        }
+        std::cout << ' ' << sum;
+        std::cout << '\n';
+      }
+      break;
+    }
+    case 6:
+    {
+      #include <dash_e6.h>
+      break;
+    }
+    case 7:
+    {
+      #include <dash_e7.h>
+      break;
+    }
+    case 8:
+    {
       std::normal_distribution< double > md{ 0.0, 1.0 };
       std::uniform_real_distribution< double > ad{ 0.0, 2 * M_PI };
-      #include <dash_e3.h>
+      #include <dash_e8.h>
       std::cout << std::showpos << std::fixed << std::setprecision( 4 );
       double min = -1.25;
       double max = +1.25;
@@ -204,107 +305,6 @@ void gen_example( int N )
         }
         std::cout << "MacroEnd: y_data" << '\n';
       }
-      break;
-    }
-    case 4:
-    {
-      #include <dash_e4.h>
-      break;
-    }
-    case 5:
-    {
-      std::uniform_real_distribution< double > rnd_dy{ -10e12, +10e12 };
-      int number = 3;
-      std::vector< double > pos_y( number, 0.0 );
-      std::vector< double > neg_y( number, 0.0 );
-      for ( int i = 0; i < 3; i++ ) {
-        double dy = 0;
-        for ( int i = 0; i < number; i++ ) {
-          do dy = rnd_dy( gen ); while ( pos_y[ i ] + dy < 0.0 );
-          pos_y[ i ] += dy;
-          do dy = rnd_dy( gen ); while ( neg_y[ i ] + dy > 0.0 );
-          neg_y[ i ] += dy;
-        }
-      }
-      #include <dash_e5.h>
-      std::cout << std::scientific << std::setprecision( 1 );
-      for ( int sample = 0; sample < 24; sample++ ) {
-        double sum = 0;
-        double dy = 0;
-        for ( int i = 0; i < number; i++ ) {
-          do dy = rnd_dy( gen ); while ( pos_y[ i ] + dy < 0.0 );
-          pos_y[ i ] += dy;
-          do dy = rnd_dy( gen ); while ( neg_y[ i ] + dy > 0.0 );
-          neg_y[ i ] += dy;
-        }
-        std::cout << " \"Hour " << std::setw( 2 ) << sample << '"';
-        for ( int i = 0; i < number; i++ ) {
-          std::cout << ' ' << pos_y[ i ];
-          sum += pos_y[ i ];
-        }
-        for ( int i = 0; i < number; i++ ) {
-          std::cout << ' ' << neg_y[ i ];
-          sum += neg_y[ i ];
-        }
-        std::cout << ' ' << sum;
-        std::cout << '\n';
-      }
-      break;
-    }
-    case 6:
-    {
-      double a[ 4 ] = { 5, 10, 12 };
-      double b[ 4 ] = { 8, 10, 40 };
-      double c[ 4 ] = { 4, 10,  8 };
-      #include <dash_e6.h>
-      std::cout << std::fixed << std::setprecision( 1 );
-      for ( int x = 0; x < 16; x++ ) {
-        std::cout << ' ' << x;
-        for ( int series = 0; series < 3; series++ ) {
-          double y =
-            c[ series ] *
-            std::exp( -std::pow( x - a[ series ], 2 ) / b[ series ] );
-          std::cout << ' ' << y;
-        }
-        std::cout << '\n';
-      }
-      std::cout << "MacroEnd: Series\n";
-      std::cout << '\n';
-      break;
-    }
-    case 7:
-    {
-      #include <dash_e7.h>
-      break;
-    }
-    case 8:
-    {
-      #include <dash_e8.h>
-      std::uniform_real_distribution< double > rnd{ 0.0, 1.0 };
-      for ( int server = 1; server <= 3; server++ ) {
-        std::cout << '\n';
-        std::cout << "New:\n";
-        std::cout << "Title: Server " << server << '\n';
-        std::cout << "SubTitle: 192.42.100." << server << '\n';
-        std::cout << "Macro: Setup\n";
-        std::cout << "Series.Data:\n";
-        double load = 0;
-        double usrs = 0;
-        for ( int sample = 0; sample <= 4 * 24; sample++ ) {
-          load = 0.2 * load + 1.0 * rnd( gen );
-          usrs = 0.5 * usrs + 0.6 * rnd( gen );
-          load = std::min( 1.0, std::max( 0.0, load ) );
-          usrs = std::min( 1.0, std::max( 0.0, usrs ) );
-          std::cout << ' ' << sample << 'h';
-          std::cout << ' ' << static_cast< int >( 100 * load );
-          std::cout << ' ' << static_cast< int >(  20 * usrs );
-          std::cout << '\n';
-        }
-      }
-      std::cout << '\n';
-      std::cout << "# In case Condensed layout is used (see above) make\n";
-      std::cout << "# sure we get the hour ticks for the last chart.\n";
-      std::cout << "Axis.X.TickSpacing: 0 6\n";
       break;
     }
     case 9:
