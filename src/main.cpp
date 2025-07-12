@@ -377,7 +377,7 @@ void gen_example( int N )
           std::cout << ' ' << p.first;
           std::cout << ' ' << p.second * uncertainty;
           std::cout << '\n';
-          std::cout << " ! !\n";
+          std::cout << " !\n";
         }
         std::cout << "MacroEnd: " << name << "Uncertainty\n";
 
@@ -2367,7 +2367,7 @@ void parse_series_data( void )
       uint32_t series_idx = state.series_list.size() - y_values + n;
       skip_ws();
       double y;
-      if ( at_eol() && x_is_txt ) {
+      if ( at_eol() ) {
         y = Chart::num_skip;
         state.series_list[ series_idx ]->Add( x, y );
       } else {
