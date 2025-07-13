@@ -7,7 +7,7 @@ SVG_DIR  := svg
 INCLUDES := -I$(SRC_DIR) -I$(SVG_DIR)
 SRCS     := $(wildcard $(SRC_DIR)/*.cpp) $(wildcard $(SVG_DIR)/*.cpp)
 INCS     := $(wildcard $(SRC_DIR)/*.h) $(wildcard $(SVG_DIR)/*.h)
-TARGET   := chartus
+TARGET   := ./chartus
 SCRIPT   := bin/svg2png
 PREFIX   ?= /usr/local
 BINDIR   := $(PREFIX)/bin
@@ -15,7 +15,14 @@ BINDIR   := $(PREFIX)/bin
 all: $(TARGET)
 
 $(TARGET): $(SRCS) $(INCS)
+	@echo "Building $(notdir $(TARGET))..."
 	@$(CXX) $(CXXFLAGS) $(INCLUDES) $(SRCS) -o $(TARGET)
+
+examples: $(TARGET)
+	@for i in 1 2 3 4 5 6 7 8 9; do \
+	  echo "Generating example $${i}..."; \
+	  ${TARGET} -e$${i} | ${TARGET} >e$${i}.svg; \
+	done
 
 install: $(TARGET) $(SCRIPT)
 	install -d $(BINDIR)
@@ -30,5 +37,6 @@ uninstall:
 
 clean:
 	rm -f $(TARGET)
+	rm -f e?.svg
 
-.PHONY: all clean install uninstall
+.PHONY: all examples install uninstall clean
