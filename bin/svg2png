@@ -6,13 +6,22 @@ TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
 show_help () {
-  echo "Usage: svg2png [FILE.svg...] [WIDTH|ZOOM]"
-  echo "       svg2png [FILE.svg] FILE.png [WIDTH|ZOOM]"
-  echo ""
-  echo "A zoom factor has a decimal point while a width does not."
-  echo ""
-  echo "If no SVG file, read standard input and write to"
-  echo "standard output or PNG file."
+  cat <<EOT
+Usage: svg2png [FILE.svg...] [WIDTH|ZOOM]
+       svg2png [FILE.svg] FILE.png [WIDTH|ZOOM]
+
+A zoom factor has a decimal point while a width does not.
+
+If no svg file, read standard input and write to standard
+output or to the given png file.
+
+Examples:
+  svg2png a.svg 500             Generate a.png, 500 pixels wide.
+  svg2png a.svg b.png           Generate b.png.
+  svg2png *.svg 0.7             Generate png files for all svg files in
+                                current directory, reduced by 30% in size.
+  cat a.svg | svg2png >a.png    Pipe through.
+EOT
   exit 0
 }
 

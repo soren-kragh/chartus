@@ -1,11 +1,11 @@
 std::cout << R"EOF(
 # Simple template
 
+ChartBox: Off
+
 Title       : Chart Title
 Axis.X.Label: X-Axis Label
 Axis.Y.Label: Y-Axis Label
-
-ChartBox: Off
 
 Series.Type : XY
 Series.New  : Series A
