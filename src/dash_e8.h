@@ -44,7 +44,7 @@ GlobalTitlePos: Left
 GlobalTitleLine: On
 
 # Grid position of the main chart.
-New: 0 0
+NewChartInGrid: 0 0
 
 ChartArea: 600 600
 ChartBox: On
@@ -115,7 +115,7 @@ MacroEnd: SidePanel
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
 # Define grid position of new chart for the X side panel.
-New: 1 0
+NewChartInGrid: 1 0
 Title: X
 ChartArea: 600 120
 Macro: SidePanel
@@ -130,7 +130,7 @@ Series.Data:
 Macro: x_data
 
 # Define grid position of new chart for the Y side panel.
-New: 0 1
+NewChartInGrid: 0 1
 Title: Y
 ChartArea: 120 600
 Macro: SidePanel

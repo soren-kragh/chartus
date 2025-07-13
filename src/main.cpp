@@ -147,7 +147,7 @@ void gen_example( int N )
       std::uniform_real_distribution< double > rnd{ 0.0, 1.0 };
       for ( int server = 1; server <= 3; server++ ) {
         std::cout << '\n';
-        std::cout << "New:\n";
+        std::cout << "NewChartInGrid:\n";
         std::cout << "Title: Server " << server << '\n';
         std::cout << "SubTitle: 192.42.100." << server << '\n';
         std::cout << "Macro: Setup\n";
@@ -939,7 +939,7 @@ Chart::Main* CurChart( void )
   return ensemble.LastChart();
 }
 
-void do_New( void )
+void do_NewChartInGrid( void )
 {
   Chart::Pos align_hor = Chart::Pos::Auto;
   Chart::Pos align_ver = Chart::Pos::Auto;
@@ -1892,7 +1892,8 @@ void AddSeries( std::string name = "" )
     state.series_list.back()->SetLineDash( state.line_dash, state.line_hole );
   }
   if ( state.fill_transparency >= 0 ) {
-    state.series_list.back()->FillColor()->SetTransparency( state.fill_transparency );
+    state.series_list.back()->
+      FillColor()->SetTransparency( state.fill_transparency );
   }
   state.series_list.back()->LineColor()->Lighten( state.lighten );
   state.series_list.back()->FillColor()->Lighten( state.lighten );
@@ -2136,7 +2137,8 @@ void do_Series_FillTransparency( void )
   }
   expect_eol();
   if ( state.defining_series ) {
-    state.series_list.back()->FillColor()->SetTransparency( state.fill_transparency );
+    state.series_list.back()->
+      FillColor()->SetTransparency( state.fill_transparency );
   }
 }
 
@@ -2157,7 +2159,8 @@ void do_Series_FillColor( void )
   do_Color( state.series_list.back()->FillColor() );
   state.series_list.back()->FillColor()->Lighten( state.lighten );
   if ( state.fill_transparency >= 0 ) {
-    state.series_list.back()->FillColor()->SetTransparency( state.fill_transparency );
+    state.series_list.back()->
+      FillColor()->SetTransparency( state.fill_transparency );
   }
 }
 
@@ -2412,7 +2415,7 @@ std::unordered_map< std::string, ChartAction > chart_actions = {
   { "GlobalLegendSize"       , do_GlobalLegendSize        },
   { "GlobalLegendColor"      , do_GlobalLegendColor       },
   { "LetterSpacing"          , do_LetterSpacing           },
-  { "New"                    , do_New                     },
+  { "NewChartInGrid"         , do_NewChartInGrid          },
   { "ChartArea"              , do_ChartArea               },
   { "ChartBox"               , do_ChartBox                },
   { "ForegroundColor"        , do_ForegroundColor         },

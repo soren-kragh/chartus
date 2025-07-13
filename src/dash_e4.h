@@ -1,25 +1,25 @@
 std::cout << R"EOF(
 GlobalTitle: Different Bar Plot Types
 
-New: 0 0
+NewChartInGrid: 0 0
 Title: Bar
 Series.Type: Bar
 Macro: Setup
 Macro: Series
 
-New: 0 1
+NewChartInGrid: 0 1
 Title: StackedBar
 Series.Type: StackedBar
 Macro: Setup
 Macro: Series
 
-New: 1 0
+NewChartInGrid: 1 0
 Title: LayeredBar
 Series.Type: LayeredBar
 Macro: Setup
 Macro: Series
 
-New: 1 1
+NewChartInGrid: 1 1
 Title: LayeredBar
 SubTitle:
   LayeredBarWidth: 1.0
@@ -30,7 +30,7 @@ LayeredBarWidth: 1.0
 Series.FillTransparency: 0.7
 Macro: Series
 
-New: 2 0
+NewChartInGrid: 2 0
 Title: Lollipop
 SubTitle:
   BarWidth: 1 0

@@ -42,7 +42,7 @@ std::cout << R"EOF(
 #
 # Defining one or more charts generally follows this sequence:
 #
-#   New: <grid position of first chart>
+#   NewChartInGrid: <grid position of first chart>
 #   Series.Type: <type of all following series>
 #   Series.New: <first series>
 #   <specifiers for above series>
@@ -52,11 +52,15 @@ std::cout << R"EOF(
 #   ...
 #   Series.Data:
 #   <data for all above series>
-#   New: <grid position of next chart>
+#
+#   NewChartInGrid: <grid position of next chart>
 #   ...
 #
-# Not that many specifiers are persistent, meaning that they will carry over
-# into the next series.
+# You don't need NewChartInGrid if you just have one chart (the common case).
+#
+# Note that many specifiers are persistent, meaning that they will carry over
+# into the next series; use Series.Style to reset (almost) all persistent style
+# specifiers.
 #
 # In the following, all supported specifiers will be documented with examples.
 # Everything has been commented out in this file, so it will not do anything if
@@ -85,7 +89,7 @@ std::cout << R"EOF(
 
 # See Title, which is normally what should be used for single charts. Global
 # titles are placed at the top and are typically used for when multiple charts
-# are organized in a grid (see New).
+# are organized in a grid (see NewChartInGrid).
 #GlobalTitle: Title
 #GlobalSubTitle: Smaller Title
 #GlobalSubSubTitle: Even Smaller Title
@@ -102,7 +106,8 @@ std::cout << R"EOF(
 # Specify the position of global series legends. If Auto (the default), the
 # global legends will be placed in a free chart grid location if possible, or
 # otherwise below all the charts. Alternatively a grid location (with optional
-# alignment) can be specified explicitly using same syntax as for New (see New).
+# alignment) can be specified explicitly, using the same syntax as is used for
+# the NewChartInGrid specifier.
 #GlobalLegendPos: Bottom
 
 # Set the relative size of global legend box texts.
@@ -111,7 +116,8 @@ std::cout << R"EOF(
 # The background color of the global legend box.
 #GlobalLegendColor: darkseagreen
 
-# Adds a footnote. Footnotes are placed below everything.
+# Adds a footnote. Footnotes are placed below everything. Multiple footnotes
+# are supported, possibly with different alignment (see FootnotePos).
 Footnote:
   https://github.com/soren-kragh/chartus
 
@@ -127,8 +133,7 @@ FootnotePos: Right
 
 # The default spacing and positioning of letters are based on mono-spaced Latin
 # letters. This is done in order to get a fully portable SVG where things do not
-# become misaligned if font properties differ slightly on a different system;
-# this is especially an issue for proportional fonts.
+# become misaligned if font properties differ slightly on a different system.
 # If non-Latin letters are used, however, the LetterSpacing may be used to
 # adjust the spacing by the given factor. The first number is the width
 # adjustment factor, the second optional number is the height adjustment factor,
@@ -154,12 +159,14 @@ FootnotePos: Right
 #
 # The chart edges of the same row/column will be aligned if possible, empty
 # rows/columns can however be inserted to avoid this, for example:
-# New: 0 0
+#
+# NewChartInGrid: 0 0
 # ChartArea: 200 200
-# New: 0 1
+# NewChartInGrid: 0 1
 # ChartArea: 200 200
-# New: 1 0 1 1
+# NewChartInGrid: 1 0 1 1
 # ChartArea: 600 200
+#
 # Will give:
 # +----+      +----+
 # |    |      |    |
@@ -169,13 +176,16 @@ FootnotePos: Right
 # |                |
 # |                |
 # +----------------+
+#
 # Whereas:
-# New: 0 1
+#
+# NewChartInGrid: 0 1
 # ChartArea: 200 200
-# New: 0 2
+# NewChartInGrid: 0 2
 # ChartArea: 200 200
-# New: 1 0 1 3
+# NewChartInGrid: 1 0 1 3
 # ChartArea: 600 200
+#
 # Will give:
 #   +----+  +----+
 #   |    |  |    |
@@ -185,9 +195,11 @@ FootnotePos: Right
 # |                |
 # |                |
 # +----------------+
-# When using New, most state is reset as if a new blank file is started; use
-# macros to easily repeat specifiers shared among multiple charts in the grid.
-#New: 0 0 1 1 Right Top
+#
+# When using NewChartInGrid, most state is reset as if a new blank file is
+# started; use macros to easily repeat specifiers shared among multiple charts
+# in the grid.
+#NewChartInGrid: 0 0 1 1 Right Top
 
 # Specifies the dimensions of the core chart area where the data is graphed.
 # The values are in points and should typically be around 1000. Since SVG is
@@ -267,9 +279,8 @@ SubSubTitle:
 
 # Especially for linear scale, it is often a good idea to select units and scale
 # the data accordingly to avoid very small or very large numbers in the graph.
-# It is a cardinal sin to not have units on your axes, but the Axis.*.Label or
-# Axis.*.NumberUnit can also serve that purpose (especially if the Axis.*.Style
-# is not Arrow).
+# It is unwise to not have units on your axes, but the Axis.*.Label or
+# Axis.*.NumberUnit can also serve that purpose.
 #Axis.X.Unit: Mb/s
 #Axis.Y.Unit:
 #  micro
@@ -325,9 +336,9 @@ SubSubTitle:
 # is shown, for example, if the texts represent years, showing only every 10th
 # year can be appealing. The first number is the starting position to show, and
 # the second optional number is the stride after that (default stride is 1).
-# When stacking charts (see New) sharing the same textual X-axis, a trick to
-# not show the categories for the stacked charts, is to set the TickSpacing
-# start position really high for all but the bottom chart.
+# When stacking charts (see NewChartInGrid) sharing the same textual X-axis, a
+# trick to not show the categories for the stacked charts, is to set the
+# TickSpacing start position really high for all but the bottom chart.
 #Axis.X.TickSpacing: 0 10
 
 # Turn grid lines on/off for major and minor ticks; may be On or Off. Unless
@@ -591,7 +602,7 @@ SubSubTitle:
 
 # Position of tag; may be Auto, Left, Right, Above, Below, or Center. Default is
 # Auto. For Bar and Lollipop type plots the position may be Auto, Center, Base,
-# End, and Beyond.
+# End, or Beyond.
 #Series.TagPos: Below
 
 # Tag size scaling factor.
@@ -607,7 +618,6 @@ SubSubTitle:
 #Series.TagTextColor: black
 #Series.TagFillColor: lightyellow 0 0.3
 #Series.TagLineColor: black
-
 
 # The Series.Data defines the actual data values, each line is an X-value
 # followed by one or more Y-values corresponding to each of the series defined
@@ -628,10 +638,10 @@ Series.Data:
         "Fruit Cake"    -42             88
 
 # A macro is defined with MacroDef and must end with MacroEnd; the macro name
-# must match. The macro is called with Macro; a macro can call other macros but
+# must match. The macro is called with Macro. A macro can call other macros but
 # cannot itself define a macro.
 #MacroDef: MyMacro
-# Lines in macro
+#<lines in macro>
 #MacroEnd: MyMacro
 #Macro: MyMacro
 )EOF";

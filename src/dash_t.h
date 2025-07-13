@@ -5,6 +5,8 @@ Title       : Chart Title
 Axis.X.Label: X-Axis Label
 Axis.Y.Label: Y-Axis Label
 
+ChartBox: Off
+
 Series.Type : XY
 Series.New  : Series A
 Series.New  : Series B
@@ -16,7 +18,10 @@ Series.Data :
         71      4.3     1
         97      14      -17
 
-# Summary of all available specifiers (see -T template for details):
+# Summary of all available specifiers (see -T template for details).
+# Note: Axis.* is used here as documentation shorthand - specify each axis
+# individually (Axis.X, Axis.Y, Axis.Y2, etc.)
+#
 # TitleHTML: Chartus
 # Margin: 5
 # BorderWidth: 5
@@ -41,7 +46,7 @@ Series.Data :
 # FootnoteSize: 1.0
 # LetterSpacing: 1.8 1.1 0.8
 # GridPadding: 0 12
-# New: 0 0 3 0 Center Bottom
+# NewChartInGrid: 0 0 3 0 Center Bottom
 # ChartArea: 1000 600
 # ChartBox: On
 # ChartAreaColor: dimgray
