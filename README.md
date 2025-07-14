@@ -5,15 +5,14 @@
 Chartus is a simple Linux command line tool to generate basic charts in SVG or
 HTML format.
 
-- Super simple input format makes it easy to quickly visualize data.
+- Very [simple input format](#shortlist-of-all-specifiers) makes it easy to quickly visualize data.
 - Ideally suited for a fully automated work flow using scripts etc.
 - Works well for large data sets.
 - Tweaking options are provided, but the automatic defaults should normally be fine.
 
 The generated SVG files are compatible with a wide variety of software, however,
 more often than not you should use the `svg2png` script to convert to bitmap,
-which is often preferred for e-mails, messages, or if the data set is very
-large.
+which is often preferred for e-mails, messages, or if the SVG gets very large.
 
 See [examples](#built-in-examples) below.
 
@@ -27,13 +26,13 @@ git submodule update --init --recursive
 make
 ```
 
-## Install
+## Install or Update
 
 ```sh
 sudo make install
 ```
 
-Alternatively you can install for your user only:
+Alternatively you can install only for your user:
 
 ```sh
 make install PREFIX=$HOME/.local
@@ -60,6 +59,7 @@ See full [Documentation](#documentation) (based on `chartus -t` and `chartus -T`
 
 ```sh
 sudo make uninstall
+make uninstall PREFIX=$HOME/.local
 ```
 
 # Built-In Examples
@@ -321,7 +321,7 @@ Series.Data :
 #   Series.New: <first series>
 #   <specifiers for above series>
 #   ...
-#   Series.New: <last series>
+#   Series.New: <next series>
 #   <specifiers for above series>
 #   ...
 #   Series.Data:
@@ -495,7 +495,7 @@ FootnotePos: Right
 # shown).
 #FrameColor: aqua 0 0.5
 
-# Titles are placed at the top of the chart.
+# Titles are normally placed at the top of the chart.
 Title: This is the title of the chart
 
 SubTitle:
@@ -711,7 +711,8 @@ SubSubTitle:
 #-------------------------------------------------------------------------------
 #   XY          Number      X/Y plot (default). Regard X-values as numbers and
 #                           draw lines between data points, possibly with point
-#                           markers.
+#                           markers. Recommended for very large data sets (do
+#                           not enable point markers in this case though).
 #   Scatter     Number      Scatter plot. Same as XY but with no lines and
 #                           always with point markers. Using a highly
 #                           transparent LineColor and/or FillColor can achieve a
@@ -723,16 +724,16 @@ SubSubTitle:
 #   Point       Text        Like Scatter, but regard X-values as text.
 #   Lollipop    Text        Lollipop plot. Regard X-values as text and draw
 #                           lines from data points to Base; default with point
-#                           markers. Do not use for very large data sets.
+#                           markers. Do not use for large data sets.
 #   Bar         Text        Bar plot. Regard X-values as text and draw bars
 #                           from data points to Base (usually zero). Do not use
-#                           for very large data sets.
+#                           for large data sets.
 #   StackedBar  Text        Like Bar, but stack on top of (or below if negative
 #                           relative to Base) the previous bar. Do not use for
-#                           very large data sets.
+#                           large data sets.
 #   LayeredBar  Text        Like Bar, but place bars from different series on
 #                           top of each other in layers; see LayeredBarWidth.
-#                           Do not use for very large data sets.
+#                           Do not use for large data sets.
 #   Area        Text        Area plot. Regard X-values as text and draw an area
 #                           polygon between data points and the Base line.
 #                           Optionally also draw a line between data points,
@@ -749,11 +750,11 @@ SubSubTitle:
 # the X-value is interpreted as a text string. The Series.Type attribute applies
 # to all subsequent series, or until it is redefined.
 #
-# (*) If you do mix, the underlying X-value on a textual X-axis is just the
-# position starting from 0, so for a Bar plot with 10 bars the X-values will go
-# from 0 to 9. This knowledge can be used to show XY or Scatter plots on top of
-# e.g. Bar plots, but often Line or Point plots will be a better choice in this
-# situation.
+# (*) If you do mix (using a separate Series.Data), the underlying X-value on a
+# textual X-axis is just the position starting from 0, so for a Bar plot with 10
+# bars the X-values will go from 0 to 9. This knowledge can be used to show XY
+# or Scatter plots on top of e.g. Bar plots, but often Line or Point plots will
+# be a better choice in this situation.
 #
 # The Series-Type specifier must be given BEFORE the Series.New to which it
 # associate.
@@ -778,12 +779,11 @@ SubSubTitle:
 # gets too big. The default is 0.3, meaning that if the pruning causes a render
 # inaccuracy of less than 0.3 points (pixels), pruning can happen. This
 # attribute applies to the current series and all subsequent series, or until it
-# is redefined. Bar, StackedBar, and Lollipop plots cannot be pruned, but you
-# should not use these types for large data sets anyway.
-# The pruning algorithm is NOT a smoothing operation. Thin spikes are preserved
-# and the overall shape of the series is generally preserved, while at the same
-# time drastically reducing the number of SVG elements in e.g. noisy sensor data
-# etc.
+# is redefined. Bar, StackedBar, LayeredBar, and Lollipop plots cannot be
+# pruned, but you should not use these types for large data sets anyway. The
+# pruning algorithm is NOT a smoothing operation. Thin spikes are preserved and
+# the overall shape of the series is generally preserved, while at the same time
+# drastically reducing the number of SVG elements in e.g. noisy sensor data etc.
 #Series.Prune: 0.3
 
 # Set the series legend to be global; may be On or Off, default is Off. Global
@@ -898,7 +898,7 @@ SubSubTitle:
 # above. If no new series was created beforehand, an anonymous one will be
 # automatically created. If all series are either XY or Scatter, then the
 # X-value will be interpeted as a number, otherwise the X-value is regarded as a
-# text string, which must be double quoted if it contains spaces.
+# text string, which must be double quoted if it contains spaces or commas.
 # If a dash (-) is given for a value, it means that the data point is skipped,
 # if an exclamation mark (!) is given for a value, it means that the data point
 # is undefined. The exclamation mark causes a break in a line plot, while a dash
