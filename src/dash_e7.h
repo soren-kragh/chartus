@@ -37,7 +37,8 @@ Axis.Y2.Style: Edge
 Axis.Y2.Label: Population
 Axis.Y2.SubLabel:
   (billion people)
-Axis.Y2.MinorNumber: On
+Axis.Y2.Range: 0 10
+Axis.Y2.Tick: 1 2
 
 # Also try Line or Point instead of StackedArea
 Series.Type: StackedArea

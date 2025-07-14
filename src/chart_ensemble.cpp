@@ -742,7 +742,7 @@ std::string Ensemble::Build( void )
     ->SetWidthFactor( width_adj )
     ->SetHeightFactor( height_adj )
     ->SetBaselineFactor( baseline_adj );
-  top_g->Attr()->SetTextMathDigits( true );
+  top_g->Attr()->SetTextZeroToO( true );
 
   top_g->Attr()->TextColor()->Set( ForegroundColor() );
   top_g->Attr()->LineColor()->Set( ForegroundColor() );
