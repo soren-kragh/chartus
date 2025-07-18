@@ -1,0 +1,74 @@
+//
+//  MIT No Attribution License
+//
+//  Copyright 2025, Soren Kragh
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the
+//  “Software”), to deal in the Software without restriction, including
+//  without limitation the rights to use, copy, modify, merge, publish,
+//  distribute, sublicense, and/or sell copies of the Software, and to
+//  permit persons to whom the Software is furnished to do so.
+//
+
+#pragma once
+
+#include <unordered_map>
+
+#include <chart_common.h>
+
+namespace Chart {
+
+class Source
+{
+public:
+
+  Source() = default;
+
+  void ParseErr( const std::string& msg, bool revert_pos = false );
+
+  void AddFile( std::string_view file_name );
+  void ProcessLine( const std::string& line );
+  void ReadFiles();
+  void NextLine();
+
+  static bool IsWS( char c );
+
+  bool AtEOF();
+  bool AtSOL();
+  bool AtEOL();
+
+  void ToSOL();
+  void ToEOL();
+  char CurChar();
+  char GetChar( bool adv );
+
+  void SkipWS( bool multi_line = false );
+
+  void ExpectEOL();
+
+  std::string GetIdentifier( bool all_non_ws = false );
+
+private:
+
+  struct file_rec_t {
+    std::string name;
+    std::string data;
+  };
+
+  struct file_pos_t {
+    size_t file_rec_idx = 0;
+    size_t line_num = 0;
+    size_t char_idx = 0;
+  };
+
+  std::vector< file_rec_t > file_recs;
+
+  std::unordered_map< std::string, file_pos_t > macros;
+
+  file_pos_t ref_pos;
+  file_pos_t cur_pos;
+
+};
+
+}
