@@ -157,9 +157,9 @@ Series* Main::AddSeries( SeriesType type )
   return series;
 }
 
-void Main::AddCategory( const std::string& category )
+void Main::AddCategory( std::string_view category )
 {
-  category_list.push_back( category );
+  category_list.emplace_back( category );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -94,7 +94,7 @@ public:
   Series* AddSeries( SeriesType type );
 
   // Add categories for string based X-values.
-  void AddCategory( const std::string& category );
+  void AddCategory( std::string_view category );
 
   void Build( void );
 

@@ -13,6 +13,34 @@
 
 #pragma once
 
+//------------------------------------------------------------------------------
+
+#include <iostream>
+#include <chrono>
+#include <cstdio>
+#include <limits>
+
+inline auto last_checkpoint_time = std::chrono::high_resolution_clock::now();
+
+#define PERF_CHECKPOINT( msg ) \
+  do { \
+    auto current_time = std::chrono::high_resolution_clock::now(); \
+    auto elapsed = std::chrono::duration_cast< std::chrono::microseconds >(current_time - last_checkpoint_time).count(); \
+    std::cerr << "[PERF] " << __FILE__ << ":" << __LINE__ << " - " \
+              << msg << ": " << elapsed << " μs since last checkpoint" << std::endl; \
+    std::cerr << "Press Enter to continue..." << std::flush; \
+    std::cin.clear(); \
+    std::cin.ignore( std::numeric_limits< std::streamsize >::max(), '\n' ); \
+    last_checkpoint_time = std::chrono::high_resolution_clock::now(); \
+  } while( 0 )
+
+#define PERF_RESET() \
+  do { \
+    last_checkpoint_time = std::chrono::high_resolution_clock::now(); \
+  } while( 0 )
+
+//------------------------------------------------------------------------------
+
 #include <svg_canvas.h>
 
 namespace Chart {

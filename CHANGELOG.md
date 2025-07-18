@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 ### Changed
+- Reduce memory footprint of input source data structure
 
 ### Deprecated
 
@@ -17,4 +18,4 @@ All notable changes to this project will be documented in this file.
 
 ## [1.0.0] - 2025-07-14
 ### Added
-- Initial release.
+- Initial release

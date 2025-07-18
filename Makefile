@@ -1,7 +1,7 @@
 # Makefile for Chartus
 
 CXX      := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -O3 -Wfatal-errors
+CXXFLAGS := -std=c++17 -Wall -Wextra -Wfatal-errors -O3
 SRC_DIR  := src
 SVG_DIR  := svg
 INCLUDES := -I$(SRC_DIR) -I$(SVG_DIR)
