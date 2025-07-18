@@ -25,6 +25,7 @@ public:
 
   Source() = default;
 
+  void Err( const std::string& msg );
   void ParseErr( const std::string& msg, bool revert_pos = false );
 
   void AddFile( std::string_view file_name );
@@ -57,7 +58,7 @@ private:
   };
 
   struct file_pos_t {
-    size_t file_rec_idx = 0;
+    size_t file_num = 0;
     size_t line_num = 0;
     size_t char_idx = 0;
   };

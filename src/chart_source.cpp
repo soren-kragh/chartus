@@ -11,11 +11,19 @@
 //  permit persons to whom the Software is furnished to do so.
 //
 
+#include <fstream>
+
 #include <chart_source.h>
 
 using namespace Chart;
 
 ////////////////////////////////////////////////////////////////////////////////
+
+void Source::Err( const std::string& msg )
+{
+  std::cerr << "*** ERROR: " << msg << std::endl;
+  exit( 1 );
+}
 
 void Source::ParseErr( const std::string& msg, bool revert_pos )
 {
@@ -24,7 +32,7 @@ void Source::ParseErr( const std::string& msg, bool revert_pos )
     cur_pos = pos;
     ToSOL();
     auto col = pos.char_idx - cur_pos.char_idx;
-    file_rec_t& file_rec = file_recs[ pos.file_rec_idx ];
+    file_rec_t& file_rec = file_recs[ pos.file_num ];
     std::cerr
       << file_rec.name << " ("
       << pos.line_num << ','
@@ -51,7 +59,7 @@ void Source::AddFile( std::string_view file_name )
 
 void Source::ProcessLine( const std::string& line )
 {
-  file_rec_t& file_rec = file_recs[ cur_pos.file_rec_idx ];
+  file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
   file_rec.data += line;
   file_rec.data += '\n';
   if ( line.size() >= 9 && line.compare( 0, 9, "MacroDef:" ) == 0 ) {
@@ -70,6 +78,37 @@ void Source::ProcessLine( const std::string& line )
 
 void Source::ReadFiles()
 {
+  auto trunc_nl = []( std::string& s )
+  {
+    while ( s.length() > 0 ) {
+      if ( s.back() != '\r' && s.back() != '\n' ) break;
+      s.pop_back();
+    }
+  };
+
+  for ( auto& file_rec : file_recs ) {
+    if ( file_rec.name == "-" ) {
+      std::string line;
+      while ( std::getline( std::cin, line ) ) {
+        trunc_nl( line );
+        ProcessLine( line );
+      }
+    } else {
+      std::ifstream file( file_rec.name );
+      if ( file ) {
+        std::string line;
+        while ( std::getline( file, line ) ) {
+          trunc_nl( line );
+          ProcessLine( line );
+        }
+        file.close();
+      } else {
+        Err( "Unable to open file '" + file_rec.name + "'" );
+      }
+    }
+    cur_pos.file_num++;
+  }
+  cur_pos = {};
 }
 
 void Source::NextLine()
@@ -90,13 +129,13 @@ bool Source::IsWS( char c )
 
 bool Source::AtEOF()
 {
-  file_rec_t& file_rec = file_recs[ cur_pos.file_rec_idx ];
+  file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
   return cur_pos.char_idx == file_rec.data.size();
 }
 
 bool Source::AtSOL()
 {
-  file_rec_t& file_rec = file_recs[ cur_pos.file_rec_idx ];
+  file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
   if ( cur_pos.char_idx == 0 ) return true;
   if ( file_rec.data[ cur_pos.char_idx - 1 ] == '\n' ) return true;
   return false;
@@ -104,7 +143,7 @@ bool Source::AtSOL()
 
 bool Source::AtEOL()
 {
-  file_rec_t& file_rec = file_recs[ cur_pos.file_rec_idx ];
+  file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
   if ( AtEOF() ) return true;
   if ( file_rec.data[ cur_pos.char_idx ] == '\n' ) return true;
   if ( AtSOL() && file_rec.data[ cur_pos.char_idx ] == '#' ) return true;
@@ -126,7 +165,7 @@ void Source::ToEOL()
 char Source::CurChar()
 {
   if ( AtEOL() ) return '\n';
-  file_rec_t& file_rec = file_recs[ cur_pos.file_rec_idx ];
+  file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
   char c = file_rec.data[ cur_pos.char_idx ];
   return c;
 }
