@@ -35,7 +35,7 @@ public:
 
   static bool IsWS( char c );
 
-  bool AtEOF();
+  bool AtEOF();         // At end of the last file.
   bool AtSOL();
   bool AtEOL();
 

@@ -114,8 +114,13 @@ void Source::ReadFiles()
 void Source::NextLine()
 {
   if ( AtEOF() ) return;
-  ToEOL();
+  file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
+  while ( file_rec.data[ cur_pos.char_idx++ ] != '\n' ) {}
   cur_pos.line_num++;
+  if ( cur_pos.char_idx == file_rec.data.size() ) {
+    cur_pos.file_num++;
+    cur_pos.char_idx = 0;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -129,8 +134,7 @@ bool Source::IsWS( char c )
 
 bool Source::AtEOF()
 {
-  file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
-  return cur_pos.char_idx == file_rec.data.size();
+  return cur_pos.file_num == file_recs.size();
 }
 
 bool Source::AtSOL()
