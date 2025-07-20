@@ -51,6 +51,7 @@ public:
   std::string GetIdentifier( bool all_non_ws = false );
   bool GetInt64( int64_t& i );
   bool GetDouble( double& d, bool none_allowed = false );
+  void GetCategory( std::string_view& cat );
 
 private:
 

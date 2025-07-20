@@ -63,7 +63,8 @@ void Source::AddFile( std::string_view file_name )
 void Source::ProcessLine( const std::string& line )
 {
   file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
-  file_rec.data += line;
+  bool comment = line.size() >= 1 && line[ 0 ] == '#';
+  if ( !comment ) file_rec.data += line;
   file_rec.data += '\n';
   if ( line.size() >= 9 && line.compare( 0, 9, "MacroDef:" ) == 0 ) {
     cur_pos.char_idx += 9;
@@ -143,18 +144,12 @@ bool Source::AtEOF()
 bool Source::AtSOL()
 {
   file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
-  if ( cur_pos.char_idx == 0 ) return true;
-  if ( file_rec.data[ cur_pos.char_idx - 1 ] == '\n' ) return true;
-  return false;
+  return cur_pos.char_idx == 0 || file_rec.data[ cur_pos.char_idx - 1 ] == '\n';
 }
 
 bool Source::AtEOL()
 {
-  file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
-  if ( AtEOF() ) return true;
-  if ( file_rec.data[ cur_pos.char_idx ] == '\n' ) return true;
-  if ( AtSOL() && file_rec.data[ cur_pos.char_idx ] == '#' ) return true;
-  return false;
+  return CurChar() == '\n';
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -171,10 +166,7 @@ void Source::ToEOL()
 
 char Source::CurChar()
 {
-  if ( AtEOL() ) return '\n';
-  file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
-  char c = file_rec.data[ cur_pos.char_idx ];
-  return c;
+  return file_recs[ cur_pos.file_num ].data[ cur_pos.char_idx ];
 }
 
 char Source::GetChar( bool adv )
@@ -270,6 +262,27 @@ bool Source::GetDouble( double& d, bool none_allowed )
   cur_pos.char_idx += ptr - cur;
   d = result;
   return true;
+}
+
+void Source::GetCategory( std::string_view& cat )
+{
+  ref_pos = cur_pos;
+  file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
+  char* b = file_rec.data.data() + cur_pos.char_idx;
+  bool quoted = *b == '"';
+  if ( quoted ) ++b;
+  char* p = b;
+  while ( *p != '"' && *p != '\n' && (quoted || !IsWS( *p ) ) ) {
+    ++p;
+  }
+  cat = std::string_view( b, (!quoted && p == b + 1 && *b == '-') ? 0 : p - b );
+  if ( quoted && *p++ != '"' ) {
+    ParseErr( "unmatched quote", true );
+  }
+  if ( !IsWS( *p ) ) {
+    ParseErr( "malformed category", true );
+  }
+  cur_pos.char_idx += p - b;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
