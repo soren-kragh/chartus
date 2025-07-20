@@ -12,6 +12,9 @@
 //
 
 #include <fstream>
+#include <cstdint>
+#include <string>
+#include <charconv>
 
 #include <chart_source.h>
 
@@ -221,6 +224,52 @@ std::string Source::GetIdentifier( bool all_non_ws )
     }
   }
   return id;
+}
+
+bool Source::GetInt64( int64_t& i )
+{
+  ref_pos = cur_pos;
+  file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
+
+  const char* cur = file_rec.data.data() + cur_pos.char_idx;
+  const char* end = file_rec.data.data() + file_rec.data.size();
+
+  int64_t result;
+  auto [ptr, ec] = std::from_chars( cur, end, result );
+
+  if ( ec != std::errc() || !IsWS( *ptr ) ) return false;
+
+  cur_pos.char_idx += ptr - cur;
+  i = result;
+  return true;
+}
+
+bool Source::GetDouble( double& d, bool none_allowed )
+{
+  ref_pos = cur_pos;
+  file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
+
+  const char* cur = file_rec.data.data() + cur_pos.char_idx;
+  const char* end = file_rec.data.data() + file_rec.data.size();
+
+  if ( none_allowed && (*cur == '!' || *cur == '-') && IsWS( *(cur + 1) ) ) {
+    d = (*cur == '!') ? Chart::num_invalid : Chart::num_skip;
+    cur_pos.char_idx++;
+    return true;
+  }
+
+  double result;
+  auto [ptr, ec] = std::from_chars( cur, end, result );
+
+  if ( ec != std::errc() || !IsWS( *ptr ) ) return false;
+
+  if ( std::abs( result ) > Chart::num_hi ) {
+    ParseErr( "number too big", true );
+  }
+
+  cur_pos.char_idx += ptr - cur;
+  d = result;
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

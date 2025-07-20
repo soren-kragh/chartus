@@ -49,6 +49,8 @@ public:
   void ExpectEOL();
 
   std::string GetIdentifier( bool all_non_ws = false );
+  bool GetInt64( int64_t& i );
+  bool GetDouble( double& d, bool none_allowed = false );
 
 private:
 
