@@ -28,6 +28,9 @@ public:
   void Err( const std::string& msg );
   void ParseErr( const std::string& msg, bool revert_pos = false );
 
+  void SavePos( uint32_t context = 0 );
+  void RestorePos( uint32_t context = 0 );
+
   void AddFile( std::string_view file_name );
   void ProcessLine( const std::string& line );
   void ReadFiles();
@@ -72,6 +75,8 @@ private:
 
   file_pos_t ref_pos;
   file_pos_t cur_pos;
+
+  file_pos_t saved_pos[ 2 ];
 
 };
 

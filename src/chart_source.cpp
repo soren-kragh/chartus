@@ -51,6 +51,18 @@ void Source::ParseErr( const std::string& msg, bool revert_pos )
 
 ////////////////////////////////////////////////////////////////////////////////
 
+void Source::SavePos( uint32_t context )
+{
+  saved_pos[ context ] = cur_pos;
+}
+
+void Source::RestorePos( uint32_t context )
+{
+  cur_pos = saved_pos[ context ];
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 void Source::AddFile( std::string_view file_name )
 {
   file_rec_t file_rec;
@@ -267,8 +279,7 @@ bool Source::GetDouble( double& d, bool none_allowed )
 void Source::GetCategory( std::string_view& cat )
 {
   ref_pos = cur_pos;
-  file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
-  char* b = file_rec.data.data() + cur_pos.char_idx;
+  char* b = file_recs[ cur_pos.file_num ].data.data() + cur_pos.char_idx;
   bool quoted = *b == '"';
   if ( quoted ) ++b;
   char* p = b;

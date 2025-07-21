@@ -972,6 +972,7 @@ void do_NewChartInGrid( void )
 
   if ( non_newed_chart ) {
     restore_line_pos( 1 );
+    cur_col = 0;
     parse_err(
       "chart specifiers must be preceded by New for multi chart plots"
     );
