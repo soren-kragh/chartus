@@ -45,13 +45,14 @@ public:
   void ToSOL();
   void ToEOL();
   char CurChar();
-  char GetChar( bool adv );
+  char GetChar();
 
   void SkipWS( bool multi_line = false );
 
   void ExpectEOL();
 
-  std::string GetIdentifier( bool all_non_ws = false );
+  std::string_view GetIdentifier( bool all_non_ws = false );
+  bool GetKey( std::string_view& key );
   bool GetInt64( int64_t& i );
   bool GetDouble( double& d, bool none_allowed = false );
   void GetCategory( std::string_view& cat );

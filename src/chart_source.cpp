@@ -81,7 +81,7 @@ void Source::ProcessLine( const std::string& line )
   if ( line.size() >= 9 && line.compare( 0, 9, "MacroDef:" ) == 0 ) {
     cur_pos.char_idx += 9;
     SkipWS();
-    std::string macro_name = GetIdentifier();
+    std::string macro_name{ GetIdentifier() };
     ExpectEOL();
     if ( macros.count( macro_name ) ) {
       ParseErr( "macro '" + macro_name + "' already defined", true );
@@ -181,10 +181,10 @@ char Source::CurChar()
   return file_recs[ cur_pos.file_num ].data[ cur_pos.char_idx ];
 }
 
-char Source::GetChar( bool adv )
+char Source::GetChar()
 {
   char c = CurChar();
-  if ( adv && c != '\n' ) cur_pos.char_idx++;
+  if ( c != '\n' ) cur_pos.char_idx++;
   return c;
 }
 
@@ -208,26 +208,40 @@ void Source::ExpectEOL()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-std::string Source::GetIdentifier( bool all_non_ws )
+std::string_view Source::GetIdentifier( bool all_non_ws )
 {
   ref_pos = cur_pos;
-  std::string id = "";
-  while ( !AtEOL() ) {
-    char c = CurChar();
+  char* cur = file_recs[ cur_pos.file_num ].data.data() + cur_pos.char_idx;
+  char* ptr = cur;
+  while ( true ) {
+    char c = *ptr;
     if (
-      (all_non_ws && !IsWS( c )) ||
+      (all_non_ws && !IsWS( c ) ) ||
       (c >= 'a' && c <= 'z') ||
       (c >= 'A' && c <= 'Z') ||
       (c >= '0' && c <= '9') ||
       (c == '.' || c == '-' || c == '+' || c == '_')
     ) {
-      id.push_back( c );
-      cur_pos.char_idx++;
+      ++ptr;
     } else {
       break;
     }
   }
-  return id;
+  cur_pos.char_idx += ptr - cur;
+  return std::string_view( cur, ptr - cur );
+}
+
+bool Source::GetKey( std::string_view& key )
+{
+  SkipWS( true );
+  if ( AtEOF() ) return false;
+  if ( !AtSOL() ) ParseErr( "KEY must be unindented" );
+  key = GetIdentifier();
+  SkipWS();
+  if ( key.empty() ) ParseErr( "KEY expected" );
+  if ( CurChar() != ':' ) ParseErr( "':' expected" );
+  cur_pos.char_idx++;
+  return true;
 }
 
 bool Source::GetInt64( int64_t& i )
