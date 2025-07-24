@@ -36,7 +36,17 @@ public:
   void ReadFiles();
   void NextLine();
 
-  static bool IsWS( char c );
+  static bool IsWS( char c )
+  {
+    return c == ' ' || c == '\t' || c == '\r';
+  }
+  static bool IsSep( char c )
+  {
+    return IsWS( c ) || c == '\n';
+  }
+
+  bool AtWS() { return IsWS( CurChar() ); }
+  bool AtSep() { return IsSep( CurChar() ); }
 
   bool AtEOF();         // At end of the last file.
   bool AtSOL();
@@ -56,6 +66,7 @@ public:
   bool GetInt64( int64_t& i );
   bool GetDouble( double& d, bool none_allowed = false );
   void GetCategory( std::string_view& cat );
+  void GetText( std::string& txt, bool multi_line );
 
 private:
 

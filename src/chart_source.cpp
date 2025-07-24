@@ -141,13 +141,6 @@ void Source::NextLine()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool Source::IsWS( char c )
-{
-  return c == ' ' || c == '\t' || c == '\r' || c == '\n';
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
 bool Source::AtEOF()
 {
   return cur_pos.file_num == file_recs.size();
@@ -192,12 +185,13 @@ void Source::SkipWS( bool multi_line )
 {
   while ( !AtEOF() ) {
     while ( !AtEOL() ) {
-      if ( !IsWS( CurChar() ) ) return;
+      if ( !AtWS() ) return;
       cur_pos.char_idx++;
     }
     if ( !multi_line ) break;
     NextLine();
   }
+  return;
 }
 
 void Source::ExpectEOL()
@@ -216,7 +210,7 @@ std::string_view Source::GetIdentifier( bool all_non_ws )
   while ( true ) {
     char c = *ptr;
     if (
-      (all_non_ws && !IsWS( c ) ) ||
+      (all_non_ws && !IsSep( c )) ||
       (c >= 'a' && c <= 'z') ||
       (c >= 'A' && c <= 'Z') ||
       (c >= '0' && c <= '9') ||
@@ -255,7 +249,7 @@ bool Source::GetInt64( int64_t& i )
   int64_t result;
   auto [ptr, ec] = std::from_chars( cur, end, result );
 
-  if ( ec != std::errc() || !IsWS( *ptr ) ) return false;
+  if ( ec != std::errc() || !IsSep( *ptr ) ) return false;
 
   cur_pos.char_idx += ptr - cur;
   i = result;
@@ -270,7 +264,7 @@ bool Source::GetDouble( double& d, bool none_allowed )
   const char* cur = file_rec.data.data() + cur_pos.char_idx;
   const char* end = file_rec.data.data() + file_rec.data.size();
 
-  if ( none_allowed && (*cur == '!' || *cur == '-') && IsWS( *(cur + 1) ) ) {
+  if ( none_allowed && (*cur == '!' || *cur == '-') && IsSep( *(cur + 1) ) ) {
     d = (*cur == '!') ? Chart::num_invalid : Chart::num_skip;
     cur_pos.char_idx++;
     return true;
@@ -279,7 +273,7 @@ bool Source::GetDouble( double& d, bool none_allowed )
   double result;
   auto [ptr, ec] = std::from_chars( cur, end, result );
 
-  if ( ec != std::errc() || !IsWS( *ptr ) ) return false;
+  if ( ec != std::errc() || !IsSep( *ptr ) ) return false;
 
   if ( std::abs( result ) > Chart::num_hi ) {
     ParseErr( "number too big", true );
@@ -304,10 +298,53 @@ void Source::GetCategory( std::string_view& cat )
   if ( quoted && *p++ != '"' ) {
     ParseErr( "unmatched quote", true );
   }
-  if ( !IsWS( *p ) ) {
+  if ( !IsSep( *p ) ) {
     ParseErr( "malformed category", true );
   }
   cur_pos.char_idx += p - b;
+}
+
+void Source::GetText( std::string& txt, bool multi_line )
+{
+  txt.clear();
+  SkipWS();
+  while ( !AtEOL() ) txt += GetChar();
+  while ( txt.length() > 0 && IsWS( txt.back() ) ) txt.pop_back();
+  if ( !txt.empty() || !multi_line ) return;
+
+  NextLine();
+  SavePos();
+  size_t min_indent = 0;
+  while ( !AtEOF() ) {
+    size_t i = 0;
+    while ( AtWS() ) {
+      cur_pos.char_idx++;
+      i++;
+    }
+    if ( !AtEOL() ) {
+      if ( i == 0 ) break;
+      if ( min_indent == 0 || i < min_indent ) min_indent = i;
+    }
+    NextLine();
+  }
+  RestorePos();
+  if ( min_indent < 1 ) return;
+
+  while ( !AtEOF() ) {
+    size_t i = 0;
+    while ( AtWS() && i < min_indent ) {
+      cur_pos.char_idx++;
+      i++;
+    }
+    if ( i == 0 && !AtEOL() ) break;
+    while ( !AtEOL() ) txt += GetChar();
+    while ( txt.length() > 0 && IsWS( txt.back() ) ) txt.pop_back();
+    txt += '\n';
+    NextLine();
+  }
+
+  while ( txt.length() > 0 && IsSep( txt.back() ) ) txt.pop_back();
+  return;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
