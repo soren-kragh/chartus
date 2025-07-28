@@ -48,17 +48,33 @@ public:
   bool AtWS() { return IsWS( CurChar() ); }
   bool AtSep() { return IsSep( CurChar() ); }
 
-  bool AtEOF();         // At end of the last file.
-  bool AtSOL();
-  bool AtEOL();
+  bool AtEOF()  // At end of the last file.
+  {
+    return cur_pos.file_num == file_recs.size();
+  }
+  bool AtSOL()
+  {
+    return
+      cur_pos.char_idx == 0 ||
+      file_recs[ cur_pos.file_num ].data[ cur_pos.char_idx - 1 ] == '\n';
+  }
+  bool AtEOL()
+  {
+    return CurChar() == '\n';
+  }
+
+  char CurChar()
+  {
+    return file_recs[ cur_pos.file_num ].data[ cur_pos.char_idx ];
+  }
+  char GetChar()
+  {
+    return file_recs[ cur_pos.file_num ].data[ cur_pos.char_idx++ ];
+  }
 
   void ToSOL();
   void ToEOL();
-  char CurChar();
-  char GetChar();
-
   void SkipWS( bool multi_line = false );
-
   void ExpectEOL();
 
   std::string_view GetIdentifier( bool all_non_ws = false );
@@ -77,7 +93,7 @@ private:
 
   struct file_pos_t {
     size_t file_num = 0;
-    size_t line_num = 0;
+    size_t line_num = 1;
     size_t char_idx = 0;
   };
 

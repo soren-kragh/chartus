@@ -75,10 +75,10 @@ void Source::AddFile( std::string_view file_name )
 void Source::ProcessLine( const std::string& line )
 {
   file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
-  bool comment = line.size() >= 1 && line[ 0 ] == '#';
-  if ( !comment ) file_rec.data += line;
+  file_rec.data += line;
   file_rec.data += '\n';
   if ( line.size() >= 9 && line.compare( 0, 9, "MacroDef:" ) == 0 ) {
+    auto sol_pos = cur_pos;
     cur_pos.char_idx += 9;
     SkipWS();
     std::string macro_name{ GetIdentifier() };
@@ -86,7 +86,8 @@ void Source::ProcessLine( const std::string& line )
     if ( macros.count( macro_name ) ) {
       ParseErr( "macro '" + macro_name + "' already defined", true );
     }
-    macros[ macro_name ] = cur_pos;
+    macros[ macro_name ] = sol_pos;
+    cur_pos = sol_pos;
   }
   cur_pos.line_num += 1;
   cur_pos.char_idx += line.size() + 1;
@@ -129,32 +130,17 @@ void Source::ReadFiles()
 
 void Source::NextLine()
 {
-  if ( AtEOF() ) return;
-  file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
-  while ( file_rec.data[ cur_pos.char_idx++ ] != '\n' ) {}
-  cur_pos.line_num++;
-  if ( cur_pos.char_idx == file_rec.data.size() ) {
-    cur_pos.file_num++;
-    cur_pos.char_idx = 0;
+  while ( true ) {
+    while ( GetChar() != '\n' ) {}
+    cur_pos.line_num++;
+    while ( cur_pos.char_idx == file_recs[ cur_pos.file_num ].data.size() ) {
+      cur_pos.file_num++;
+      cur_pos.line_num = 1;
+      cur_pos.char_idx = 0;
+      if ( AtEOF() ) return;
+    }
+    if ( CurChar() != '#' ) break;
   }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-bool Source::AtEOF()
-{
-  return cur_pos.file_num == file_recs.size();
-}
-
-bool Source::AtSOL()
-{
-  file_rec_t& file_rec = file_recs[ cur_pos.file_num ];
-  return cur_pos.char_idx == 0 || file_rec.data[ cur_pos.char_idx - 1 ] == '\n';
-}
-
-bool Source::AtEOL()
-{
-  return CurChar() == '\n';
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -167,18 +153,6 @@ void Source::ToSOL()
 void Source::ToEOL()
 {
   while ( !AtEOL() ) cur_pos.char_idx++;
-}
-
-char Source::CurChar()
-{
-  return file_recs[ cur_pos.file_num ].data[ cur_pos.char_idx ];
-}
-
-char Source::GetChar()
-{
-  char c = CurChar();
-  if ( c != '\n' ) cur_pos.char_idx++;
-  return c;
 }
 
 void Source::SkipWS( bool multi_line )
