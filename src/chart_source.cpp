@@ -331,6 +331,7 @@ void Source::GetText( std::string& txt, bool multi_line )
   if ( min_indent < 1 ) return;
 
   while ( !AtEOF() ) {
+    if ( !txt.empty() ) txt += '\n';
     size_t i = 0;
     while ( AtWS() && i < min_indent ) {
       cur_pos.char_idx++;
@@ -339,7 +340,6 @@ void Source::GetText( std::string& txt, bool multi_line )
     if ( i == 0 && !AtEOL() ) break;
     while ( !AtEOL() ) txt += GetChar();
     while ( txt.length() > 0 && IsWS( txt.back() ) ) txt.pop_back();
-    txt += '\n';
     NextLine();
   }
 
