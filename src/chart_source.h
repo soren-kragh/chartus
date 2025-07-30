@@ -101,10 +101,13 @@ private:
 
   std::unordered_map< std::string, file_pos_t > macros;
 
+  std::vector< file_pos_t > macro_stack;
+
   file_pos_t ref_pos;
   file_pos_t cur_pos;
 
   file_pos_t saved_pos[ 2 ];
+  std::vector< file_pos_t > saved_macro_stack[ 2 ];
 
 };
 

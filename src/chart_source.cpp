@@ -54,11 +54,13 @@ void Source::ParseErr( const std::string& msg, bool revert_pos )
 void Source::SavePos( uint32_t context )
 {
   saved_pos[ context ] = cur_pos;
+  saved_macro_stack[ context ] = macro_stack;
 }
 
 void Source::RestorePos( uint32_t context )
 {
   cur_pos = saved_pos[ context ];
+  macro_stack = saved_macro_stack[ context ];
 }
 
 ////////////////////////////////////////////////////////////////////////////////
