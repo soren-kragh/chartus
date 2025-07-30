@@ -281,21 +281,26 @@ bool Source::GetDouble( double& d, bool none_allowed )
 void Source::GetCategory( std::string_view& cat )
 {
   ref_pos = cur_pos;
-  char* b = file_recs[ cur_pos.file_num ].data.data() + cur_pos.char_idx;
-  bool quoted = *b == '"';
-  if ( quoted ) ++b;
-  char* p = b;
-  while ( *p != '"' && *p != '\n' && (quoted || !IsWS( *p ) ) ) {
-    ++p;
+  char* cur = file_recs[ cur_pos.file_num ].data.data() + cur_pos.char_idx;
+  bool quoted = *cur == '"';
+  char* beg = cur + (quoted ? 1 : 0);
+  char* ptr = beg;
+  while ( *ptr != '"' && *ptr != '\n' && (quoted || !IsWS( *ptr ) ) ) {
+    ++ptr;
   }
-  cat = std::string_view( b, (!quoted && p == b + 1 && *b == '-') ? 0 : p - b );
-  if ( quoted && *p++ != '"' ) {
-    ParseErr( "unmatched quote", true );
+  size_t len = ptr - beg;
+  if ( quoted ) {
+    if ( *ptr++ != '"' ) {
+      ParseErr( "unmatched quote", true );
+    }
+  } else {
+    if ( len == 1 && *beg == '-' ) len = 0;
   }
-  if ( !IsSep( *p ) ) {
+  if ( !IsSep( *ptr ) ) {
     ParseErr( "malformed category", true );
   }
-  cur_pos.char_idx += p - b;
+  cat = std::string_view( beg, len );
+  cur_pos.char_idx += ptr - cur;
 }
 
 void Source::GetText( std::string& txt, bool multi_line )
