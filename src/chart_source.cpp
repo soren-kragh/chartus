@@ -30,22 +30,40 @@ void Source::Err( const std::string& msg )
 
 void Source::ParseErr( const std::string& msg, bool revert_pos )
 {
-  auto show_pos = [&]( file_pos_t pos )
+  auto show_pos = [&]( file_pos_t pos, size_t col, bool stack = false )
   {
-    cur_pos = pos;
-    ToSOL();
-    auto col = pos.char_idx - cur_pos.char_idx;
     file_rec_t& file_rec = file_recs[ pos.file_num ];
     std::cerr
       << file_rec.name << " ("
       << pos.line_num << ','
       << col << ')'
+      << (stack ? '>' : ':')
       << '\n';
   };
 
-  file_pos_t pos = revert_pos ? ref_pos : cur_pos;
   std::cerr << "*** PARSE ERROR: " << msg << "\n";
-  show_pos( pos );
+
+  for ( auto pos : macro_stack ) {
+    show_pos( pos, 0, true );
+  }
+
+  file_pos_t pos = revert_pos ? ref_pos : cur_pos;
+  cur_pos = pos;
+
+  if ( AtEOF() ) {
+    std::cerr << "at EOF";
+  } else {
+    ToSOL();
+    auto col = pos.char_idx - cur_pos.char_idx;
+    show_pos( pos, col );
+    std::cerr << pos.line_num << '\n';
+    for ( size_t i = 0; i < col; i++ ) {
+      std::cerr << ' ';
+    }
+    std::cerr << '^';
+  }
+  std::cerr << '\n';
+
   exit( 1 );
 }
 
