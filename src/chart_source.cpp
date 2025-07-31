@@ -194,6 +194,15 @@ void Source::ExpectEOL()
   if ( !AtEOL() ) ParseErr( "garbage at EOL" );
 }
 
+void Source::ExpectWS( const std::string err_msg_if_eol )
+{
+  auto old_idx = cur_pos.char_idx;
+  SkipWS();
+  if ( cur_pos.char_idx > old_idx && !AtEOL() ) return;
+  if ( AtEOL() && !err_msg_if_eol.empty() ) ParseErr( err_msg_if_eol );
+  if ( cur_pos.char_idx == old_idx ) ParseErr( "whitespace expected" );
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 std::string_view Source::GetIdentifier( bool all_non_ws )
@@ -327,7 +336,6 @@ void Source::GetText( std::string& txt, bool multi_line )
     NextLine();
   }
   RestorePos();
-  if ( min_indent < 1 ) return;
 
   while ( !AtEOF() ) {
     if ( !txt.empty() ) txt += '\n';

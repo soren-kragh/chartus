@@ -76,6 +76,7 @@ public:
   void ToEOL();
   void SkipWS( bool multi_line = false );
   void ExpectEOL();
+  void ExpectWS( const std::string err_msg_if_eol = "" );
 
   std::string_view GetIdentifier( bool all_non_ws = false );
   bool GetKey( std::string_view& key );
