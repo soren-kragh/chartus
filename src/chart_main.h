@@ -16,6 +16,7 @@
 #include <list>
 
 #include <chart_common.h>
+#include <chart_source.h>
 #include <chart_label.h>
 #include <chart_tag.h>
 #include <chart_html.h>
@@ -93,8 +94,16 @@ public:
   // can subsequently be changed.
   Series* AddSeries( SeriesType type );
 
-  // Add categories for string based X-values.
-  void AddCategory( std::string_view category );
+  // Anchor a new range of num categories at the current position in the source.
+  // The empty flag indicates if the category isn't given en the source and thus
+  // is empty.
+  void SourceCategoryAnchor( size_t num, bool empty );
+
+  // Used to iterate through the categories directly in the source.
+  void CategoryBegin();
+  void CategoryLoad();
+  void CategoryNext();
+  void CategoryGet( std::string_view& cat );
 
   void Build( void );
 
@@ -116,10 +125,6 @@ public:
     const std::vector< LegendBox >& lb_list,
     SVG::Group* legend_g
   );
-
-  // Compute the category stride, i.e. the minimum distance between non empty
-  // string categories.
-  int CatStrideEmpty( void );
 
   void AxisPrepare( SVG::Group* tag_g );
 
@@ -176,7 +181,21 @@ public:
 
   std::vector< Series* > series_list;
 
-  std::vector< std::string > category_list;
+  struct category_anchor_t {
+    Source::position_t pos;
+    size_t num = 0;
+    bool empty = false;
+  };
+
+  std::vector< category_anchor_t > category_anchor_list;
+
+  // This state is used by CategoryBegin(), CategoryNext(), and CategoryGet().
+  size_t cat_list_idx = 0;
+  size_t cat_list_cnt = 0;
+  bool   cat_list_empty = true;
+
+  // Number of categories across all series.
+  size_t category_num = 0;
 
   Axis* axis_x;
   Axis* axis_y[ 2 ];
@@ -185,7 +204,7 @@ public:
   struct html_t {
     struct snap_point_t {
       uint32_t series_id;
-      uint32_t cat_idx;
+      uint64_t cat_idx;
       SVG::Point p;
       std::string_view tag_x;
       std::string_view tag_y;

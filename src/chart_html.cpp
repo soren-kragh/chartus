@@ -102,7 +102,7 @@ void HTML::AddSnapPoint(
 
 void HTML::AddSnapPoint(
   Series* series,
-  SVG::Point p, uint32_t cat_idx, std::string_view tag_y
+  SVG::Point p, uint64_t cat_idx, std::string_view tag_y
 )
 {
   series->main->html.snap_points.push_back(
@@ -363,7 +363,7 @@ void HTML::GenChartData( Main* main, std::ostringstream& oss )
   bool few_snaps = main->html.snap_points.size() <= 1000;
 
   std::unordered_set< uint64_t > snap_set;
-  std::unordered_set< uint32_t > cat_set;
+  std::unordered_set< uint64_t > cat_set;
 
   // Returns true if point did not exist and was added to the set.
   auto SnapAdd = [&]( Point p ) {
@@ -373,7 +373,7 @@ void HTML::GenChartData( Main* main, std::ostringstream& oss )
     return snap_set.insert( key ).second;
   };
 
-  if ( !main->category_list.empty() ) {
+  if ( main->category_num > 0 ) {
     auto base_it = main->html.snap_points.begin();
     while ( base_it != main->html.snap_points.end() ) {
       auto it = base_it;
@@ -397,9 +397,9 @@ void HTML::GenChartData( Main* main, std::ostringstream& oss )
     }
   }
 
-  if ( !main->category_list.empty() ) {
+  if ( main->category_num > 0 ) {
     std::unordered_set< int32_t > snap_cat_set;
-    for ( uint32_t i = 0; i < main->category_list.size(); ++i ) {
+    for ( size_t i = 0; i < main->category_num; ++i ) {
       U coor = main->axis_x->Coor( i );
       int32_t key = static_cast< int32_t >( std::floor( coor * snap_f ) );
       if ( snap_cat_set.insert( key ).second ) {
@@ -436,21 +436,27 @@ void HTML::GenChartData( Main* main, std::ostringstream& oss )
   }
   oss << "],\n";
 
-  if ( !main->category_list.empty() ) {
-    oss << "catCnt : " << main->category_list.size() << ",\n";
+  if ( main->category_num > 0 ) {
+    oss << "catCnt : " << main->category_num << ",\n";
     oss << "categories : [\n";
-    uint32_t i = 0;
-    uint32_t j = 0;
-    for ( const auto& s : main->category_list ) {
-      if ( !s.empty() && (few_snaps || cat_set.count( i ) > 0) ) {
-        if ( j < i ) {
-          oss << i << ',';
-          j = i;
+    size_t j = 0;
+    main->CategoryBegin();
+    for (
+      size_t i = 0; i < main->category_num;
+      ++i, main->CategoryNext()
+    ) {
+      if ( few_snaps || cat_set.count( i ) > 0 ) {
+        std::string_view cat;
+        main->CategoryGet( cat );
+        if ( !cat.empty() ) {
+          if ( j < i ) {
+            oss << i << ',';
+            j = i;
+          }
+          oss << quoteJS( cat ) << ",\n";
+          ++j;
         }
-        oss << quoteJS( s ) << ",\n";
-        ++j;
       }
-      ++i;
     }
     oss << "],\n";
   }

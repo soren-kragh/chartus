@@ -25,7 +25,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 Chart::Source source;
-Chart::Ensemble ensemble;
+Chart::Ensemble ensemble{ &source };
 
 bool grid_max_defined = false;
 uint32_t grid_max_row = 0;
@@ -125,8 +125,10 @@ void gen_template( bool full )
 
 void gen_example( int N )
 {
-  std::random_device rd{};
-  std::mt19937 gen{ rd() };
+//TBD
+//  std::random_device rd{};
+//  std::mt19937 gen{ rd() };
+  std::mt19937 gen{ 47 };
   switch ( N ) {
     case 0:
     {
@@ -1884,7 +1886,7 @@ void parse_series_data( void )
   state.defining_series = false;
 
   uint32_t y_values = 0;
-  uint32_t rows = 0;
+  size_t rows = 0;
   bool no_x_value = false;
 
   // Do a pre-scan of all the data.
@@ -1976,7 +1978,14 @@ void parse_series_data( void )
     );
   }
 
-  std::string_view category;
+  if ( rows > 0 ) {
+    source.SkipWS( true );
+    source.ToSOL();
+  }
+  if ( x_is_txt ) {
+    CurChart()->SourceCategoryAnchor( rows, no_x_value );
+  }
+
   std::string_view tag_x;
   while ( rows-- ) {
     source.SkipWS( true );
@@ -1984,10 +1993,10 @@ void parse_series_data( void )
     double x;
     if ( x_is_txt ) {
       if ( !no_x_value ) {
+        std::string_view cat;
         bool quoted;
-        source.GetCategory( category, quoted );
+        source.GetCategory( cat, quoted );
       }
-      CurChart()->AddCategory( category );
       x = state.category_idx;
       state.category_idx++;
     } else {

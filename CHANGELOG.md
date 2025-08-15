@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 ### Changed
-- Reduce memory footprint of input source data structure
+- Reduce memory usage
 
 ### Deprecated
 

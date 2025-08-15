@@ -157,9 +157,62 @@ Series* Main::AddSeries( SeriesType type )
   return series;
 }
 
-void Main::AddCategory( std::string_view category )
+////////////////////////////////////////////////////////////////////////////////
+
+void Main::SourceCategoryAnchor( size_t num, bool empty )
 {
-  category_list.emplace_back( category );
+  category_anchor_t anchor;
+  anchor.pos = ensemble->source->cur_pos;
+  anchor.num = num;
+  anchor.empty = empty;
+  category_anchor_list.push_back( anchor );
+  category_num += num;
+}
+
+void Main::CategoryBegin()
+{
+  cat_list_idx = 0;
+  CategoryLoad();
+}
+
+void Main::CategoryLoad()
+{
+  cat_list_cnt = 0;
+  cat_list_empty = true;
+  while ( cat_list_idx < category_anchor_list.size() ) {
+    if ( category_anchor_list[ cat_list_idx ].num > 0 ) {
+      cat_list_cnt = category_anchor_list[ cat_list_idx ].num;
+      cat_list_empty = category_anchor_list[ cat_list_idx ].empty;
+      ensemble->source->cur_pos = category_anchor_list[ cat_list_idx ].pos;
+      ensemble->source->LoadLine();
+      cat_list_cnt--;
+      return;
+    }
+    cat_list_idx++;
+  }
+  ensemble->source->cur_pos = {};
+  return;
+}
+
+void Main::CategoryNext()
+{
+  if ( cat_list_cnt > 0 ) {
+    ensemble->source->NextLine();
+    cat_list_cnt--;
+  } else {
+    cat_list_idx++;
+    CategoryLoad();
+  }
+}
+
+void Main::CategoryGet( std::string_view& cat )
+{
+  cat = std::string_view{};
+  if ( !cat_list_empty ) {
+    ensemble->source->SkipWS();
+    bool quoted;
+    ensemble->source->GetCategory( cat, quoted );
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -518,30 +571,6 @@ void Main::PlaceLegends(
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int Main::CatStrideEmpty( void )
-{
-  int stride = -1;
-  {
-    int s = 1;
-    for ( const auto& cat : category_list ) {
-      if ( cat.empty() ) {
-        s++;
-      } else {
-        if ( stride < 0 ) {
-          stride = 0;
-        } else {
-          if ( stride == 0 || s < stride ) stride = s;
-        }
-        s = 1;
-      }
-    }
-  }
-  if ( stride < 1 ) stride = 1;
-  return stride;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
 void Main::AxisPrepare( SVG::Group* tag_g )
 {
   for ( auto a : { axis_x, axis_y[ 0 ], axis_y[ 1 ] } ) {
@@ -550,10 +579,12 @@ void Main::AxisPrepare( SVG::Group* tag_g )
     }
   }
 
+  axis_x->main        = this;
   axis_x->length      = (axis_x->angle == 0) ? chart_w : chart_h;
   axis_x->orth_length = (axis_x->angle == 0) ? chart_h : chart_w;
   axis_x->chart_box   = chart_box;
   for ( auto a : axis_y ) {
+    a->main        = this;
     a->length      = (a->angle == 0) ? chart_w : chart_h;
     a->orth_length = (a->angle == 0) ? chart_h : chart_w;
     a->chart_box   = chart_box;
@@ -591,16 +622,15 @@ void Main::AxisPrepare( SVG::Group* tag_g )
     }
     axis_x->category_axis = true;
     axis_x->log_scale = false;
-    axis_x->min = (no_bar && !category_list.empty()) ? 0.0 : -0.5;
+    axis_x->min = (no_bar && category_num > 0) ? 0.0 : -0.5;
     axis_x->max =
       axis_x->min
-      + std::max( category_list.size(), size_t( 1 ) )
+      + std::max( category_num, size_t( 1 ) )
       - ((axis_x->min < 0) ? 0 : 1);
     axis_x->min -= bar_margin;
     axis_x->max += bar_margin;
     axis_x->orth_axis_cross = axis_x->min;
     axis_x->reverse = axis_x->reverse ^ (axis_x->angle != 0);
-    axis_x->cat_stride_empty = CatStrideEmpty();
   }
 
   axis_x->data_def = false;
@@ -632,8 +662,8 @@ void Main::AxisPrepare( SVG::Group* tag_g )
         series->type == SeriesType::StackedArea
       ) {
         if ( init_ofs[ type_n ][ axis_n ] ) {
-          ofs_pos[ type_n ][ axis_n ].assign( category_list.size(), series->base );
-          ofs_neg[ type_n ][ axis_n ].assign( category_list.size(), series->base );
+          ofs_pos[ type_n ][ axis_n ].assign( category_num, series->base );
+          ofs_neg[ type_n ][ axis_n ].assign( category_num, series->base );
         }
         init_ofs[ type_n ][ axis_n ] = false;
       }
@@ -1176,8 +1206,8 @@ void Main::BuildSeries(
     int y_n = series->axis_y_n;
     if ( series->type == SeriesType::StackedArea ) {
       if ( sa_first[ y_n ] ) {
-        sa_ofs_pos[ y_n ].assign( category_list.size(), series->base );
-        sa_ofs_neg[ y_n ].assign( category_list.size(), series->base );
+        sa_ofs_pos[ y_n ].assign( category_num, series->base );
+        sa_ofs_neg[ y_n ].assign( category_num, series->base );
       }
       sa_first[ y_n ] = false;
       series->Build(
@@ -1189,8 +1219,8 @@ void Main::BuildSeries(
       );
     }
     if ( series->type == SeriesType::Area ) {
-      std::vector< double > ofs_pos( category_list.size(), series->base );
-      std::vector< double > ofs_neg( category_list.size(), series->base );
+      std::vector< double > ofs_pos( category_num, series->base );
+      std::vector< double > ofs_neg( category_num, series->base );
       std::vector< Point > pts_pos;
       std::vector< Point > pts_neg;
       series->Build(
@@ -1228,8 +1258,8 @@ void Main::BuildSeries(
         bar_init = true;
       }
       if ( bar_init ) {
-        bar_ofs_pos.assign( category_list.size(), series->base );
-        bar_ofs_neg.assign( category_list.size(), series->base );
+        bar_ofs_pos.assign( category_num, series->base );
+        bar_ofs_neg.assign( category_num, series->base );
         bar_init = false;
       }
       series->Build(
@@ -1583,16 +1613,13 @@ void Main::Build( void )
 
   for ( uint32_t phase : {0, 1} ) {
     axis_x->Build(
-      category_list,
       phase,
       avoid_objects,
       grid_minor_g, grid_major_g, grid_zero_g,
       axes_line_g, axes_num_g, axes_label_g
     );
     for ( int i : { 1, 0 } ) {
-      std::vector< std::string > empty;
       axis_y[ i ]->Build(
-        empty,
         phase,
         avoid_objects,
         grid_minor_g, grid_major_g, grid_zero_g,

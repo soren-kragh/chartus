@@ -116,7 +116,7 @@ void Chart::MakeColorVisible(
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool Chart::NormalWidthUTF8( const std::string& s )
+bool Chart::NormalWidthUTF8( const std::string_view s )
 {
   for ( const auto c : s ) {
     // Detect if 3- or 4-byte UTF-8 codes are present.
