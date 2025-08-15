@@ -157,10 +157,10 @@ void Axis::SetTick( double major, int sub_divs )
   show = true;
 }
 
-void Axis::SetTickSpacing( int32_t start, int32_t stride )
+void Axis::SetTickSpacing( size_t start, size_t stride )
 {
-  cat_start = std::max( 0, start );
-  cat_stride = std::max( 1, stride );
+  cat_start = start;
+  cat_stride = (stride < 1) ? 1 : stride;
 }
 
 void Axis::SetGridStyle( GridStyle gs )
@@ -1241,22 +1241,13 @@ void Axis::BuildCategories(
     while ( true ) {
       bool collision = false;
       bool plc_vld = false;
-      uint32_t plc_idx;
-      uint32_t cat_idx = cat_start;
-      while ( cat_idx < main->category_num ) {
+      size_t plc_idx = 0;
+      for ( size_t cat_idx = 0; cat_idx < main->category_num; ++cat_idx ) {
+        if ( cat_idx < cat_start ) continue;
+        if ( (cat_idx - cat_start) % cat_stride ) continue;
+        if ( plc_vld && cat_idx < plc_idx + min_stride ) continue;
         const auto& cat = main->category_list[ cat_idx ];
-        if ( cat.empty() ) {
-          ++cat_idx;
-          continue;
-        }
-        if ( (cat_idx - cat_start) % cat_stride ) {
-          cat_idx += cat_stride - (cat_idx - cat_start) % cat_stride;
-          continue;
-        }
-        if ( plc_vld && cat_idx < plc_idx + min_stride ) {
-          cat_idx = plc_idx + min_stride;
-          continue;
-        }
+        if ( cat.empty() ) continue;
         Object* obj = cat_g->Add( new Text( cat ) );
         U x = (angle == 0) ? Coor( cat_idx ) : cat_coor;
         U y = (angle != 0) ? Coor( cat_idx ) : cat_coor;
@@ -1294,7 +1285,6 @@ void Axis::BuildCategories(
           }
           if ( commit ) mn_list.push_back( cat_idx );
         }
-        ++cat_idx;
       }
       if ( commit ) break;
       while ( !cat_objects.empty() ) {
