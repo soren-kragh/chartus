@@ -16,6 +16,7 @@
 #include <list>
 
 #include <chart_common.h>
+#include <chart_source.h>
 #include <chart_label.h>
 #include <chart_tag.h>
 #include <chart_html.h>
@@ -95,6 +96,11 @@ public:
 
   // Add categories for string based X-values.
   void AddCategory( std::string_view category );
+
+  // Anchor a new range of num categories at the current position in the source.
+  // The empty flag indicates if the category isn't given en the source and thus
+  // is empty.
+  void SourceCategoryAnchor( size_t num, bool empty );
 
   void Build( void );
 
@@ -177,6 +183,17 @@ public:
   std::vector< Series* > series_list;
 
   std::vector< std::string > category_list;
+
+  struct category_anchor_t {
+    Source::position_t pos;
+    size_t num = 0;
+    bool empty = false;
+  };
+
+  std::vector< category_anchor_t > category_anchor_list;
+
+  // Number of categories across all series.
+  size_t category_num = 0;
 
   Axis* axis_x;
   Axis* axis_y[ 2 ];

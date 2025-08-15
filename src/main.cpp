@@ -25,7 +25,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 Chart::Source source;
-Chart::Ensemble ensemble;
+Chart::Ensemble ensemble{ &source };
 
 bool grid_max_defined = false;
 uint32_t grid_max_row = 0;
@@ -1884,7 +1884,7 @@ void parse_series_data( void )
   state.defining_series = false;
 
   uint32_t y_values = 0;
-  uint32_t rows = 0;
+  size_t rows = 0;
   bool no_x_value = false;
 
   // Do a pre-scan of all the data.
@@ -1974,6 +1974,10 @@ void parse_series_data( void )
     source.ParseErr(
       "cannot mix XY/Scatter series types with other series types"
     );
+  }
+
+  if ( x_is_txt ) {
+    CurChart()->SourceCategoryAnchor( rows, no_x_value );
   }
 
   std::string_view category;

@@ -162,6 +162,16 @@ void Main::AddCategory( std::string_view category )
   category_list.emplace_back( category );
 }
 
+void Main::SourceCategoryAnchor( size_t num, bool empty )
+{
+  category_anchor_t anchor;
+  anchor.pos = ensemble->source->cur_pos;
+  anchor.num = num;
+  anchor.empty = empty;
+  category_anchor_list.push_back( anchor );
+  category_num += num;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 // Determine potential placement of series legends in chart interior.

@@ -23,7 +23,7 @@ class Ensemble
 {
 public:
 
-  Ensemble( void );
+  Ensemble( Source* source );
   ~Ensemble( void );
 
   Main* last_chart = nullptr;
@@ -98,6 +98,8 @@ public:
 
   void MoveCharts( void );
   std::string Build( void );
+
+  Source* source = nullptr;
 
   SVG::Canvas* canvas;
   SVG::Group* top_g;

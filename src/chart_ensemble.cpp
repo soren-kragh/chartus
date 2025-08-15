@@ -21,8 +21,10 @@ using namespace Chart;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-Ensemble::Ensemble( void )
+Ensemble::Ensemble( Source* source )
 {
+  this->source = source;
+
   canvas = new Canvas();
   top_g = canvas->TopGroup()->AddNewGroup();
   html_db = new HTML( this );
