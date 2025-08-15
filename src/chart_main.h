@@ -123,10 +123,6 @@ public:
     SVG::Group* legend_g
   );
 
-  // Compute the category stride, i.e. the minimum distance between non empty
-  // string categories.
-  int CatStrideEmpty( void );
-
   void AxisPrepare( SVG::Group* tag_g );
 
   void SeriesPrepare(

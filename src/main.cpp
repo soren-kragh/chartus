@@ -125,8 +125,9 @@ void gen_template( bool full )
 
 void gen_example( int N )
 {
-  std::random_device rd{};
-  std::mt19937 gen{ rd() };
+//  std::random_device rd{};
+//  std::mt19937 gen{ rd() };
+  std::mt19937 gen{ 47 };
   switch ( N ) {
     case 0:
     {

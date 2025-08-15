@@ -12,6 +12,7 @@
 //
 
 #include <chart_axis.h>
+#include <chart_main.h>
 #include <set>
 
 using namespace SVG;
@@ -1149,14 +1150,28 @@ void Axis::BuildTicksNumsLogarithmic(
 ////////////////////////////////////////////////////////////////////////////////
 
 void Axis::BuildCategories(
-  const std::vector< std::string >& category_list,
   std::vector< SVG::Object* >& avoid_objects,
   SVG::Group* minor_g, SVG::Group* major_g, SVG::Group* cat_g
 )
 {
   bool normal_width = true;
-  for ( const auto& cat : category_list ) {
-    normal_width = normal_width && NormalWidthUTF8( cat );
+  int64_t empty_stride = -1;    // Minimum distance between non empty categories
+  {
+    int64_t s = 1;
+    for ( const auto& cat : main->category_list ) {
+      normal_width = normal_width && NormalWidthUTF8( cat );
+      if ( cat.empty() ) {
+        s++;
+      } else {
+        if ( empty_stride < 0 ) {
+          empty_stride = 0;
+        } else {
+          if ( empty_stride == 0 || s < empty_stride ) empty_stride = s;
+        }
+        s = 1;
+      }
+    }
+    if ( empty_stride < 1 ) empty_stride = 1;
   }
   if ( normal_width ) {
     cat_g->Attr()->TextFont()
@@ -1192,11 +1207,11 @@ void Axis::BuildCategories(
       dy = 0 - dist_y - num_space_y;
     }
     U x1 = Coor( 0 );
-    U x2 = Coor( category_list.size() );
+    U x2 = Coor( main->category_num );
     if (
       std::abs( x2 - x1 ) <
-      ( category_list.size() * cat_char_h * 1.5
-        / std::max( cat_stride, cat_stride_empty )
+      ( main->category_num * cat_char_h * 1.5
+        / std::max( 0.0 + cat_stride, 0.0 + empty_stride )
       )
     ) {
       text_angle = 90;
@@ -1228,8 +1243,8 @@ void Axis::BuildCategories(
       bool plc_vld = false;
       uint32_t plc_idx;
       uint32_t cat_idx = cat_start;
-      while ( cat_idx < category_list.size() ) {
-        const auto& cat = category_list[ cat_idx ];
+      while ( cat_idx < main->category_num ) {
+        const auto& cat = main->category_list[ cat_idx ];
         if ( cat.empty() ) {
           ++cat_idx;
           continue;
@@ -1638,7 +1653,6 @@ void Axis::BuildUnit(
 //------------------------------------------------------------------------------
 
 void Axis::Build(
-  const std::vector< std::string >& category_list,
   uint32_t phase,
   std::vector< SVG::Object* >& avoid_objects,
   SVG::Group* minor_g, SVG::Group* major_g, SVG::Group* zero_g,
@@ -1832,7 +1846,7 @@ void Axis::Build(
 
   if ( category_axis ) {
     BuildCategories(
-      category_list, avoid_objects,
+      avoid_objects,
       minor_g, major_g, num_g
     );
   } else {

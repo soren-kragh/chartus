@@ -19,6 +19,8 @@
 
 namespace Chart {
 
+class Main;
+
 class Axis
 {
 public:
@@ -70,6 +72,8 @@ public:
 
   // Label size scaling factor.
   void SetLabelSize( float size ) { label_size = size; }
+
+  Main* main = nullptr;
 
   // Should axis be shown.
   bool show;
@@ -146,7 +150,6 @@ public:
   );
 
   void BuildCategories(
-    const std::vector< std::string >& category_list,
     std::vector< SVG::Object* >& avoid_objects,
     SVG::Group* minor_g, SVG::Group* major_g, SVG::Group* cat_g
   );
@@ -157,7 +160,6 @@ public:
   );
 
   void Build(
-    const std::vector< std::string >& category_list,
     uint32_t phase,
     std::vector< SVG::Object* >& avoid_objects,
     SVG::Group* minor_g, SVG::Group* major_g, SVG::Group* zero_g,
@@ -248,9 +250,6 @@ public:
   SVG::U cat_coor;
   bool   cat_coor_is_min;
   bool   cat_coor_is_max;
-
-  // The minimum distance between non empty string categories.
-  int32_t cat_stride_empty = 1;
 
   int32_t cat_start = 0;
   int32_t cat_stride = 1;
