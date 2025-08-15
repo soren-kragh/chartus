@@ -198,7 +198,7 @@ public:
   struct html_t {
     struct snap_point_t {
       uint32_t series_id;
-      uint32_t cat_idx;
+      uint64_t cat_idx;
       SVG::Point p;
       std::string_view tag_x;
       std::string_view tag_y;

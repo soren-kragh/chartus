@@ -54,7 +54,7 @@ public:
   );
   void AddSnapPoint(
     Series* series,
-    SVG::Point p, uint32_t cat_idx, std::string_view tag_y
+    SVG::Point p, uint64_t cat_idx, std::string_view tag_y
   );
 
   // Instruct that given point cannot be pruned.
