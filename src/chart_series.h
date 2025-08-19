@@ -14,7 +14,7 @@
 #pragma once
 
 #include <chart_common.h>
-#include <chart_datum.h>
+#include <chart_source.h>
 #include <chart_legend_box.h>
 #include <chart_tag.h>
 #include <chart_html.h>
@@ -84,26 +84,40 @@ public:
   SVG::Color* TagFillColor( void ) { return &tag_fill_color; }
   SVG::Color* TagLineColor( void ) { return &tag_line_color; }
 
-  // For series types where the X-value is a string (all but XY and Scatter),
-  // the X-value below is an index into Chart::Main::categoty_list. You should
-  // never add numbers with a magnitude larger than mum_hi, as they could
-  // otherwise be mistaken for the special values num_invalid and num_skip.
-  // You can however explicitly add the special numbers num_invalid and num_skip.
-  void Add( double x, double y );
-
-  // Use this method to add tags to the data value. Note that it is the
-  // responsibility of the caller to ensure that the underlying string_view data
-  // is not deallocated.
-  void Add(
-    double x, double y,
-    const std::string_view tag_x,
-    const std::string_view tag_y
-  );
-
   void SetPruneDist( SVG::U dist ) { prune_dist = dist; }
 
-  uint32_t Size( void ) { return datum_list.size(); }
+  double x_of_fst_valid = 0.0;
+  double x_of_lst_valid = 0.0;
+  bool x_of_valid_defined = false;
 
+  double ToDouble( const std::string_view sv );
+
+  // Anchor the series at the current position in the source. The no_x indicates
+  // that no X-value is present and y_idx indicates the Y-value associated with
+  // this series.
+  void SetDatumAnchor(
+    size_t num, size_t cat_ofs, bool no_x, uint32_t y_idx
+  );
+
+  Source::position_t datum_pos;
+  size_t datum_num = 0;
+  size_t datum_cat_ofs = 0;
+  bool datum_no_x = false;
+  uint32_t datum_y_idx = 0;
+
+  // Used to iterate through the datums directly in the source.
+  void DatumBegin()
+  {
+    source->cur_pos = datum_pos;
+    source->LoadLine();
+  }
+  void DatumNext()
+  {
+    source->NextLine();
+    source->SkipWS( true );
+  }
+
+  Source* source = nullptr;
   Main* main = nullptr;
 
   void ApplyFillStyle( SVG::Object* obj );
@@ -144,7 +158,10 @@ public:
   //    +1 : Stack above base.
   //    -1 : Stack below base.
   //     0 : No preferred stack direction.
-  int GetStackDir( void );
+  void ComputeStackDir();
+
+  // Updated by ComputeStackDir
+  int stack_dir = 0;
 
   void BuildArea(
     SVG::Group* fill_g,
@@ -243,8 +260,6 @@ public:
 
   uint32_t bar_layer_num = 0;
   uint32_t bar_layer_tot = 1;
-
-  std::vector< Datum > datum_list;
 
   SVG::U prune_dist = 0.0;
 

@@ -85,7 +85,17 @@ public:
   void GetCategory( std::string_view& cat, bool& quoted );
   void GetText( std::string& txt, bool multi_line );
 
+  // Get string from current line.
+  // TBD: Delete if not used.
   std::string_view GetStringView( size_t idx1, size_t idx2 );
+
+  // Get datum from current position. Current position is left right after
+  // the Y-value.
+  void GetDatum(
+    std::string_view& x,
+    std::string_view& y,
+    bool no_x, uint32_t y_idx
+  );
 
 //------------------------------------------------------------------------------
 

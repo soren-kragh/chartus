@@ -97,7 +97,7 @@ public:
   // Anchor a new range of num categories at the current position in the source.
   // The empty flag indicates if the category isn't given en the source and thus
   // is empty.
-  void SourceCategoryAnchor( size_t num, bool empty );
+  void SetCategoryAnchor( size_t num, bool empty );
 
   // Used to iterate through the categories directly in the source.
   void CategoryBegin();

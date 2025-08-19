@@ -41,7 +41,7 @@ struct state_t {
   Chart::SeriesType series_type = Chart::SeriesType::Line;
   bool snap = true;
   double prune_dist = 0.3;
-  int32_t category_idx = 0;
+  size_t category_idx = 0;
   bool global_legend = false;
   bool legend_outline = true;
   int axis_y_n = 0;
@@ -1954,7 +1954,7 @@ void parse_series_data( void )
   for ( uint32_t i = 0; i < y_values; i++ ) {
     if (
       state.series_list.size() == i ||
-      state.series_list[ state.series_list.size() - i - 1 ]->Size() > 0
+      state.series_list[ state.series_list.size() - i - 1 ]->datum_num > 0
     )
       AddSeries();
   }
@@ -1983,43 +1983,35 @@ void parse_series_data( void )
     source.ToSOL();
   }
   if ( x_is_txt ) {
-    CurChart()->SourceCategoryAnchor( rows, no_x_value );
+    CurChart()->SetCategoryAnchor( rows, no_x_value );
+  }
+  for ( uint32_t i = 0; i < y_values; i++ ) {
+    auto series = state.series_list[ state.series_list.size() + i - y_values ];
+    series->SetDatumAnchor( rows, state.category_idx, no_x_value, i );
   }
 
-  std::string_view tag_x;
   while ( rows-- ) {
     source.SkipWS( true );
-    auto idx = source.cur_pos.loc.char_idx;
-    double x;
     if ( x_is_txt ) {
       if ( !no_x_value ) {
         std::string_view cat;
         bool quoted;
         source.GetCategory( cat, quoted );
       }
-      x = state.category_idx;
       state.category_idx++;
     } else {
+      double x;
       if ( !source.GetDouble( x, true ) ) {
         source.ParseErr( "malformed X-value" );
       }
     }
-    tag_x = source.GetStringView( idx, source.cur_pos.loc.char_idx );
     for ( uint32_t n = 0; n < y_values; ++n ) {
-      uint32_t series_idx = state.series_list.size() - y_values + n;
       source.SkipWS();
-      auto idx = source.cur_pos.loc.char_idx;
-      double y;
-      if ( source.AtEOL() ) {
-        y = Chart::num_skip;
-        state.series_list[ series_idx ]->Add( x, y );
-      } else {
+      if ( !source.AtEOL() ) {
+        double y;
         if ( !source.GetDouble( y, true ) ) {
           source.ParseErr( "malformed Y-value" );
         }
-        state.series_list[ series_idx ]->Add(
-          x, y, tag_x, source.GetStringView( idx, source.cur_pos.loc.char_idx )
-        );
       }
     }
     source.ExpectEOL();

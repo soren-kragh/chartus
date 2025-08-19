@@ -437,4 +437,43 @@ std::string_view Source::GetStringView( size_t idx1, size_t idx2 )
   return std::string_view( p, idx2 - idx1 );
 }
 
+void Source::GetDatum(
+  std::string_view& x,
+  std::string_view& y,
+  bool no_x, uint32_t y_idx
+)
+{
+  char* b = file_recs[ cur_pos.loc.file_num ].data.data() + cur_pos.loc.char_idx;
+  char* p = b;
+  char* q;
+
+  while ( IsWS( *p ) ) ++p;
+  if ( no_x ) {
+    x = std::string_view{};
+  } else {
+    if ( *p == '"' ) {
+      ++p;
+      q = p;
+      while ( *p != '"' ) ++p;
+      x = std::string_view( q, p - q );
+      ++p;
+    } else {
+      q = p;
+      while ( !IsSep( *p ) ) ++p;
+      if ( *q == '-' && p - q == 1 ) q = p;
+      x = std::string_view( q, p - q );
+    }
+  }
+
+  do {
+    while ( IsWS( *p ) ) ++p;
+    q = p;
+    while ( !IsSep( *p ) ) ++p;
+  } while ( y_idx-- > 0 );
+  y = std::string_view( q, p - q );
+
+  cur_pos.loc.char_idx += p - b;
+  return;
+}
+
 ////////////////////////////////////////////////////////////////////////////////

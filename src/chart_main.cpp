@@ -159,7 +159,7 @@ Series* Main::AddSeries( SeriesType type )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void Main::SourceCategoryAnchor( size_t num, bool empty )
+void Main::SetCategoryAnchor( size_t num, bool empty )
 {
   category_anchor_t anchor;
   anchor.pos = ensemble->source->cur_pos;
@@ -198,6 +198,7 @@ void Main::CategoryNext()
 {
   if ( cat_list_cnt > 0 ) {
     ensemble->source->NextLine();
+    ensemble->source->SkipWS( true );
     cat_list_cnt--;
   } else {
     cat_list_idx++;

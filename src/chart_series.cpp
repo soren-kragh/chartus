@@ -13,8 +13,10 @@
 
 #include <chart_series.h>
 #include <chart_main.h>
+#include <chart_ensemble.h>
 
 #include <unordered_set>
+#include <charconv>
 
 using namespace SVG;
 using namespace Chart;
@@ -23,6 +25,7 @@ using namespace Chart;
 
 Series::Series( Main* main, SeriesType type )
 {
+  this->source = main->ensemble->source;
   this->main = main;
   id = 0;
 
@@ -443,18 +446,34 @@ void Series::PrunePoints( std::vector< Point >& points )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void Series::Add( double x, double y )
+double Series::ToDouble( const std::string_view sv )
 {
-  datum_list.emplace_back( x, y );
+  if ( sv.empty() ) return Chart::num_skip;
+
+  if ( sv.size() == 1 ) {
+    switch ( sv[ 0 ] ) {
+      case '!' : return Chart::num_invalid;
+      case '-' : return Chart::num_skip;
+      default : break;
+    }
+  }
+
+  const char* p1 = sv.data() + ((sv[ 0 ] == '+') ? 1 : 0);
+  const char* p2 = sv.data() + sv.size();
+  double d = Chart::num_skip;
+  std::from_chars( p1, p2, d );
+  return d;
 }
 
-void Series::Add(
-  double x, double y,
-  const std::string_view tag_x,
-  const std::string_view tag_y
+void Series::SetDatumAnchor(
+  size_t num, size_t cat_ofs, bool no_x, uint32_t y_idx
 )
 {
-  datum_list.emplace_back( x, y, tag_x, tag_y );
+  datum_pos = source->cur_pos;
+  datum_cat_ofs = cat_ofs;
+  datum_num = num;
+  datum_no_x = no_x;
+  datum_y_idx = y_idx;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -942,16 +961,29 @@ void Series::BuildMarker( Group* g, const MarkerDims& m, SVG::Point p )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-int Series::GetStackDir( void )
+void Series::ComputeStackDir()
 {
-  if ( type != SeriesType::StackedArea ) {
-    return 0;
+  if ( type != SeriesType::StackedArea ) return;
+
+  DatumBegin();
+  for (
+    size_t i = 0; i < datum_num;
+    ++i, DatumNext()
+  ) {
+    std::string_view svx;
+    std::string_view svy;
+    source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
+    double y = ToDouble( svy ) - base;
+    if ( y < 0 ) {
+      stack_dir = -1;
+      return;
+    }
+    if ( y > 0 ) {
+      stack_dir = +1;
+      return;
+    }
   }
-  double sum = 0;
-  for ( const Datum& datum : datum_list ) {
-    if ( axis_y->Valid( datum.y ) ) sum += datum.y - base;
-  }
-  return (sum < 0) ? -1 : 1;
+  return;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -961,6 +993,8 @@ void Series::DetermineMinMax(
   std::vector< double >& ofs_neg
 )
 {
+  ComputeStackDir();
+
   bool stackable =
     type == SeriesType::Bar ||
     type == SeriesType::StackedBar ||
@@ -979,7 +1013,6 @@ void Series::DetermineMinMax(
   max_tag_x_size = 0;
   max_tag_y_size = 0;
 
-  int stack_dir = GetStackDir();
   if (
     stackable ||
     type == SeriesType::LayeredBar ||
@@ -1000,11 +1033,22 @@ void Series::DetermineMinMax(
     }
   }
 
-  for ( auto& datum : datum_list ) {
-    double x = datum.x;
-    double y = datum.y;
+  bool x_is_cat = type != SeriesType::XY && type != SeriesType::Scatter;
+  DatumBegin();
+  for ( size_t i = 0; i < datum_num; ++i, DatumNext() ) {
+    std::string_view svx;
+    std::string_view svy;
+    source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
+    double x = datum_cat_ofs + i;
+    double y = ToDouble( svy );
+    if ( !x_is_cat ) x = ToDouble( svx );
     if ( !axis_x->Valid( x ) ) continue;
     if ( !axis_y->Valid( y ) ) continue;
+    {
+      if ( !x_of_valid_defined ) x_of_fst_valid = x;
+      x_of_lst_valid = x;
+      x_of_valid_defined = true;
+    }
     if ( stackable ) {
       size_t i = x;
       y -= base;
@@ -1017,8 +1061,8 @@ void Series::DetermineMinMax(
       }
       if ( !axis_y->Valid( y ) ) continue;
     }
-    max_tag_x_size = std::max( max_tag_x_size, datum.tag_x.size() );
-    max_tag_y_size = std::max( max_tag_y_size, datum.tag_y.size() );
+    max_tag_x_size = std::max( max_tag_x_size, svx.size() );
+    max_tag_y_size = std::max( max_tag_y_size, svy.size() );
     if ( !def_x || min_x > x ) min_x = x;
     if ( !def_x || max_x < x ) max_x = x;
     if ( !def_y || min_y > y ) {
@@ -1054,48 +1098,12 @@ void Series::BuildArea(
   std::vector< Point > line_points;
   std::vector< Point > mark_points;
 
-  int stack_dir = GetStackDir();
-
   Pos tag_direction;
   bool reverse = axis_y->reverse ^ (stack_dir < 0);
   if ( axis_x->angle == 0 ) {
     tag_direction = reverse ? Pos::Bottom : Pos::Top;
   } else {
     tag_direction = reverse ? Pos::Left : Pos::Right;
-  }
-
-  // Normalize number of elements in datum_list by inserting invalid values
-  // before and after the defined values as needed.
-  {
-    if ( !datum_list.empty() ) {
-      size_t n = datum_list[ 0 ].x;
-      if ( n > 0 ) {
-        datum_list.resize( datum_list.size() + n );
-        std::move_backward(
-          datum_list.begin(),
-          datum_list.begin() + datum_list.size() - n,
-          datum_list.end()
-        );
-        for ( size_t i = 0; i < n; i++ ) {
-          datum_list[ i ] = Datum( i, num_invalid );
-        }
-      }
-    }
-    size_t n = ofs_pos->size();
-    for ( size_t i = datum_list.size(); i < n; i++ ) {
-      datum_list.emplace_back( i, num_invalid );
-    }
-  }
-
-  // Replace leading/trailing skipped data points in the series with invalid
-  // number.
-  for ( auto it = datum_list.begin(); it != datum_list.end(); ++it ) {
-    if ( axis_y->Valid( it->y ) ) break;
-    it->y = num_invalid;
-  }
-  for ( auto it = datum_list.rbegin(); it != datum_list.rend(); ++it ) {
-    if ( axis_y->Valid( it->y ) ) break;
-    it->y = num_invalid;
   }
 
   bool first_in_stack = (stack_dir < 0) ? pts_neg->empty() : pts_pos->empty();
@@ -1143,7 +1151,10 @@ void Series::BuildArea(
   Point ap_prv_p;
   size_t ap_line_cnt = 0;
   auto add_point =
-  [&]( Point p, const Datum& datum, bool is_datum, bool on_line )
+  [&](
+    Point p, size_t cat_idx, std::string_view tag_x, std::string_view tag_y,
+    bool is_datum, bool on_line
+  )
   {
     if ( on_line ) {
       UpdateLegendBoxes(
@@ -1164,12 +1175,12 @@ void Series::BuildArea(
     if ( is_datum ) {
       if ( marker_show ) mark_points.push_back( p );
       if ( html_db ) {
-        html_db->AddSnapPoint( this, p, datum.x, datum.tag_y );
+        html_db->AddSnapPoint( this, p, cat_idx, tag_y );
       }
     }
     if ( tag_enable ) {
       tag_db->LineTag(
-        this, tag_g, p, datum.tag_x, datum.tag_y, is_datum,
+        this, tag_g, p, tag_x, tag_y, is_datum,
         has_line && on_line && ap_line_cnt > 0, tag_direction
       );
     }
@@ -1187,41 +1198,53 @@ void Series::BuildArea(
   bool dp_prv_on_line = false;
   bool dp_prv_inside = false;
   bool dp_first = true;
-  auto do_point = [&]( Point p, const Datum& datum, bool on_line = true )
+  auto do_point =
+  [&](
+    Point p, size_t cat_idx, std::string_view tag_x, std::string_view tag_y,
+    bool on_line = true
+  )
   {
     if ( axis_x->angle != 0 ) std::swap( p.x, p.y );
     bool inside = Inside( p );
     if ( dp_first ) {
       if ( inside ) {
-        add_point( p, datum, on_line, on_line );
+        add_point( p, cat_idx, tag_x, tag_y, on_line, on_line );
       }
     } else {
       if ( dp_prv_inside && inside ) {
         // Common case when we stay inside the chart area.
-        add_point( p, datum, on_line, on_line );
+        add_point( p, cat_idx, tag_x, tag_y, on_line, on_line );
       } else {
         // Handle clipping in and out of the chart area.
         Point c1, c2;
         int n = ClipLine( c1, c2, dp_prv_p, p );
         if ( dp_prv_inside ) {
           // We went from inside to now outside.
-          if ( n == 1 ) add_point( c1, datum, false, on_line && dp_prv_on_line );
+          if ( n == 1 ) {
+            add_point(
+              c1, cat_idx, tag_x, tag_y, false, on_line && dp_prv_on_line
+            );
+          }
         } else
         if ( inside ) {
           // We went from outside to now inside.
-          if ( n == 1 ) add_point( c1, datum, false, on_line && dp_prv_on_line );
-          add_point( p, datum, on_line, on_line );
+          if ( n == 1 ) {
+            add_point(
+              c1, cat_idx, tag_x, tag_y, false, on_line && dp_prv_on_line
+            );
+          }
+          add_point( p, cat_idx, tag_x, tag_y, on_line, on_line );
         } else
         if ( n == 2 ) {
           // We are still outside, but the line segment passes through the
           // chart area.
-          add_point( c1, datum, false, on_line && dp_prv_on_line );
-          add_point( c2, datum, false, on_line && dp_prv_on_line );
+          add_point( c1, cat_idx, tag_x, tag_y, false, on_line && dp_prv_on_line );
+          add_point( c2, cat_idx, tag_x, tag_y, false, on_line && dp_prv_on_line );
         }
       }
     }
     if ( !inside ) {
-      add_point( MoveInside( p ), datum, false, false );
+      add_point( MoveInside( p ), cat_idx, tag_x, tag_y, false, false );
     }
     dp_prv_p = p;
     dp_prv_on_line = on_line;
@@ -1230,8 +1253,7 @@ void Series::BuildArea(
     return;
   };
 
-  if ( !datum_list.empty() ) {
-    Datum dummy_datum;
+  if ( main->category_num > 0 ) {
     Point beg_p{
       axis_x->Coor( 0 ),
       axis_y->Coor( (stack_dir < 0) ? ofs_neg->front() : ofs_pos->front() )
@@ -1240,42 +1262,55 @@ void Series::BuildArea(
       axis_x->Coor( ofs_pos->size() - 1 ),
       axis_y->Coor( (stack_dir < 0) ? ofs_neg->back() : ofs_pos->back() )
     };
-    if ( first_in_stack ) do_point( beg_p, dummy_datum, false );
+    if ( first_in_stack ) do_point( beg_p, 0, "", "", false );
     double prv_base = 0;
     bool prv_valid = false;
     bool first = true;
-    for ( const Datum& datum : datum_list ) {
-      size_t i = datum.x;
-      double y = datum.y;
-      if ( axis_y->Skip( datum.y ) ) {
+    for ( size_t cat_idx = 0; cat_idx < main->category_num; ++cat_idx ) {
+      std::string_view svx;
+      std::string_view svy;
+      double y = num_invalid;
+      if ( cat_idx == datum_cat_ofs ) {
+        DatumBegin();
+      } else
+      if ( cat_idx > datum_cat_ofs && cat_idx < datum_cat_ofs + datum_num ) {
+        DatumNext();
+      }
+      if ( x_of_valid_defined ) {
+        if ( cat_idx >= x_of_fst_valid && cat_idx <= x_of_lst_valid ) {
+          source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
+          y = ToDouble( svy );
+        }
+      }
+      if ( axis_y->Skip( y ) ) {
         continue;
       }
       bool valid = axis_y->Valid( y );
       y -= base;
       if ( !first && prv_valid && !valid ) {
-        Point p{ axis_x->Coor( datum.x - 1 ), axis_y->Coor( base ) };
-        do_point( p, datum, false );
+        Point p{ axis_x->Coor( cat_idx - 1 ), axis_y->Coor( base ) };
+        do_point( p, cat_idx, svx, svy, false );
       }
       if ( !valid ) y = 0;
       if ( stack_dir < 0 ) {
-        prv_base = ofs_neg->at( i );
+        prv_base = ofs_neg->at( cat_idx );
         y += prv_base;
-        ofs_neg->at( i ) = y;
+        ofs_neg->at( cat_idx ) = y;
       } else {
-        prv_base = ofs_pos->at( i );
+        prv_base = ofs_pos->at( cat_idx );
         y += prv_base;
-        ofs_pos->at( i ) = y;
+        ofs_pos->at( cat_idx ) = y;
       }
       if ( !first && !prv_valid && valid ) {
-        Point p{ axis_x->Coor( datum.x ), axis_y->Coor( base ) };
-        do_point( p, datum, false );
+        Point p{ axis_x->Coor( cat_idx ), axis_y->Coor( base ) };
+        do_point( p, cat_idx, svx, svy, false );
       }
-      Point p{ axis_x->Coor( datum.x ), axis_y->Coor( y ) };
-      do_point( p, datum, valid );
+      Point p{ axis_x->Coor( cat_idx ), axis_y->Coor( y ) };
+      do_point( p, cat_idx, svx, svy, valid );
       prv_valid = valid;
       first = false;
     }
-    if ( first_in_stack ) do_point( end_p, dummy_datum, false );
+    if ( first_in_stack ) do_point( end_p, 0, "", "", false );
   }
 
   if ( !fill_points.empty() ) {
@@ -1320,9 +1355,16 @@ void Series::BuildBar(
   {
     bool has_pos_bar = false;
     bool has_neg_bar = false;
-    for ( const Datum& datum : datum_list ) {
-      if ( datum.y - base > 0 ) has_pos_bar = true;
-      if ( datum.y - base < 0 ) has_neg_bar = true;
+    DatumBegin();
+    for ( size_t i = 0; i < datum_num; ++i, DatumNext() ) {
+      std::string_view svx;
+      std::string_view svy;
+      source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
+      double y = ToDouble( svy );
+      if ( axis_y->Valid( y ) ) {
+        if ( y - base > 0 ) has_pos_bar = true;
+        if ( y - base < 0 ) has_neg_bar = true;
+      }
     }
     if ( axis_x->angle == 0 ) {
       if ( axis_y->reverse ) {
@@ -1361,27 +1403,31 @@ void Series::BuildBar(
   Point p1;
   Point p2;
 
-  for ( const Datum& datum : datum_list ) {
-    size_t i = datum.x;
-    double x = datum.x + cx;
-    bool valid = axis_y->Valid( datum.y );
-    if ( !valid ) continue;
+  DatumBegin();
+  for ( size_t i = 0; i < datum_num; ++i, DatumNext() ) {
+    size_t cat_idx = datum_cat_ofs + i;
+    double x = cat_idx + cx;
+    std::string_view svx;
+    std::string_view svy;
+    source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
+    double y = ToDouble( svy );
+    if ( !axis_y->Valid( y ) ) continue;
 
     U q = axis_x->Coor( x );
     p1.x = p2.x = q;
     if ( type == SeriesType::Lollipop ) {
       p1.y = axis_y->Coor( base );
-      p2.y = axis_y->Coor( datum.y );
+      p2.y = axis_y->Coor( y );
     } else {
-      double y = datum.y - base;
-      if ( y < 0 ) {
-        p1.y = axis_y->Coor( ofs_neg->at( i ) );
-        ofs_neg->at( i ) += y;
-        p2.y = axis_y->Coor( ofs_neg->at( i ) );
+      double yb = y - base;
+      if ( yb < 0 ) {
+        p1.y = axis_y->Coor( ofs_neg->at( cat_idx ) );
+        ofs_neg->at( cat_idx ) += yb;
+        p2.y = axis_y->Coor( ofs_neg->at( cat_idx ) );
       } else {
-        p1.y = axis_y->Coor( ofs_pos->at( i ) );
-        ofs_pos->at( i ) += y;
-        p2.y = axis_y->Coor( ofs_pos->at( i ) );
+        p1.y = axis_y->Coor( ofs_pos->at( cat_idx ) );
+        ofs_pos->at( cat_idx ) += yb;
+        p2.y = axis_y->Coor( ofs_pos->at( cat_idx ) );
       }
     }
     if ( axis_x->angle != 0 ) {
@@ -1415,7 +1461,7 @@ void Series::BuildBar(
     }
 
     if ( html_db && p2_inside ) {
-      html_db->AddSnapPoint( this, p2, datum.x, datum.tag_y );
+      html_db->AddSnapPoint( this, p2, cat_idx, svy );
       html_db->DontPruneSnapPoint( p2 );
     }
 
@@ -1425,7 +1471,7 @@ void Series::BuildBar(
       if ( p2.x < p1.x ) direction = Pos::Left;
       if ( p2.y > p1.y ) direction = Pos::Top;
       if ( p2.y < p1.y ) direction = Pos::Bottom;
-      tag_db->BarTag( this, tag_g, p1, p2, datum.tag_y, direction );
+      tag_db->BarTag( this, tag_g, p1, p2, svy, direction );
     }
 
     if ( type == SeriesType::Lollipop ) {
@@ -1438,7 +1484,7 @@ void Series::BuildBar(
     }
 
     if (
-      datum.y != base &&
+      y != base &&
       ( type == SeriesType::Bar ||
         type == SeriesType::LayeredBar ||
         type == SeriesType::StackedBar
@@ -1574,7 +1620,10 @@ void Series::BuildLine(
 
   Point prv;
   auto add_point =
-    [&]( Point p, const Datum& datum, bool clipped = false )
+  [&](
+    Point p, double x, std::string_view tag_x, std::string_view tag_y,
+    bool clipped = false
+  )
   {
     if ( has_line ) {
       line_points.push_back( p );
@@ -1588,15 +1637,16 @@ void Series::BuildLine(
       if ( marker_show ) mark_points.push_back( p );
       if ( html_db ) {
         if ( axis_x->category_axis ) {
-          html_db->AddSnapPoint( this, p, datum.x, datum.tag_y );
+          size_t cat_idx = x;
+          html_db->AddSnapPoint( this, p, cat_idx, tag_y );
         } else {
-          html_db->AddSnapPoint( this, p, datum.tag_x, datum.tag_y );
+          html_db->AddSnapPoint( this, p, tag_x, tag_y );
         }
       }
     }
     if ( tag_enable ) {
       tag_db->LineTag(
-        this, tag_g, p, datum.tag_x, datum.tag_y, !clipped,
+        this, tag_g, p, tag_x, tag_y, !clipped,
         adding_segments && has_line, tag_direction
       );
     }
@@ -1637,22 +1687,28 @@ void Series::BuildLine(
   bool first = true;
   Point cur;
   Point old;
-  for ( const Datum& datum : datum_list ) {
+
+  DatumBegin();
+  for ( size_t i = 0; i < datum_num; ++i, DatumNext() ) {
+    std::string_view svx;
+    std::string_view svy;
+    source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
+    double x = datum_cat_ofs + i;
+    double y = ToDouble( svy );
+    if ( !axis_x->category_axis ) x = ToDouble( svx );
+
     old = cur;
     if ( axis_x->angle == 0 ) {
-      cur.x = axis_x->Coor( datum.x );
-      cur.y = axis_y->Coor( datum.y );
+      cur.x = axis_x->Coor( x );
+      cur.y = axis_y->Coor( y );
     } else {
-      cur.y = axis_x->Coor( datum.x );
-      cur.x = axis_y->Coor( datum.y );
+      cur.y = axis_x->Coor( x );
+      cur.x = axis_y->Coor( y );
     }
-    bool valid = axis_x->Valid( datum.x ) && axis_y->Valid( datum.y );
+    bool valid = axis_x->Valid( x ) && axis_y->Valid( y );
     bool inside = Inside( cur );
     if ( !valid ) {
-      if (
-        axis_x->Skip( datum.x ) ||
-        (axis_x->Valid( datum.x ) && axis_y->Skip( datum.y ))
-      ) {
+      if ( axis_x->Skip( x ) || (axis_x->Valid( x ) && axis_y->Skip( y )) ) {
         cur = old;
       } else {
         end_point();
@@ -1661,13 +1717,13 @@ void Series::BuildLine(
     } else
     if ( first ) {
       if ( inside ) {
-        add_point( cur, datum );
+        add_point( cur, x, svx, svy );
       }
       first = false;
     } else {
       if ( adding_segments && inside ) {
         // Common case when we stay inside the chart area.
-        add_point( cur, datum );
+        add_point( cur, x, svx, svy );
       } else {
         // Handle clipping in and out of the chart area.
         Point c1, c2;
@@ -1676,20 +1732,24 @@ void Series::BuildLine(
           // We were outside.
           if ( inside ) {
             // We went from outside to now inside.
-            if ( n == 1 ) add_point( c1, datum, true );
-            add_point( cur, datum );
+            if ( n == 1 ) {
+              add_point( c1, x, svx, svy, true );
+            }
+            add_point( cur, x, svx, svy );
           } else {
             if ( n == 2 ) {
               // We are still outside, but the line segment passes through the
               // chart area.
-              add_point( c1, datum, true );
-              add_point( c2, datum, true );
+              add_point( c1, x, svx, svy, true );
+              add_point( c2, x, svx, svy, true );
               end_point();
             }
           }
         } else {
           // We went from inside to now outside.
-          if ( n == 1 ) add_point( c1, datum, true );
+          if ( n == 1 ) {
+            add_point( c1, x, svx, svy, true );
+          }
           end_point();
         }
       }
