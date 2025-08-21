@@ -14,7 +14,6 @@
 #pragma once
 
 #include <chart_common.h>
-#include <chart_datum.h>
 
 namespace Chart {
 
@@ -38,7 +37,9 @@ public:
   // for valid datum.
   void LineTag(
     Series* series, SVG::Group* tag_g,
-    SVG::Point p, const Datum& datum, bool datum_valid,
+    SVG::Point p,
+    std::string_view tag_x, std::string_view tag_y,
+    bool datum_valid,
     bool connected, Pos direction
   );
 
@@ -52,7 +53,7 @@ public:
   // p_base/p except in the case where the bar size is zero.
   void BarTag(
     Series* series, SVG::Group* tag_g,
-    SVG::Point p1, SVG::Point p2, const Datum& datum,
+    SVG::Point p1, SVG::Point p2, std::string_view tag_y,
     Pos direction
   );
 
@@ -61,7 +62,8 @@ public:
     Series* series;
     SVG::Group* tag_g;
     SVG::Point p;
-    Datum datum;
+    std::string sx;
+    std::string sy;
     bool datum_valid;
     int dir_bst;
     int dir_prv;
@@ -71,7 +73,9 @@ public:
   const SVG::U min_base_dist = 2.0;
 
   SVG::Group* BuildTag(
-    Series* series, SVG::Group* tag_g, const Datum& datum, SVG::U& r
+    Series* series, SVG::Group* tag_g,
+    std::string_view tag_x, std::string_view tag_y,
+    SVG::U& r
   );
 
   // Assuming bar type series, returns how much beyond the bar end the tag
@@ -83,7 +87,7 @@ public:
 
   SVG::Group* AddBarTag(
     Series* series, SVG::Group* tag_g,
-    SVG::Point p1, SVG::Point p2, const Datum& datum,
+    SVG::Point p1, SVG::Point p2, std::string_view tag_y,
     Pos direction
   );
 

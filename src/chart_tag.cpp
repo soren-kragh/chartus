@@ -52,7 +52,9 @@ bool Tag::Collision( const SVG::BoundaryBox& bb )
 ////////////////////////////////////////////////////////////////////////////////
 
 SVG::Group* Tag::BuildTag(
-  Series* series, SVG::Group* tag_g, const Datum& datum, SVG::U& r
+  Series* series, SVG::Group* tag_g,
+  std::string_view tag_x, std::string_view tag_y,
+  SVG::U& r
 )
 {
   Group* g = tag_g->AddNewGroup();
@@ -65,21 +67,21 @@ SVG::Group* Tag::BuildTag(
     s.reserve(
       0
       + 1
-      + datum.tag_x.size() + series->axis_x->number_unit.size()
+      + tag_x.size() + series->axis_x->number_unit.size()
       + 1
-      + datum.tag_y.size() + series->axis_y->number_unit.size()
+      + tag_y.size() + series->axis_y->number_unit.size()
       + 1
     );
     s += '(';
-    s += datum.tag_x;
+    s += tag_x;
     s += series->axis_x->number_unit;
     s += ',';
-    s += datum.tag_y;
+    s += tag_y;
     s += series->axis_y->number_unit;
     s += ')';
     g->Add( new Text( s ) );
   } else {
-    std::string s{ datum.tag_y };
+    std::string s{ tag_y };
     s += series->axis_y->number_unit;
     g->Add( new Text( s ) );
   }
@@ -115,13 +117,11 @@ SVG::U Tag::GetBeyond( Series* series, SVG::Group* tag_g )
 
   if ( !bar_type || tag_pos != Pos::Beyond ) return 0;
 
-  std::string s( series->max_tag_y_size, '0' );
-  Datum datum;
-  datum.tag_y = s;
+  std::string tag_y( series->max_tag_y_size, '0' );
   U r;
   Group* g = tag_g->AddNewGroup();
   series->ApplyTagStyle( g );
-  BuildTag( series, g, datum, r );
+  BuildTag( series, g, "", tag_y, r );
   BoundaryBox bb = g->GetBB();
   tag_g->DeleteFront();
 
@@ -148,7 +148,7 @@ SVG::Group* Tag::AddLineTag( void )
   int dir_ops = (tag.dir_bst + 4) % 8;
 
   U r;
-  Group* g = BuildTag( tag.series, tag.tag_g, tag.datum, r );
+  Group* g = BuildTag( tag.series, tag.tag_g, tag.sx, tag.sy, r );
 
   BoundaryBox bb;
 
@@ -315,7 +315,9 @@ SVG::Group* Tag::AddLineTag( void )
 
 void Tag::LineTag(
   Series* series, SVG::Group* tag_g,
-  Point p, const Datum& datum, bool datum_valid,
+  Point p,
+  std::string_view tag_x, std::string_view tag_y,
+  bool datum_valid,
   bool connected, Pos direction
 )
 {
@@ -326,7 +328,8 @@ void Tag::LineTag(
   tag.series      = series;
   tag.tag_g       = tag_g;
   tag.p           = p;
-  tag.datum       = datum;
+  tag.sx          = tag_x;
+  tag.sy          = tag_y;
   tag.datum_valid = datum_valid;
   switch ( direction ) {
     case Pos::Left   : tag.dir_bst = 4; break;
@@ -353,12 +356,13 @@ void Tag::EndLineTag( void )
 
 SVG::Group* Tag::AddBarTag(
   Series* series, SVG::Group* tag_g,
-  SVG::Point p1, SVG::Point p2, const Datum& datum,
+  SVG::Point p1, SVG::Point p2, std::string_view tag_y,
   Pos direction
 )
 {
+  std::string_view tag_x;
   U r;
-  Group* g = BuildTag( series, tag_g, datum, r );
+  Group* g = BuildTag( series, tag_g, tag_x, tag_y, r );
 
   // Default anchor point.
   AnchorX dax = AnchorX::Mid;
@@ -485,11 +489,11 @@ SVG::Group* Tag::AddBarTag(
 
 void Tag::BarTag(
   Series* series, SVG::Group* tag_g,
-  SVG::Point p1, SVG::Point p2, const Datum& datum,
+  SVG::Point p1, SVG::Point p2, std::string_view tag_y,
   Pos direction
 )
 {
-  AddBarTag( series, tag_g, p1, p2, datum, direction );
+  AddBarTag( series, tag_g, p1, p2, tag_y, direction );
   return;
 }
 
