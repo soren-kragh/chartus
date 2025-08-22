@@ -84,7 +84,14 @@ public:
   SVG::Color* TagFillColor( void ) { return &tag_fill_color; }
   SVG::Color* TagLineColor( void ) { return &tag_line_color; }
 
-  void SetPruneDist( SVG::U dist ) { prune_dist = dist; }
+  void SetPruneDist( SVG::U dist )
+  {
+    prune_dist = dist;
+    prune_dist_inv = 0.0;
+    if ( prune_dist > 0.0 ) {
+      prune_dist_inv = 1.0 / prune_dist;
+    }
+  }
 
   double x_of_fst_valid = 0.0;
   double x_of_lst_valid = 0.0;
@@ -126,10 +133,49 @@ public:
   void ApplyHoleStyle( SVG::Object* obj );
   void ApplyTagStyle ( SVG::Object* obj );
 
-  // Remove data points that do not contribute significantly to the overall
-  // rendering of the SVG.
-  void PrunePoly( std::vector< SVG::Point >& points, bool no_html = false );
-  void PrunePoints( std::vector< SVG::Point >& points );
+  // Pruning removes data points that do not contribute significantly to the
+  // overall rendering of the SVG.
+
+  struct prune_state_t {
+    size_t cnt = 0;
+
+    // Pruned points are stored here.
+    std::vector< SVG::Point > points;
+
+    // p1 and p2 are the start and end points of the collection, which is all
+    // points from p1 to p2 both inclusive.
+    SVG::Point p1;
+    SVG::Point p2;
+
+    // e1 and e2 are the extreme start/end points of the line making up
+    // collection. All points in the collection are spaced less than prune_dist
+    // from the line from e1 to e2. Having e1/e2 enables us to prune points even
+    // when there is a lot of zigzagging back and forth along (or almost along
+    // as dictated by prune_dist) the e1/e2 line, as would be the case for
+    // example with noisy sensor data etc.
+
+    SVG::Point e1;
+    SVG::Point e2;
+
+    // Indicates if the extreme start/end points are also the start/end points.
+    bool e1_is_p1;
+    bool e2_is_p2;
+
+    // d1/d2 is the distance of furthest point in the collection to the
+    // left/right from the e1-to-e2 line.
+    SVG::U d1;
+    SVG::U d2;
+
+    // Used when pruning isolated points.
+    std::unordered_map< uint64_t, SVG::Point > iso_exists;
+    std::vector< SVG::Point > iso_points;
+  };
+
+  void PrunePolyAdd( prune_state_t& ps, SVG::Point p );
+  void PrunePolyEnd( prune_state_t& ps, bool no_html = false );
+
+  void PrunePointsAdd( prune_state_t& ps, SVG::Point p );
+  void PrunePointsEnd( prune_state_t& ps );
 
   bool Inside( const SVG::Point p, const SVG::BoundaryBox& bb );
   bool Inside( const SVG::Point p )
@@ -262,6 +308,8 @@ public:
   uint32_t bar_layer_tot = 1;
 
   SVG::U prune_dist = 0.0;
+  SVG::U prune_dist_inv = 0.0;
+  SVG::U prune_dist_min = 0.001;
 
   SVG::U      marker_size;
   MarkerShape marker_shape;
