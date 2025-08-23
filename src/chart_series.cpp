@@ -1114,25 +1114,28 @@ void Series::BuildArea(
     tag_direction = reverse ? Pos::Left : Pos::Right;
   }
 
-  bool first_in_stack = (stack_dir < 0) ? pts_neg->empty() : pts_pos->empty();
+  bool first_in_stack = true;
 
-  // Initialize the fill polygon with the points from the top of the previous
-  // polygon, which are contained in pts_pos/pts_neg.
-  if ( has_fill ) {
-    if ( stack_dir < 0 ) {
-      for ( auto it = pts_neg->rbegin(); it != pts_neg->rend(); ++it ) {
-        PrunePolyAdd( fill_ps, *it );
-      }
-    } else {
-      for ( auto it = pts_pos->rbegin(); it != pts_pos->rend(); ++it ) {
-        PrunePolyAdd( fill_ps, *it );
+  if ( type == SeriesType::StackedArea ) {
+    first_in_stack = (stack_dir < 0) ? pts_neg->empty() : pts_pos->empty();
+    // Initialize the fill polygon with the points from the top of the previous
+    // polygon, which are contained in pts_pos/pts_neg.
+    if ( has_fill ) {
+      if ( stack_dir < 0 ) {
+        for ( auto it = pts_neg->rbegin(); it != pts_neg->rend(); ++it ) {
+          PrunePolyAdd( fill_ps, *it );
+        }
+      } else {
+        for ( auto it = pts_pos->rbegin(); it != pts_pos->rend(); ++it ) {
+          PrunePolyAdd( fill_ps, *it );
+        }
       }
     }
-  }
-  if ( stack_dir < 0 ) {
-    pts_neg->clear();
-  } else {
-    pts_pos->clear();
+    if ( stack_dir < 0 ) {
+      pts_neg->clear();
+    } else {
+      pts_pos->clear();
+    }
   }
 
   auto commit_line = [&]( void )
@@ -1168,10 +1171,12 @@ void Series::BuildArea(
         (ap_line_cnt == 0) ? p : ap_prv_p, p, false, is_datum
       );
     }
-    if ( stack_dir < 0 ) {
-      pts_neg->push_back( p );
-    } else {
-      pts_pos->push_back( p );
+    if ( type == SeriesType::StackedArea ) {
+      if ( stack_dir < 0 ) {
+        pts_neg->push_back( p );
+      } else {
+        pts_pos->push_back( p );
+      }
     }
     if ( has_fill ) {
       PrunePolyAdd( fill_ps, p );
@@ -1261,13 +1266,19 @@ void Series::BuildArea(
   };
 
   if ( main->category_num > 0 ) {
+    double beg_y = base;
+    double end_y = base;
+    if ( type == SeriesType::StackedArea ) {
+      beg_y = (stack_dir < 0) ? ofs_neg->front() : ofs_pos->front();
+      end_y = (stack_dir < 0) ? ofs_neg->back() : ofs_pos->back();
+    }
     Point beg_p{
       axis_x->Coor( 0 ),
-      axis_y->Coor( (stack_dir < 0) ? ofs_neg->front() : ofs_pos->front() )
+      axis_y->Coor( beg_y )
     };
     Point end_p{
-      axis_x->Coor( ofs_pos->size() - 1 ),
-      axis_y->Coor( (stack_dir < 0) ? ofs_neg->back() : ofs_pos->back() )
+      axis_x->Coor( main->category_num - 1 ),
+      axis_y->Coor( end_y )
     };
     if ( first_in_stack ) do_point( beg_p, 0, "", "", false );
     double prv_base = 0;
@@ -1299,14 +1310,16 @@ void Series::BuildArea(
         do_point( p, cat_idx, svx, svy, false );
       }
       if ( !valid ) y = 0;
-      if ( stack_dir < 0 ) {
-        prv_base = ofs_neg->at( cat_idx );
-        y += prv_base;
-        ofs_neg->at( cat_idx ) = y;
-      } else {
-        prv_base = ofs_pos->at( cat_idx );
-        y += prv_base;
-        ofs_pos->at( cat_idx ) = y;
+      if ( type == SeriesType::StackedArea ) {
+        if ( stack_dir < 0 ) {
+          prv_base = ofs_neg->at( cat_idx );
+          y += prv_base;
+          ofs_neg->at( cat_idx ) = y;
+        } else {
+          prv_base = ofs_pos->at( cat_idx );
+          y += prv_base;
+          ofs_pos->at( cat_idx ) = y;
+        }
       }
       if ( !first && !prv_valid && valid ) {
         Point p{ axis_x->Coor( cat_idx ), axis_y->Coor( base ) };

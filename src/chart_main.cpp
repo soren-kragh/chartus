@@ -1220,15 +1220,11 @@ void Main::BuildSeries(
       );
     }
     if ( series->type == SeriesType::Area ) {
-      std::vector< double > ofs_pos( category_num, series->base );
-      std::vector< double > ofs_neg( category_num, series->base );
-      std::vector< Point > pts_pos;
-      std::vector< Point > pts_neg;
       series->Build(
         bar_area_g, bar_area_g, bar_area_g, above_axes_g, tag_g,
         0, 1,
-        &ofs_pos, &ofs_neg,
-        &pts_pos, &pts_neg
+        nullptr, nullptr,
+        nullptr, nullptr
       );
     }
     if (
