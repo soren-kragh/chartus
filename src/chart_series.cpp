@@ -971,6 +971,7 @@ void Series::BuildMarker( Group* g, const MarkerDims& m, SVG::Point p )
 
 void Series::ComputeStackDir()
 {
+  stack_dir = 0;
   if ( type != SeriesType::StackedArea ) return;
 
   DatumBegin();
@@ -991,6 +992,7 @@ void Series::ComputeStackDir()
       return;
     }
   }
+
   return;
 }
 
@@ -1096,15 +1098,14 @@ void Series::BuildArea(
   Group* mark_g,
   Group* hole_g,
   Group* tag_g,
-  std::vector< double >* ofs_pos,
-  std::vector< double >* ofs_neg,
-  std::vector< SVG::Point >* pts_pos,
-  std::vector< SVG::Point >* pts_neg
+  std::vector< double >* base_ofs,
+  std::vector< SVG::Point >* base_pts
 )
 {
   prune_state_t fill_ps;
   prune_state_t line_ps;
   prune_state_t mark_ps;
+  prune_state_t base_ps;
 
   Pos tag_direction;
   bool reverse = axis_y->reverse ^ (stack_dir < 0);
@@ -1117,25 +1118,16 @@ void Series::BuildArea(
   bool first_in_stack = true;
 
   if ( type == SeriesType::StackedArea ) {
-    first_in_stack = (stack_dir < 0) ? pts_neg->empty() : pts_pos->empty();
+    first_in_stack = base_pts->empty();
     // Initialize the fill polygon with the points from the top of the previous
-    // polygon, which are contained in pts_pos/pts_neg.
+    // polygon, which are contained in base_pts.
     if ( has_fill ) {
-      if ( stack_dir < 0 ) {
-        for ( auto it = pts_neg->rbegin(); it != pts_neg->rend(); ++it ) {
-          PrunePolyAdd( fill_ps, *it );
-        }
-      } else {
-        for ( auto it = pts_pos->rbegin(); it != pts_pos->rend(); ++it ) {
-          PrunePolyAdd( fill_ps, *it );
-        }
+      for ( auto it = base_pts->rbegin(); it != base_pts->rend(); ++it ) {
+        PrunePolyAdd( fill_ps, *it );
       }
     }
-    if ( stack_dir < 0 ) {
-      pts_neg->clear();
-    } else {
-      pts_pos->clear();
-    }
+    base_pts->clear();
+    base_pts->shrink_to_fit();
   }
 
   auto commit_line = [&]( void )
@@ -1172,11 +1164,7 @@ void Series::BuildArea(
       );
     }
     if ( type == SeriesType::StackedArea ) {
-      if ( stack_dir < 0 ) {
-        pts_neg->push_back( p );
-      } else {
-        pts_pos->push_back( p );
-      }
+      PrunePolyAdd( base_ps, p );
     }
     if ( has_fill ) {
       PrunePolyAdd( fill_ps, p );
@@ -1269,8 +1257,8 @@ void Series::BuildArea(
     double beg_y = base;
     double end_y = base;
     if ( type == SeriesType::StackedArea ) {
-      beg_y = (stack_dir < 0) ? ofs_neg->front() : ofs_pos->front();
-      end_y = (stack_dir < 0) ? ofs_neg->back() : ofs_pos->back();
+      beg_y = base_ofs->front();
+      end_y = base_ofs->back();
     }
     Point beg_p{
       axis_x->Coor( 0 ),
@@ -1311,15 +1299,9 @@ void Series::BuildArea(
       }
       if ( !valid ) y = 0;
       if ( type == SeriesType::StackedArea ) {
-        if ( stack_dir < 0 ) {
-          prv_base = ofs_neg->at( cat_idx );
-          y += prv_base;
-          ofs_neg->at( cat_idx ) = y;
-        } else {
-          prv_base = ofs_pos->at( cat_idx );
-          y += prv_base;
-          ofs_pos->at( cat_idx ) = y;
-        }
+        prv_base = base_ofs->at( cat_idx );
+        y += prv_base;
+        base_ofs->at( cat_idx ) = y;
       }
       if ( !first && !prv_valid && valid ) {
         Point p{ axis_x->Coor( cat_idx ), axis_y->Coor( base ) };
@@ -1349,6 +1331,11 @@ void Series::BuildArea(
   for ( auto& p : mark_ps.points ) {
     if ( marker_show_out ) BuildMarker( mark_g, marker_out, p );
     if ( marker_show_int ) BuildMarker( hole_g, marker_int, p );
+  }
+
+  if ( type == SeriesType::StackedArea ) {
+    PrunePointsEnd( base_ps );
+    *base_pts = std::move( base_ps.points );
   }
 
   return;
@@ -1784,8 +1771,7 @@ void Series::Build(
   uint32_t bar_tot,
   std::vector< double >* ofs_pos,
   std::vector< double >* ofs_neg,
-  std::vector< SVG::Point >* pts_pos,
-  std::vector< SVG::Point >* pts_neg
+  std::vector< SVG::Point >* base_pts
 )
 {
   // Used for extra margin in comparisons to account for precision issues. This
@@ -1856,8 +1842,7 @@ void Series::Build(
   ) {
     BuildArea(
       fill_g, line_g, mark_g, hole_g, tag_g,
-      ofs_pos, ofs_neg,
-      pts_pos, pts_neg
+      ofs_pos, base_pts
     );
   }
 

@@ -215,10 +215,8 @@ public:
     SVG::Group* mark_g,
     SVG::Group* hole_g,
     SVG::Group* tag_g,
-    std::vector< double >* ofs_pos,
-    std::vector< double >* ofs_neg,
-    std::vector< SVG::Point >* pts_pos,
-    std::vector< SVG::Point >* pts_neg
+    std::vector< double >* base_ofs,
+    std::vector< SVG::Point >* base_pts
   );
   void BuildBar(
     SVG::Group* fill_g,
@@ -248,8 +246,7 @@ public:
     uint32_t bar_tot,
     std::vector< double >* ofs_pos = nullptr,
     std::vector< double >* ofs_neg = nullptr,
-    std::vector< SVG::Point >* pts_pos = nullptr,
-    std::vector< SVG::Point >* pts_neg = nullptr
+    std::vector< SVG::Point >* base_pts = nullptr
   );
 
   uint32_t id;

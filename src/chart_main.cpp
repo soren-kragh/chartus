@@ -1180,12 +1180,6 @@ void Main::BuildSeries(
   SVG::Group* tag_g
 )
 {
-  std::vector< double > sa_ofs_pos[ 2 ];
-  std::vector< double > sa_ofs_neg[ 2 ];
-  std::vector< Point > sa_pts_pos[ 2 ];
-  std::vector< Point > sa_pts_neg[ 2 ];
-  bool sa_first[ 2 ] = { true, true };
-
   bool bar_next_can_stack = false;
   bool bar_next_can_layer = false;
   int bar_prev_y_n = 0;
@@ -1203,28 +1197,38 @@ void Main::BuildSeries(
   Group* bar_line_g          = below_axes_g->AddNewGroup();
   Group* lollipop_stem_g     = below_axes_g->AddNewGroup();
 
-  for ( auto series : series_list ) {
-    int y_n = series->axis_y_n;
-    if ( series->type == SeriesType::StackedArea ) {
-      if ( sa_first[ y_n ] ) {
-        sa_ofs_pos[ y_n ].assign( category_num, series->base );
-        sa_ofs_neg[ y_n ].assign( category_num, series->base );
+  for ( int y_n : { 1, 0 } ) {
+    for ( int sd : { 0, 1 } ) {
+      std::vector< double > base_ofs;
+      std::vector< Point > base_pts;
+      bool first = true;
+      for ( auto series : series_list ) {
+        if ( series->type != SeriesType::StackedArea ) continue;
+        if ( series->axis_y_n != y_n ) continue;
+        if ( series->stack_dir < 0 ) {
+          if ( sd != 0 ) continue;
+        } else {
+          if ( sd != 1 ) continue;
+        }
+        if ( first ) {
+          base_ofs.assign( category_num, series->base );
+        }
+        first = false;
+        series->Build(
+          stacked_area_line_g, stacked_area_line_g, stacked_area_fill_g,
+          above_axes_g, tag_g,
+          0, 1,
+          &base_ofs, nullptr, &base_pts
+        );
       }
-      sa_first[ y_n ] = false;
-      series->Build(
-        stacked_area_line_g, stacked_area_line_g, stacked_area_fill_g,
-        above_axes_g, tag_g,
-        0, 1,
-        &sa_ofs_pos[ y_n ], &sa_ofs_neg[ y_n ],
-        &sa_pts_pos[ y_n ], &sa_pts_neg[ y_n ]
-      );
     }
+  }
+
+  for ( auto series : series_list ) {
     if ( series->type == SeriesType::Area ) {
       series->Build(
         bar_area_g, bar_area_g, bar_area_g, above_axes_g, tag_g,
-        0, 1,
-        nullptr, nullptr,
-        nullptr, nullptr
+        0, 1
       );
     }
     if (
