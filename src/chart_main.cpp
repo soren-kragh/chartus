@@ -642,68 +642,89 @@ void Main::AxisPrepare( SVG::Group* tag_g )
     a->data_min = a->log_scale ? 10 : 0;
     a->data_max = a->log_scale ? 10 : 0;
   }
+
+  for ( int y_n : { 1, 0 } ) {
+    for ( int sd : { 0, 1 } ) {
+      std::vector< double > base_ofs;
+      bool init_ofs = true;
+      for ( auto series : series_list ) {
+        if ( series->type != SeriesType::StackedArea ) continue;
+        if ( series->axis_y_n != y_n ) continue;
+        if ( series->stack_dir < 0 ) {
+          if ( sd != 0 ) continue;
+        } else {
+          if ( sd != 1 ) continue;
+        }
+        if ( init_ofs ) {
+          base_ofs.assign( category_num, series->base );
+        }
+        init_ofs = false;
+        series->DetermineMinMax( base_ofs, base_ofs );
+      }
+    }
+  }
+
   {
-    std::vector< double > ofs_pos[ 2 ][ 2 ];
-    std::vector< double > ofs_neg[ 2 ][ 2 ];
-    bool init_ofs[ 2 ][ 2 ] = { { true, true }, { true, true } };
+    std::vector< double > ofs_pos[ 2 ];
+    std::vector< double > ofs_neg[ 2 ];
+    bool init_ofs[ 2 ] = { true, true };
     for ( auto series : series_list ) {
-      int type_n = (series->type == SeriesType::StackedArea) ? 1 : 0;
+      if ( series->type == SeriesType::StackedArea ) continue;
       int axis_n = series->axis_y_n;
       if (
         series->type == SeriesType::Bar ||
         series->type == SeriesType::LayeredBar
       ) {
-        init_ofs[ type_n ][ 0 ] = true;
-        init_ofs[ type_n ][ 1 ] = true;
+        init_ofs[ 0 ] = true;
+        init_ofs[ 1 ] = true;
       }
       if (
         series->type == SeriesType::Bar ||
         series->type == SeriesType::StackedBar ||
-        series->type == SeriesType::LayeredBar ||
-        series->type == SeriesType::StackedArea
+        series->type == SeriesType::LayeredBar
       ) {
-        if ( init_ofs[ type_n ][ axis_n ] ) {
-          ofs_pos[ type_n ][ axis_n ].assign( category_num, series->base );
-          ofs_neg[ type_n ][ axis_n ].assign( category_num, series->base );
+        if ( init_ofs[ axis_n ] ) {
+          ofs_pos[ axis_n ].assign( category_num, series->base );
+          ofs_neg[ axis_n ].assign( category_num, series->base );
         }
-        init_ofs[ type_n ][ axis_n ] = false;
+        init_ofs[ axis_n ] = false;
       }
-      series->DetermineMinMax(
-        ofs_pos[ type_n ][ axis_n ],
-        ofs_neg[ type_n ][ axis_n ]
-      );
+      series->DetermineMinMax( ofs_pos[ axis_n ], ofs_neg[ axis_n ] );
       if ( series->type == SeriesType::LayeredBar ) {
-        init_ofs[ type_n ][ 0 ] = true;
-        init_ofs[ type_n ][ 1 ] = true;
+        init_ofs[ 0 ] = true;
+        init_ofs[ 1 ] = true;
       }
       if (
         series->type == SeriesType::Bar ||
         series->type == SeriesType::StackedBar
       ) {
-        init_ofs[ type_n ][ 1 - axis_n ] = true;
+        init_ofs[ 1 - axis_n ] = true;
       }
-      if ( series->def_x ) {
-        Axis* ax = series->axis_x;
-        if ( !ax->data_def || ax->data_min > series->min_x ) {
-          ax->data_min = series->min_x;
-        }
-        if ( !ax->data_def || ax->data_max < series->max_x ) {
-          ax->data_max = series->max_x;
-        }
-        ax->data_def = true;
+    }
+  }
+
+  for ( auto series : series_list ) {
+    if ( series->def_x ) {
+      Axis* ax = series->axis_x;
+      if ( !ax->data_def || ax->data_min > series->min_x ) {
+        ax->data_min = series->min_x;
       }
-      if ( series->def_y ) {
-        Axis* ay = series->axis_y;
-        if ( !ay->data_def || ay->data_min > series->min_y ) {
-          ay->data_min = series->min_y;
-          ay->data_min_is_base = series->min_y_is_base;
-        }
-        if ( !ay->data_def || ay->data_max < series->max_y ) {
-          ay->data_max = series->max_y;
-          ay->data_max_is_base = series->max_y_is_base;
-        }
-        ay->data_def = true;
+      if ( !ax->data_def || ax->data_max < series->max_x ) {
+        ax->data_max = series->max_x;
       }
+      ax->data_def = true;
+    }
+    if ( series->def_y ) {
+      Axis* ay = series->axis_y;
+      if ( !ay->data_def || ay->data_min > series->min_y ) {
+        ay->data_min = series->min_y;
+        ay->data_min_is_base = series->min_y_is_base;
+      }
+      if ( !ay->data_def || ay->data_max < series->max_y ) {
+        ay->data_max = series->max_y;
+        ay->data_max_is_base = series->max_y_is_base;
+      }
+      ay->data_def = true;
     }
   }
 
@@ -1165,6 +1186,10 @@ void Main::SeriesPrepare(
         series->bar_layer_tot = bottom_layer_series->bar_layer_tot;
       }
     }
+  }
+
+  for ( auto series : series_list ) {
+    series->ComputeStackDir();
   }
 
   html.all_inline = bar_tot <= 1 && lol_tot <= 1;

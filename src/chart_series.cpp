@@ -1003,8 +1003,6 @@ void Series::DetermineMinMax(
   std::vector< double >& ofs_neg
 )
 {
-  ComputeStackDir();
-
   bool stackable =
     type == SeriesType::Bar ||
     type == SeriesType::StackedBar ||
