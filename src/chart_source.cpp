@@ -16,6 +16,7 @@
 #include <string>
 #include <cstring>
 #include <charconv>
+#include <filesystem>
 
 #include <chart_source.h>
 
@@ -144,14 +145,20 @@ void Source::ReadFiles()
       }
     } else {
       std::ifstream file( file_rec.name );
-      if ( file ) {
+      std::error_code ec;
+      std::uintmax_t file_size =
+        std::filesystem::file_size( file_rec.name, ec );
+      if ( file && !ec ) {
+        file_recs[ cur_pos.loc.file_num ].data.reserve(
+          static_cast< size_t >( file_size ) + 1024
+        );
         std::string line;
         while ( std::getline( file, line ) ) {
           ProcessLine( line );
         }
         file.close();
       } else {
-        Err( "Unable to open file '" + file_rec.name + "'" );
+        Err( "Unable to read file '" + file_rec.name + "'" );
       }
     }
     cur_pos.loc.file_num++;
