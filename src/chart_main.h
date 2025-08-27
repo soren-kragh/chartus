@@ -202,15 +202,8 @@ public:
 
   // Used by HTML class.
   struct html_t {
-    struct snap_point_t {
-      uint32_t series_id;
-      uint64_t cat_idx;
-      SVG::Point p;
-      std::string_view tag_x;
-      std::string_view tag_y;
-    };
-
-    std::vector< snap_point_t > snap_points;
+    std::unordered_set< uint64_t > snap_set;
+    std::unordered_set< size_t > cat_set;
 
     // Informs if all snap points are in line; for multiple bars per category
     // this will not be the case.

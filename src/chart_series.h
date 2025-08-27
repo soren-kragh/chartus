@@ -17,11 +17,14 @@
 #include <chart_source.h>
 #include <chart_legend_box.h>
 #include <chart_tag.h>
-#include <chart_html.h>
+
+#include <unordered_set>
 
 namespace Chart {
 
+class Main;
 class Axis;
+class HTML;
 
 class Series
 {
@@ -144,8 +147,8 @@ public:
 
     // p1 and p2 are the start and end points of the collection, which is all
     // points from p1 to p2 both inclusive.
-    SVG::Point p1;
-    SVG::Point p2;
+    SVG::Point p1{ 0.0, 0.0 };
+    SVG::Point p2{ 0.0, 0.0 };
 
     // e1 and e2 are the extreme start/end points of the line making up
     // collection. All points in the collection are spaced less than prune_dist
@@ -154,26 +157,29 @@ public:
     // as dictated by prune_dist) the e1/e2 line, as would be the case for
     // example with noisy sensor data etc.
 
-    SVG::Point e1;
-    SVG::Point e2;
+    SVG::Point e1{ 0.0, 0.0 };
+    SVG::Point e2{ 0.0, 0.0 };
 
     // Indicates if the extreme start/end points are also the start/end points.
-    bool e1_is_p1;
-    bool e2_is_p2;
+    bool e1_is_p1 = true;
+    bool e2_is_p2 = true;
 
     // d1/d2 is the distance of furthest point in the collection to the
     // left/right from the e1-to-e2 line.
-    SVG::U d1;
-    SVG::U d2;
+    SVG::U d1 = 0.0;
+    SVG::U d2 = 0.0;
 
     // Used when pruning isolated points.
     std::unordered_map< uint64_t, SVG::Point > iso_exists;
     std::vector< SVG::Point > iso_points;
+
+    bool html_enable = false;
   };
 
   void PrunePolyAdd( prune_state_t& ps, SVG::Point p );
-  void PrunePolyEnd( prune_state_t& ps, bool no_html = false );
+  void PrunePolyEnd( prune_state_t& ps );
 
+  uint64_t PrunePointsKey( SVG::Point p );
   void PrunePointsAdd( prune_state_t& ps, SVG::Point p );
   void PrunePointsEnd( prune_state_t& ps );
 
@@ -262,6 +268,7 @@ public:
   bool legend_outline = false;
 
   SeriesType type;
+  bool is_cat;
   std::string name;
   bool snap_enable = true;
   double base;
@@ -281,10 +288,24 @@ public:
 
   HTML* html_db;
 
-  // Used by Chart::HTML
-  bool has_snap = false;
-  uint32_t line_color_same_cnt = 0;
-  uint32_t fill_color_same_cnt = 0;
+  struct html_t {
+    bool has_snap = false;
+
+    struct snap_point_t {
+      SVG::Point p;
+      size_t cat_idx;
+      std::string tag_x;
+      std::string tag_y;
+    };
+    std::vector< snap_point_t > uncommitted_snap_points;
+    std::vector< snap_point_t > snap_points;
+
+    std::unordered_set< SVG::Point, PointHash > preserve_set;
+
+    uint32_t line_color_same_cnt = 0;
+    uint32_t fill_color_same_cnt = 0;
+  };
+  html_t html;
 
   // Used by Chart::Legend
   Series* same_legend_series = nullptr;
@@ -307,6 +328,10 @@ public:
   SVG::U prune_dist = 0.0;
   SVG::U prune_dist_inv = 0.0;
   SVG::U prune_dist_min = 0.001;
+
+  // Some tools have problems with very large poly lines, so break them up
+  // based on this limit when possible.
+  static constexpr uint64_t max_poly = 4096;
 
   SVG::U      marker_size;
   MarkerShape marker_shape;

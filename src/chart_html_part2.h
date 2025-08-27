@@ -954,19 +954,6 @@ svg_snap.addEventListener("mouseleave", () => {
       determineDecimals( axis );
     });
 
-    // Create mapping from category X-value to the category text.
-    chart.catMapToText = new Map();
-    if (chart.catCnt) {
-      let i = 0;
-      chart.categories.forEach(cat => {
-        if (typeof cat === "number") {
-          i = cat;
-        } else {
-          chart.catMapToText.set(i++, cat);
-        }
-      });
-    }
-
     // Maps a category X-value to a list of associated snap points.
     chart.catMapToSnap = new Map();
     if (chart.catCnt) {
@@ -984,23 +971,48 @@ svg_snap.addEventListener("mouseleave", () => {
       });
     }
 
+    // Create mapping from category X-value to the category text.
+    chart.catMapToText = new Map();
+    chart.catSnappable = new Set();
+    if (chart.catCnt) {
+      let i = 0;
+      let snappable = false;
+      Array.from(chart.categories).forEach(cat => {
+        if (typeof cat === "undefined") {
+          snappable = true;
+        } else {
+          if (typeof cat === "number") {
+            i = cat;
+          } else {
+            if (snappable && chart.catMapToSnap.has(i)) {
+              chart.catSnappable.add(i);
+            }
+            chart.catMapToText.set(i++, cat);
+          }
+          snappable = false;
+        }
+      });
+    }
+
     // Make a sorted list of category X-values, and a sorted list of category
     // X-values which have at least one associated snap point.
     chart.catTxtValues = [];
     chart.catBoxValues = [];
     for (let i = 0; i < chart.catCnt; i++) {
       if (chart.catMapToText.has(i)) chart.catTxtValues.push(i);
-      if (chart.catMapToSnap.has(i)) chart.catBoxValues.push(i);
+      if (chart.catSnappable.has(i)) chart.catBoxValues.push(i);
     }
 
     // Add all snap points to spatial map.
     {
       chart.snapMap = new Map();
       let snapIdx = 0;
-      chart.snapPoints.forEach(sp => {
-        snapMapAdd(chart.snapMap, sp.X, sp.Y, snapIdx);
-        snapIdx++;
-      });
+      if (chart.snapPoints) {
+        chart.snapPoints.forEach(sp => {
+          snapMapAdd(chart.snapMap, sp.X, sp.Y, snapIdx);
+          snapIdx++;
+        });
+      }
     }
 
   });

@@ -25,6 +25,8 @@ using namespace Chart;
 
 Series::Series( Main* main, SeriesType type )
 {
+  this->type = type;
+  this->is_cat = type != SeriesType::XY && type != SeriesType::Scatter;
   this->source = main->ensemble->source;
   this->main = main;
   id = 0;
@@ -52,7 +54,6 @@ Series::Series( Main* main, SeriesType type )
   color_list.emplace_back(); color_list.back().Set( ColorName::gold          );
   color_list.emplace_back(); color_list.back().Set( ColorName::slategrey     );
 
-  this->type = type;
   SetName( "" );
   SetAxisY( 0 );
 
@@ -269,8 +270,6 @@ void Series::ApplyTagStyle( SVG::Object* obj )
 
 void Series::PrunePolyAdd( prune_state_t& ps, SVG::Point p )
 {
-  ps.cnt++;
-
   // Returns the distance from p to the line going from e1 to e2. The sign of
   // the returned distance indicates if p lies to the left (positive) or the
   // right (negative) of the line.
@@ -288,7 +287,7 @@ void Series::PrunePolyAdd( prune_state_t& ps, SVG::Point p )
 
   // Returns true if p was integrated into the p1 to p2 collection thereby
   // causing the previous point (p2) to be pruned.
-  auto prune = [&]( Point p )
+  auto prune = [&]()
   {
     auto new_e1 = ps.e1;
     auto new_e2 = ps.e2;
@@ -356,13 +355,22 @@ void Series::PrunePolyAdd( prune_state_t& ps, SVG::Point p )
     return true;
   };
 
+  ps.cnt++;
+
   if ( ps.cnt > 2 ) {
-    if ( prune_dist < prune_dist_min || !prune( p ) ) {
-      ps.points.push_back( ps.p1 );
+    if ( prune_dist < prune_dist_min || !prune() ) {
+      if ( ps.html_enable ) {
+        html_db->PreserveSnapPoint( this, ps.p1 );
+        html_db->PreserveSnapPoint( this, ps.e1 );
+        html_db->PreserveSnapPoint( this, ps.p2 );
+        html_db->PreserveSnapPoint( this, ps.e2 );
+        html_db->CommitSnapPoints( this, false );
+      }
       if ( !ps.e1_is_p1 ) ps.points.push_back( ps.e1 );
       if ( !ps.e2_is_p2 ) ps.points.push_back( ps.e2 );
       ps.p1 = ps.e1 = ps.p2;
       ps.e1_is_p1 = true;
+      ps.points.push_back( ps.p1 );
       ps.p2 = ps.e2 = p;
       ps.e2_is_p2 = true;
       ps.d1 = ps.d2 = 0;
@@ -372,18 +380,27 @@ void Series::PrunePolyAdd( prune_state_t& ps, SVG::Point p )
       ps.points.clear();
       ps.p1 = ps.e1 = p;
       ps.e1_is_p1 = true;
+      ps.points.push_back( ps.p1 );
     } else {
       ps.p2 = ps.e2 = p;
       ps.e2_is_p2 = true;
       ps.d1 = ps.d2 = 0;
     }
   }
+
+  return;
 }
 
-void Series::PrunePolyEnd( prune_state_t& ps, bool no_html )
+void Series::PrunePolyEnd( prune_state_t& ps )
 {
+  if ( ps.html_enable ) {
+    html_db->PreserveSnapPoint( this, ps.p1 );
+    html_db->PreserveSnapPoint( this, ps.e1 );
+    html_db->PreserveSnapPoint( this, ps.p2 );
+    html_db->PreserveSnapPoint( this, ps.e2 );
+    html_db->CommitSnapPoints( this, true );
+  }
   if ( ps.cnt > 0 ) {
-    ps.points.push_back( ps.p1 );
     if ( ps.cnt > 1 ) {
       if ( !ps.e1_is_p1 ) ps.points.push_back( ps.e1 );
       if ( !ps.e2_is_p2 ) ps.points.push_back( ps.e2 );
@@ -393,12 +410,16 @@ void Series::PrunePolyEnd( prune_state_t& ps, bool no_html )
     ps.points.clear();
   }
   ps.cnt = 0;
-  if ( !no_html && html_db ) {
-    for ( const auto& p : ps.points ) html_db->DontPruneSnapPoint( p );
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+uint64_t Series::PrunePointsKey( SVG::Point p )
+{
+  return
+    (static_cast< uint64_t >( p.y * prune_dist_inv ) << 32) |
+    (static_cast< uint64_t >( p.x * prune_dist_inv ) <<  0);
+}
 
 void Series::PrunePointsAdd( prune_state_t& ps, SVG::Point p )
 {
@@ -407,22 +428,30 @@ void Series::PrunePointsAdd( prune_state_t& ps, SVG::Point p )
     // sense as the points are totally random.
     PrunePolyAdd( ps, p );
   } else {
-    ps.cnt++;
+    if ( ++ps.cnt == 1 ) {
+      ps.points.clear();
+    }
+    if ( ps.html_enable ) {
+      html_db->CommitSnapPoints( this, false );
+    }
   }
   if ( ps.cnt == 1 ) {
-    ps.points.clear();
     ps.iso_exists.clear();
     ps.iso_points.clear();
   }
   if ( prune_dist >= prune_dist_min ) {
-    uint64_t key =
-      (static_cast< uint64_t >( p.y * prune_dist_inv ) << 32) |
-      (static_cast< uint64_t >( p.x * prune_dist_inv ) <<  0);
+    uint64_t key = PrunePointsKey( p );
     if ( ps.iso_exists.insert( { key, p } ).second ) {
       ps.iso_points.push_back( p );
+      if ( ps.html_enable ) {
+        html_db->PreserveSnapPoint( this, p );
+      }
     }
   } else {
     ps.iso_points.push_back( p );
+    if ( ps.html_enable ) {
+      html_db->PreserveSnapPoint( this, p );
+    }
   }
 }
 
@@ -434,22 +463,21 @@ void Series::PrunePointsEnd( prune_state_t& ps )
     ps.iso_points.clear();
   }
   if ( type != SeriesType::Scatter && prune_dist >= prune_dist_min ) {
-    PrunePolyEnd( ps, true );
+    PrunePolyEnd( ps );
+  } else {
+    if ( ps.html_enable ) {
+      html_db->CommitSnapPoints( this, true );
+    }
   }
   ps.cnt = 0;
   for ( const auto& p : ps.points ) {
-    uint64_t key =
-      (static_cast< uint64_t >( p.y * prune_dist_inv ) << 32) |
-      (static_cast< uint64_t >( p.x * prune_dist_inv ) <<  0);
+    uint64_t key = PrunePointsKey( p );
     auto it = ps.iso_exists.find( key );
     if ( it == ps.iso_exists.end() || it->second != p ) {
       ps.iso_points.push_back( p );
     }
   }
   ps.points = std::move( ps.iso_points );
-  if ( html_db ) {
-    for ( const auto& p : ps.points ) html_db->DontPruneSnapPoint( p );
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1041,7 +1069,6 @@ void Series::DetermineMinMax(
     }
   }
 
-  bool x_is_cat = type != SeriesType::XY && type != SeriesType::Scatter;
   DatumBegin();
   for ( size_t i = 0; i < datum_num; ++i, DatumNext() ) {
     std::string_view svx;
@@ -1049,7 +1076,7 @@ void Series::DetermineMinMax(
     source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
     double x = datum_cat_ofs + i;
     double y = ToDouble( svy );
-    if ( !x_is_cat ) x = ToDouble( svx );
+    if ( !is_cat ) x = ToDouble( svx );
     if ( !axis_x->Valid( x ) ) continue;
     if ( !axis_y->Valid( y ) ) continue;
     {
@@ -1105,6 +1132,9 @@ void Series::BuildArea(
   prune_state_t mark_ps;
   prune_state_t base_ps;
 
+  line_ps.html_enable = html_db != nullptr && !marker_show;
+  mark_ps.html_enable = html_db != nullptr && marker_show;
+
   Pos tag_direction;
   bool reverse = axis_y->reverse ^ (stack_dir < 0);
   if ( axis_x->angle == 0 ) {
@@ -1131,9 +1161,8 @@ void Series::BuildArea(
   auto commit_line = [&]( void )
   {
     PrunePolyEnd( line_ps );
-    if ( !line_ps.points.empty() ) {
+    if ( has_line && !line_ps.points.empty() ) {
       auto it = line_ps.points.cbegin();
-      uint64_t max_poly = 1024;
       uint64_t d = (line_ps.points.size() + max_poly - 1) / max_poly;
       uint64_t n = 0;
       for ( uint64_t i = 1; i <= d; ++i ) {
@@ -1167,13 +1196,13 @@ void Series::BuildArea(
     if ( has_fill ) {
       PrunePolyAdd( fill_ps, p );
     }
-    if ( has_line && on_line ) {
+    if ( on_line ) {
       PrunePolyAdd( line_ps, p );
     }
     if ( is_datum ) {
       if ( marker_show ) PrunePointsAdd( mark_ps, p );
       if ( html_db ) {
-        html_db->AddSnapPoint( this, p, cat_idx, tag_y );
+        html_db->RecordSnapPoint( this, p, cat_idx, tag_x, tag_y );
       }
     }
     if ( tag_enable ) {
@@ -1300,6 +1329,8 @@ void Series::BuildArea(
         prv_base = base_ofs->at( cat_idx );
         y += prv_base;
         base_ofs->at( cat_idx ) = y;
+      } else {
+        y += base;
       }
       if ( !first && !prv_valid && valid ) {
         Point p{ axis_x->Coor( cat_idx ), axis_y->Coor( base ) };
@@ -1464,8 +1495,9 @@ void Series::BuildBar(
     }
 
     if ( html_db && p2_inside ) {
-      html_db->AddSnapPoint( this, p2, cat_idx, svy );
-      html_db->DontPruneSnapPoint( p2 );
+      html_db->RecordSnapPoint( this, p2, cat_idx, svx, svy );
+      html_db->PreserveSnapPoint( this, p2 );
+      html_db->CommitSnapPoints( this, true );
     }
 
     if ( tag_enable ) {
@@ -1612,6 +1644,9 @@ void Series::BuildLine(
   prune_state_t line_ps;
   prune_state_t mark_ps;
 
+  line_ps.html_enable = html_db != nullptr && has_line;
+  mark_ps.html_enable = html_db != nullptr && !has_line;
+
   bool adding_segments = false;
 
   Pos tag_direction;
@@ -1639,13 +1674,12 @@ void Series::BuildLine(
     if ( !clipped ) {
       if ( marker_show ) PrunePointsAdd( mark_ps, p );
       if ( html_db ) {
-        if ( axis_x->category_axis ) {
-          size_t cat_idx = x;
-          html_db->AddSnapPoint( this, p, cat_idx, tag_y );
-        } else {
-          html_db->AddSnapPoint( this, p, tag_x, tag_y );
-        }
+        size_t cat_idx = static_cast< size_t >( x );
+        html_db->RecordSnapPoint( this, p, cat_idx, tag_x, tag_y );
       }
+    }
+    if ( !has_line && !marker_show && html_db ) {
+      html_db->CommitSnapPoints( this, true );
     }
     if ( tag_enable ) {
       tag_db->LineTag(
@@ -1656,12 +1690,12 @@ void Series::BuildLine(
     prv = p;
     adding_segments = true;
   };
+
   auto end_point = [&]( void )
   {
     PrunePolyEnd( line_ps );
     if ( !line_ps.points.empty() ) {
       auto it = line_ps.points.cbegin();
-      uint64_t max_poly = 1024;
       uint64_t d = (line_ps.points.size() + max_poly - 1) / max_poly;
       uint64_t n = 0;
       for ( uint64_t i = 1; i <= d; ++i ) {
@@ -1694,7 +1728,7 @@ void Series::BuildLine(
     source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
     double x = datum_cat_ofs + i;
     double y = ToDouble( svy );
-    if ( !axis_x->category_axis ) x = ToDouble( svx );
+    if ( !is_cat ) x = ToDouble( svx );
 
     old = cur;
     if ( axis_x->angle == 0 ) {

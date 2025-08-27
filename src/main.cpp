@@ -1900,7 +1900,7 @@ void parse_series_data( void )
       double d;
       bool got_number = false;
       if ( !x_is_text ) {
-        got_number = source.GetDouble( d );
+        got_number = source.GetDouble( d, true );
       }
       if ( !got_number ) {
         std::string_view t;

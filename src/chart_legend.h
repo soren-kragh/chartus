@@ -20,6 +20,8 @@
 
 namespace Chart {
 
+class Ensemble;
+
 class Legend
 {
 public:

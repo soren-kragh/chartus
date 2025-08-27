@@ -11,8 +11,8 @@
 //  permit persons to whom the Software is furnished to do so.
 //
 
-#include <chart_ensemble.h>
 #include <chart_html.h>
+#include <chart_ensemble.h>
 
 using namespace SVG;
 using namespace Chart;
@@ -89,31 +89,72 @@ void HTML::MoveLegends( Main* main, SVG::U dx, SVG::U dy )
 
 //------------------------------------------------------------------------------
 
-void HTML::AddSnapPoint(
-  Series* series,
-  SVG::Point p, std::string_view tag_x, std::string_view tag_y
-)
+bool HTML::SnapCat( Main* main, size_t cat_idx )
 {
-  series->main->html.snap_points.push_back(
-    { series->id, 0, p, tag_x, tag_y }
-  );
-  series->has_snap = true;
+  if ( main->category_num <= main->axis_x->length ) return true;
+  size_t x = cat_idx;
+  size_t A = main->category_num - 1;
+  size_t B = static_cast< size_t >( snap_factor * main->axis_x->length);
+  if ( x >= A/2 ) x = A - x;
+  size_t i = (x*B + A/2) / A;
+  size_t p = (i*A + B/2) / B;
+  return x == p;
 }
 
-void HTML::AddSnapPoint(
-  Series* series,
-  SVG::Point p, uint64_t cat_idx, std::string_view tag_y
-)
+bool HTML::AllocateSnap( Main* main, SVG::Point p )
 {
-  series->main->html.snap_points.push_back(
-    { series->id, cat_idx, p, "", tag_y }
-  );
-  series->has_snap = true;
+  uint64_t key =
+    (static_cast< uint64_t >( p.y * snap_factor ) << 32) |
+    (static_cast< uint64_t >( p.x * snap_factor ) <<  0);
+  return main->html.snap_set.insert( key ).second;
 }
 
-void HTML::DontPruneSnapPoint( SVG::Point p )
+void HTML::RecordSnapPoint(
+  Series* series, SVG::Point p, size_t cat_idx,
+  std::string_view tag_x, std::string_view tag_y
+)
 {
-  dont_prune_set.insert( p );
+  Series::html_t::snap_point_t sp;
+  sp.p = p;
+  sp.cat_idx = cat_idx;
+  sp.tag_y = tag_y;
+  if ( !series->is_cat ) sp.tag_x = tag_x;
+  series->html.uncommitted_snap_points.push_back( sp );
+  series->html.has_snap = true;
+}
+
+void HTML::PreserveSnapPoint( Series* series, SVG::Point p )
+{
+  series->html.preserve_set.insert( p );
+}
+
+void HTML::CommitSnapPoints( Series* series, bool force )
+{
+  if ( !force && series->html.uncommitted_snap_points.size() < 100000 ) {
+    // Do not commit when we only have relatively few points, as this increases
+    // the chance of not committing non-preservable points.
+    return;
+  }
+  auto main = series->main;
+  bool is_cat = series->is_cat;
+  for ( const auto& sp : series->html.uncommitted_snap_points ) {
+    bool add =
+      series->html.preserve_set.count( sp.p ) > 0 ||
+      (is_cat && SnapCat( main, sp.cat_idx ));
+    if ( add ) {
+      if ( is_cat ) main->html.cat_set.insert( sp.cat_idx );
+      series->html.snap_points.push_back( sp );
+      AllocateSnap( main, sp.p );
+    }
+  }
+  for ( const auto& sp : series->html.uncommitted_snap_points ) {
+    bool add = AllocateSnap( main, sp.p );
+    if ( add ) {
+      if ( is_cat ) main->html.cat_set.insert( sp.cat_idx );
+      series->html.snap_points.push_back( sp );
+    }
+  }
+  series->html.uncommitted_snap_points.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -264,19 +305,19 @@ void HTML::GenChartData( Main* main, std::ostringstream& oss )
   oss << "inLine : " << main->html.all_inline << ",\n";
 
   for ( auto s1 : main->series_list ) {
-    if ( !s1->has_snap ) continue;
+    if ( !s1->html.has_snap ) continue;
     for ( auto s2 : main->series_list ) {
-      if ( !s2->has_snap || s1 == s2 ) continue;
+      if ( !s2->html.has_snap || s1 == s2 ) continue;
       if (
         s1->line_color_shown && s2->line_color_shown &&
         Color::Diff( s1->LineColor(), s2->LineColor() ) < 0.1
       )
-        s1->line_color_same_cnt++;
+        s1->html.line_color_same_cnt++;
       if (
         s1->fill_color_shown && s2->fill_color_shown &&
         Color::Diff( s1->FillColor(), s2->FillColor() ) < 0.1
       )
-        s1->fill_color_same_cnt++;
+        s1->html.fill_color_same_cnt++;
     }
   }
 
@@ -329,7 +370,7 @@ void HTML::GenChartData( Main* main, std::ostringstream& oss )
             !series->line_color_shown ||
             (d1 < 0.1 && d2 > d1) ||
             ( d1 > 0.1 && d2 > 0.1 &&
-              series->fill_color_same_cnt < series->line_color_same_cnt
+              series->html.fill_color_same_cnt < series->html.line_color_same_cnt
             )
           ) {
             fg.Set( &c2 );
@@ -353,78 +394,13 @@ void HTML::GenChartData( Main* main, std::ostringstream& oss )
   }
   oss << "],\n";
 
-  // Resolution of snap points in points, i.e. how close the snap points are
-  // placed (to reduce HTML size). Mouse events are in SVG point unit steps, so
-  // a finer (smaller) resolution than 1.0 does not make much sense.
-  double snap_resolution = 1.0;
-  double snap_f = 1.0 / snap_resolution;
-
-  // When there are relatively few snap point, there is no need to prune them.
-  bool few_snaps = main->html.snap_points.size() <= 1000;
-
-  std::unordered_set< uint64_t > snap_set;
-  std::unordered_set< uint64_t > cat_set;
-
-  // Returns true if point did not exist and was added to the set.
-  auto SnapAdd = [&]( Point p ) {
-    uint64_t key =
-      (static_cast< uint64_t >( p.y * snap_f ) << 32) |
-      (static_cast< uint64_t >( p.x * snap_f ) <<  0);
-    return snap_set.insert( key ).second;
-  };
-
-  if ( main->category_num > 0 ) {
-    auto base_it = main->html.snap_points.begin();
-    while ( base_it != main->html.snap_points.end() ) {
-      auto it = base_it;
-      auto id = base_it->series_id;
-      while ( it != main->html.snap_points.end() && it->series_id == id ) {
-        if ( cat_set.count( it->cat_idx ) > 0 ) {
-          SnapAdd( it->p );
-        }
-        ++it;
-      }
-      it = base_it;
-      while ( it != main->html.snap_points.end() && it->series_id == id ) {
-        bool added = SnapAdd( it->p );
-        bool dont_prune = dont_prune_set.count( it->p ) > 0;
-        if ( added || dont_prune ) {
-          cat_set.insert( it->cat_idx );
-        }
-        ++it;
-      }
-      base_it = it;
-    }
-  }
-
-  if ( main->category_num > 0 ) {
-    std::unordered_set< int32_t > snap_cat_set;
-    for ( size_t i = 0; i < main->category_num; ++i ) {
-      U coor = main->axis_x->Coor( i );
-      int32_t key = static_cast< int32_t >( std::floor( coor * snap_f ) );
-      if ( snap_cat_set.insert( key ).second ) {
-        cat_set.insert( i );
-      }
-    }
-  }
-
   oss << "snapPoints : [\n";
-  for (
-    auto it = main->html.snap_points.rbegin();
-    it != main->html.snap_points.rend(); ++it
-  ) {
-    const auto& sp = *it;
-    bool add = few_snaps;
-    if ( sp.tag_x.empty() ) {
-      add = add || cat_set.count( sp.cat_idx ) > 0;
-    } else {
-      add = add || SnapAdd( sp.p );
-    }
-    if ( add ) {
+  for ( auto series : main->series_list ) {
+    for ( const auto& sp : series->html.snap_points ) {
       U X = +(sp.p.x + main->g_dx);
       U Y = -(sp.p.y + main->g_dy);
-      oss << "{s:" << sp.series_id << ',';
-      if ( sp.tag_x.empty() ) {
+      oss << "{s:" << series->id << ',';
+      if ( series->is_cat ) {
         oss << "x:" << sp.cat_idx << ',';
       } else {
         oss << "x:" << quoteJS( sp.tag_x ) << ',';
@@ -445,13 +421,17 @@ void HTML::GenChartData( Main* main, std::ostringstream& oss )
       size_t i = 0; i < main->category_num;
       ++i, main->CategoryNext()
     ) {
-      if ( few_snaps || cat_set.count( i ) > 0 ) {
+      bool snappable = SnapCat( main, i );
+      if ( snappable || main->html.cat_set.count( i ) > 0 ) {
         std::string_view cat;
         main->CategoryGet( cat );
         if ( !cat.empty() ) {
           if ( j < i ) {
             oss << i << ',';
             j = i;
+          }
+          if ( snappable ) {
+            oss << ',';
           }
           oss << quoteJS( cat ) << ",\n";
           ++j;

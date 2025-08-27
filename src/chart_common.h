@@ -117,4 +117,11 @@ namespace Chart {
   // characters.
   bool NormalWidthUTF8( const std::string_view s );
 
+  struct PointHash {
+    size_t operator()( const SVG::Point& p ) const {
+      size_t hx = std::hash< double >()( p.x );
+      size_t hy = std::hash< double >()( p.y );
+      return hx ^ (hy << 1);
+    }
+  };
 }

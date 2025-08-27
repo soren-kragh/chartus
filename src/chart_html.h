@@ -13,9 +13,10 @@
 
 #pragma once
 
-#include <map>
 #include <chart_common.h>
+#include <chart_series.h>
 
+#include <map>
 #include <unordered_set>
 
 namespace Chart {
@@ -23,7 +24,6 @@ namespace Chart {
 class Ensemble;
 class Main;
 class Axis;
-class Series;
 
 class HTML
 {
@@ -48,17 +48,16 @@ public:
   void MoveLegend( Series* series, SVG::U dx, SVG::U dy );
   void MoveLegends( Main* main, SVG::U dx, SVG::U dy );
 
-  void AddSnapPoint(
-    Series* series,
-    SVG::Point p, std::string_view tag_x, std::string_view tag_y
-  );
-  void AddSnapPoint(
-    Series* series,
-    SVG::Point p, uint64_t cat_idx, std::string_view tag_y
-  );
+  // Returns true if the given category index must be included in snap points.
+  bool SnapCat( Main* main, size_t cat_idx );
 
-  // Instruct that given point cannot be pruned.
-  void DontPruneSnapPoint( SVG::Point p );
+  bool AllocateSnap( Main* main, SVG::Point p );
+  void RecordSnapPoint(
+    Series* series, SVG::Point p, size_t cat_idx,
+    std::string_view tag_x, std::string_view tag_y
+  );
+  void PreserveSnapPoint( Series* series, SVG::Point p );
+  void CommitSnapPoints( Series* series, bool force );
 
   std::string GenHTML( SVG::Canvas* canvas );
 
@@ -67,23 +66,13 @@ public:
 
   void GenChartData( Main* main, std::ostringstream& oss );
 
+  // Resolution of snap points in points, i.e. how close the snap points are
+  // placed (to reduce HTML size). Mouse events are in SVG point unit steps, so
+  // a much finer (smaller) resolution than 1.0 does not gain anything.
+  static constexpr double snap_resolution = 0.95;
+  static constexpr double snap_factor = 1.0 / snap_resolution;
+
   std::map< Series*, SVG::BoundaryBox > series_legend_map;
-
-  struct PointHash {
-    size_t operator()( const SVG::Point& p ) const {
-      size_t hx = std::hash< double >()( p.x );
-      size_t hy = std::hash< double >()( p.y );
-      return hx ^ (hy << 1);
-    }
-  };
-
-  struct PointEqual {
-    bool operator()( const SVG::Point& a, const SVG::Point& b ) const {
-      return a.x == b.x && a.y == b.y;
-    }
-  };
-
-  std::unordered_set< SVG::Point, PointHash, PointEqual > dont_prune_set;
 };
 
 }
