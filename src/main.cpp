@@ -54,6 +54,7 @@ struct state_t {
   double line_hole = -1;
   double lighten = 0.0;
   double fill_transparency = -1;
+  bool fill_color_specified = false;
   bool tag_enable = false;
   Chart::Pos tag_pos = Chart::Pos::Auto;
   double tag_size = 1.0;
@@ -1517,36 +1518,37 @@ void AddSeries( std::string name = "" )
   }
   state.type_list.push_back( state.series_type );
   state.series_list.push_back( CurChart()->AddSeries( state.series_type ) );
-  state.series_list.back()->SetName( name );
-  state.series_list.back()->SetSnap( state.snap );
-  state.series_list.back()->SetPruneDist( state.prune_dist );
-  state.series_list.back()->SetGlobalLegend( state.global_legend );
-  state.series_list.back()->SetLegendOutline( state.legend_outline );
-  state.series_list.back()->SetAxisY( state.axis_y_n );
-  state.series_list.back()->SetBase( state.series_base );
-  state.series_list.back()->SetStyle( state.style );
+  auto series = state.series_list.back();
+  series->SetName( name );
+  series->SetSnap( state.snap );
+  series->SetPruneDist( state.prune_dist );
+  series->SetGlobalLegend( state.global_legend );
+  series->SetLegendOutline( state.legend_outline );
+  series->SetAxisY( state.axis_y_n );
+  series->SetBase( state.series_base );
+  series->SetStyle( state.style );
   NextSeriesStyle();
-  state.series_list.back()->SetMarkerShape( state.marker_shape );
-  ApplyMarkerSize( state.series_list.back() );
+  series->SetMarkerShape( state.marker_shape );
+  ApplyMarkerSize( series );
   if ( state.line_width >= 0 ) {
-    state.series_list.back()->SetLineWidth( state.line_width );
+    series->SetLineWidth( state.line_width );
   }
   if ( state.line_dash >= 0 ) {
-    state.series_list.back()->SetLineDash( state.line_dash, state.line_hole );
+    series->SetLineDash( state.line_dash, state.line_hole );
   }
   if ( state.fill_transparency >= 0 ) {
-    state.series_list.back()->
-      FillColor()->SetTransparency( state.fill_transparency );
+    series->FillColor()->SetTransparency( state.fill_transparency );
   }
-  state.series_list.back()->LineColor()->Lighten( state.lighten );
-  state.series_list.back()->FillColor()->Lighten( state.lighten );
-  state.series_list.back()->SetTagEnable( state.tag_enable );
-  state.series_list.back()->SetTagPos( state.tag_pos );
-  state.series_list.back()->SetTagSize( state.tag_size );
-  state.series_list.back()->SetTagBox( state.tag_box );
-  state.series_list.back()->TagTextColor()->Set( &state.tag_text_color );
-  state.series_list.back()->TagFillColor()->Set( &state.tag_fill_color );
-  state.series_list.back()->TagLineColor()->Set( &state.tag_line_color );
+  state.fill_color_specified = false;
+  series->LineColor()->Lighten( state.lighten );
+  series->FillColor()->Lighten( state.lighten );
+  series->SetTagEnable( state.tag_enable );
+  series->SetTagPos( state.tag_pos );
+  series->SetTagSize( state.tag_size );
+  series->SetTagBox( state.tag_box );
+  series->TagTextColor()->Set( &state.tag_text_color );
+  series->TagFillColor()->Set( &state.tag_fill_color );
+  series->TagLineColor()->Set( &state.tag_line_color );
   state.defining_series = true;
 }
 
@@ -1792,8 +1794,16 @@ void do_Series_LineColor( void )
   if ( !state.defining_series ) {
     source.ParseErr( "LineColor outside defining series" );
   }
-  do_Color( state.series_list.back()->LineColor() );
-  state.series_list.back()->LineColor()->Lighten( state.lighten );
+  auto series = state.series_list.back();
+  do_Color( series->LineColor() );
+  series->LineColor()->Lighten( state.lighten );
+  if ( !state.fill_color_specified ) {
+    series->SetDefaultFillColor();
+    series->FillColor()->Lighten( state.lighten );
+    if ( state.fill_transparency >= 0 ) {
+      series->FillColor()->SetTransparency( state.fill_transparency );
+    }
+  }
 }
 
 void do_Series_FillColor( void )
@@ -1801,12 +1811,13 @@ void do_Series_FillColor( void )
   if ( !state.defining_series ) {
     source.ParseErr( "FillColor outside defining series" );
   }
-  do_Color( state.series_list.back()->FillColor() );
-  state.series_list.back()->FillColor()->Lighten( state.lighten );
+  auto series = state.series_list.back();
+  do_Color( series->FillColor() );
+  series->FillColor()->Lighten( state.lighten );
   if ( state.fill_transparency >= 0 ) {
-    state.series_list.back()->
-      FillColor()->SetTransparency( state.fill_transparency );
+    series->FillColor()->SetTransparency( state.fill_transparency );
   }
+  state.fill_color_specified = true;
 }
 
 //------------------------------------------------------------------------------

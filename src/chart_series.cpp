@@ -96,12 +96,9 @@ void Series::SetBase( double base )
   this->base = base;
 }
 
-void Series::SetStyle( int style )
+void Series::SetDefaultFillColor()
 {
-  line_color.Set( &color_list[ style % color_list.size() ] );
   fill_color.Set( &line_color );
-  style = style / color_list.size();
-  style = style % 8;
   if (
     type == SeriesType::Bar ||
     type == SeriesType::StackedBar ||
@@ -116,10 +113,27 @@ void Series::SetStyle( int style )
       fill_color.Lighten( 0.5 );
       fill_color.SetTransparency( 0.2 );
     }
+  } else {
+    fill_color.Lighten( 0.5 );
+  }
+}
+
+void Series::SetStyle( int style )
+{
+  line_color.Set( &color_list[ style % color_list.size() ] );
+  SetDefaultFillColor();
+  style = style / color_list.size();
+  style = style % 8;
+  if (
+    type == SeriesType::Bar ||
+    type == SeriesType::StackedBar ||
+    type == SeriesType::LayeredBar ||
+    type == SeriesType::Area ||
+    type == SeriesType::StackedArea
+  ) {
     SetLineWidth( 1 );
     SetLineDash( 0 );
   } else {
-    fill_color.Lighten( 0.5 );
     if ( style == 0 ) {
       SetLineWidth( 4 );
       SetLineDash( 0 );

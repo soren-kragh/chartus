@@ -55,6 +55,7 @@ public:
   // Sets the base for area and bar type series.
   void SetBase( double base );
 
+  void SetDefaultFillColor();
   void SetStyle( int style );
 
   // Line width also affects outline of hollow markers.
