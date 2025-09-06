@@ -160,10 +160,6 @@ public:
     SVG::Point e1{ 0.0, 0.0 };
     SVG::Point e2{ 0.0, 0.0 };
 
-    // Indicates if the extreme start/end points are also the start/end points.
-    bool e1_is_p1 = true;
-    bool e2_is_p2 = true;
-
     // d1/d2 is the distance of furthest point in the collection to the
     // left/right from the e1-to-e2 line.
     SVG::U d1 = 0.0;

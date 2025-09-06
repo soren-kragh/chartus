@@ -291,8 +291,6 @@ void Series::PrunePolyAdd( prune_state_t& ps, SVG::Point p )
   {
     auto new_e1 = ps.e1;
     auto new_e2 = ps.e2;
-    auto new_e1_is_p1 = ps.e1_is_p1;
-    auto new_e2_is_p2 = ps.e2_is_p2;
 
     double vex = ps.e2.x - ps.e1.x;
     double vey = ps.e2.y - ps.e1.y;
@@ -302,7 +300,6 @@ void Series::PrunePolyAdd( prune_state_t& ps, SVG::Point p )
 
     if ( vex_tiny && vey_tiny ) {
       new_e2 = p;
-      new_e2_is_p2 = true;
     } else {
       double dot1 = (p.x - ps.e1.x) * vex + (p.y - ps.e1.y) * vey;
       double dot2 = (p.x - ps.e2.x) * vex + (p.y - ps.e2.y) * vey;
@@ -317,10 +314,8 @@ void Series::PrunePolyAdd( prune_state_t& ps, SVG::Point p )
           d = dist2line( ps.e2, p, ps.e1 );
           std::swap( ps.d1, ps.d2 );
           new_e1 = ps.e2;
-          new_e1_is_p1 = false;
         }
         new_e2 = p;
-        new_e2_is_p2 = true;
         // Do not accept pruning that causes vertical/horizontal lines to
         // become slightly skewed, as this is a much more visible artifact:
         if ( (vex_tiny || vey_tiny) && std::abs( d ) > epsilon ) return false;
@@ -342,15 +337,12 @@ void Series::PrunePolyAdd( prune_state_t& ps, SVG::Point p )
         } else {
           ps.d2 = std::max( +ps.d2, -d );
         }
-        new_e2_is_p2 = false;
       }
       if ( ps.d1 > prune_dist || ps.d2 > prune_dist ) return false;
     }
 
     ps.e1 = new_e1;
     ps.e2 = new_e2;
-    ps.e1_is_p1 = new_e1_is_p1;
-    ps.e2_is_p2 = new_e2_is_p2;
     ps.p2 = p;
     return true;
   };
@@ -366,24 +358,20 @@ void Series::PrunePolyAdd( prune_state_t& ps, SVG::Point p )
         html_db->PreserveSnapPoint( this, ps.e2 );
         html_db->CommitSnapPoints( this, false );
       }
-      if ( !ps.e1_is_p1 ) ps.points.push_back( ps.e1 );
-      if ( !ps.e2_is_p2 ) ps.points.push_back( ps.e2 );
+      if ( ps.e1 != ps.p1 ) ps.points.push_back( ps.e1 );
+      if ( ps.e2 != ps.p2 ) ps.points.push_back( ps.e2 );
       ps.p1 = ps.e1 = ps.p2;
-      ps.e1_is_p1 = true;
       ps.points.push_back( ps.p1 );
       ps.p2 = ps.e2 = p;
-      ps.e2_is_p2 = true;
       ps.d1 = ps.d2 = 0;
     }
   } else {
     if ( ps.cnt == 1 ) {
       ps.points.clear();
       ps.p1 = ps.e1 = p;
-      ps.e1_is_p1 = true;
       ps.points.push_back( ps.p1 );
     } else {
       ps.p2 = ps.e2 = p;
-      ps.e2_is_p2 = true;
       ps.d1 = ps.d2 = 0;
     }
   }
@@ -402,8 +390,8 @@ void Series::PrunePolyEnd( prune_state_t& ps )
   }
   if ( ps.cnt > 0 ) {
     if ( ps.cnt > 1 ) {
-      if ( !ps.e1_is_p1 ) ps.points.push_back( ps.e1 );
-      if ( !ps.e2_is_p2 ) ps.points.push_back( ps.e2 );
+      if ( ps.e1 != ps.p1 ) ps.points.push_back( ps.e1 );
+      if ( ps.e2 != ps.p2 ) ps.points.push_back( ps.e2 );
       ps.points.push_back( ps.p2 );
     }
   } else {
