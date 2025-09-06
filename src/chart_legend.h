@@ -41,7 +41,7 @@ public:
 
   uint32_t Cnt( void );
 
-  typedef struct {
+  struct LegendDims{
     SVG::U ch;  // Character height.
     SVG::U ow;  // Max outline width.
     SVG::U cr;  // Outline corner radius.
@@ -57,7 +57,7 @@ public:
     SVG::U sy;  // Size in Y direction.
     SVG::U hx;  // Heading X width.
     SVG::U hy;  // Heading Y width.
-  } LegendDims;
+  };
 
   SVG::U MarginX( bool framed );
   SVG::U MarginY( bool framed );

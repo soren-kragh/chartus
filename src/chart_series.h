@@ -332,12 +332,12 @@ public:
   SVG::U      marker_size;
   MarkerShape marker_shape;
 
-  typedef struct {
+  struct MarkerDims {
     SVG::U x1;
     SVG::U y1;
     SVG::U x2;
     SVG::U y2;
-  } MarkerDims;
+  };
 
   // Derived marker variables:
   bool       marker_show;
