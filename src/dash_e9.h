@@ -21,7 +21,7 @@ Axis.Y.Unit: clowns/parsec³
 Series.Type: XY
 Series.New: Model prediction
 Series.LineWidth: 5
-Series.LineColor: orange
+Series.Color: orange
 Series.LineDash: 10 8
 Macro: ModelData
 
@@ -61,7 +61,7 @@ MacroDef: UncertaintyStyle
 # Series.Style resets style to avoid carry-over of persistent style modifiers.
 Series.Style: 0
 Series.LineWidth: 1
-Series.LineColor: black
+Series.Color: black
 Series.MarkerShape: LineX
 Series.MarkerSize: 20
 MacroEnd: UncertaintyStyle

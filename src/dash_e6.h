@@ -19,8 +19,7 @@ Series.New:
 # Set the base below the lowest lower confidence limit so
 # we do not get negative stack values relative to the base.
 Series.Base: -1.5
-Series.LineColor: None
-Series.FillColor: None
+Series.Color: None
 # We do not want to snap to the error bars in the HTML.
 Series.Snap: Off
 

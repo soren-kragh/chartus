@@ -54,7 +54,6 @@ struct state_t {
   double line_hole = -1;
   double lighten = 0.0;
   double fill_transparency = -1;
-  bool fill_color_specified = false;
   bool tag_enable = false;
   Chart::Pos tag_pos = Chart::Pos::Auto;
   double tag_size = 1.0;
@@ -449,7 +448,7 @@ void do_Switch(
 }
 
 void do_Color(
-  SVG::Color* color
+  SVG::Color* color, double& transparency
 )
 {
   source.SkipWS();
@@ -502,7 +501,6 @@ void do_Color(
   }
 
   if ( !source.AtEOL() ) {
-    double transparency = 0.0;
     source.ExpectWS();
     if ( !source.AtEOL() ) {
       if ( !source.GetDouble( transparency ) ) {
@@ -516,6 +514,12 @@ void do_Color(
   }
 
   source.ExpectEOL();
+}
+
+void do_Color( SVG::Color* color )
+{
+  double transparency;
+  do_Color( color, transparency );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1539,7 +1543,6 @@ void AddSeries( std::string name = "" )
   if ( state.fill_transparency >= 0 ) {
     series->FillColor()->SetTransparency( state.fill_transparency );
   }
-  state.fill_color_specified = false;
   series->LineColor()->Lighten( state.lighten );
   series->FillColor()->Lighten( state.lighten );
   series->SetTagEnable( state.tag_enable );
@@ -1789,6 +1792,24 @@ void do_Series_FillTransparency( void )
   }
 }
 
+void do_Series_Color( void )
+{
+  if ( !state.defining_series ) {
+    source.ParseErr( "Color outside defining series" );
+  }
+  auto series = state.series_list.back();
+  double transparency = -1.0;
+  do_Color( series->LineColor(), transparency );
+  series->LineColor()->Lighten( state.lighten )->SetTransparency( 0.0 );
+  series->SetDefaultFillColor();
+  if ( transparency >= 0.0 ) {
+    series->FillColor()->SetTransparency( transparency );
+  } else
+  if ( state.fill_transparency >= 0 ) {
+    series->FillColor()->SetTransparency( state.fill_transparency );
+  }
+}
+
 void do_Series_LineColor( void )
 {
   if ( !state.defining_series ) {
@@ -1797,13 +1818,6 @@ void do_Series_LineColor( void )
   auto series = state.series_list.back();
   do_Color( series->LineColor() );
   series->LineColor()->Lighten( state.lighten );
-  if ( !state.fill_color_specified ) {
-    series->SetDefaultFillColor();
-    series->FillColor()->Lighten( state.lighten );
-    if ( state.fill_transparency >= 0 ) {
-      series->FillColor()->SetTransparency( state.fill_transparency );
-    }
-  }
 }
 
 void do_Series_FillColor( void )
@@ -1817,7 +1831,6 @@ void do_Series_FillColor( void )
   if ( state.fill_transparency >= 0 ) {
     series->FillColor()->SetTransparency( state.fill_transparency );
   }
-  state.fill_color_specified = true;
 }
 
 //------------------------------------------------------------------------------
@@ -2105,6 +2118,7 @@ std::unordered_map< std::string_view, ChartAction > chart_actions = {
   { "Series.LineDash"        , do_Series_LineDash         },
   { "Series.Lighten"         , do_Series_Lighten          },
   { "Series.FillTransparency", do_Series_FillTransparency },
+  { "Series.Color"           , do_Series_Color            },
   { "Series.LineColor"       , do_Series_LineColor        },
   { "Series.FillColor"       , do_Series_FillColor        },
   { "Series.Tag"             , do_Series_Tag              },

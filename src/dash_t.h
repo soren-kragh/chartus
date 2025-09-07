@@ -105,6 +105,7 @@ Series.Data :
 # Series.LineDash: 3 1
 # Series.Lighten: -0.3
 # Series.FillTransparency: 0.8
+# Series.Color: indigo
 # Series.LineColor: black
 # Series.FillColor: None
 # Series.Tag: On

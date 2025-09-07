@@ -585,6 +585,10 @@ SubSubTitle:
 # until it is redefined.
 #Series.FillTransparency: 0
 
+# This specifies the color; it acts as a one-time modifier to the current Style.
+# The Color attribute applies to the current series only.
+#Series.Color: lightsteelblue
+
 # This specifies the line color; it acts as a one-time modifier to the current
 # Style. The LineColor attribute applies to the current series only.
 #Series.LineColor: darkorange -0.2 0.7
