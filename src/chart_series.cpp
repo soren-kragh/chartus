@@ -51,7 +51,7 @@ Series::Series( Main* main, SeriesType type )
   color_list.emplace_back(); color_list.back().Set( ColorName::deepskyblue   );
   color_list.emplace_back(); color_list.back().Set( ColorName::orange        );
   color_list.emplace_back(); color_list.back().Set( ColorName::brown         );
-  color_list.emplace_back(); color_list.back().Set( ColorName::gold          );
+  color_list.emplace_back(); color_list.back().Set( ColorName::chartreuse    );
   color_list.emplace_back(); color_list.back().Set( ColorName::slategrey     );
 
   SetName( "" );
