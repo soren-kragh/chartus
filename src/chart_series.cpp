@@ -1573,12 +1573,11 @@ void Series::BuildBar(
           Point c1{ p1 };
           Point c2{ p2 };
           if ( has_line ) {
-            U d = std::min( 0.25, line_width / 2 );
-            U q = (line_dash > 0) ? +d : (line_width / 2);
-            c1.x += cut_lft ? -d : +q;
-            c2.x -= cut_rgt ? -d : +q;
-            c1.y += cut_bot ? -d : +q;
-            c2.y -= cut_top ? -d : +q;
+            U q = (line_dash > 0) ? 0 : (line_width / 2);
+            c1.x += cut_lft ? 0 : +q;
+            c2.x -= cut_rgt ? 0 : +q;
+            c1.y += cut_bot ? 0 : +q;
+            c2.y -= cut_top ? 0 : +q;
           }
           fill_g->Add( new Rect( c1, c2 ) );
         }

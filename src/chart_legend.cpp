@@ -520,30 +520,24 @@ void Legend::BuildLegends(
       series->type == SeriesType::Area ||
       series->type == SeriesType::StackedArea
     ) {
-      bool has_interior = legend_dims.ss > line_w + 1;
       Point p1{ marker_p.x - legend_dims.ss, marker_p.y - legend_dims.ss };
       Point p2{ marker_p.x + legend_dims.ss, marker_p.y + legend_dims.ss };
-      {
+      if ( series->has_fill ) {
         Point c1{ p1 };
         Point c2{ p2 };
-        U db = std::min( 1.0, line_w / 2 );
-        c1.x += db; c2.x -= db;
-        c1.y += db; c2.y -= db;
+        U q = (series->line_dash > 0) ? 0 : (line_w / 2);
+        c1.x += q; c2.x -= q;
+        c1.y += q; c2.y -= q;
         g->Add( new Rect( c1, c2 ) );
-      }
-      if ( has_interior ) {
         series->ApplyFillStyle( g->Last() );
-        if ( line_w > 0 ) {
-          p1.x += line_w / 2;
-          p1.y += line_w / 2;
-          p2.x -= line_w / 2;
-          p2.y -= line_w / 2;
-          g->Add( new Rect( p1, p2 ) );
-          series->ApplyLineStyle( g->Last() );
-          g->Last()->Attr()->SetLineJoin( LineJoin::Sharp );
-        }
-      } else {
-        series->ApplyMarkStyle( g->Last() );
+      }
+      if ( line_w > 0 ) {
+        U d = line_w / 2;
+        p1.x += d; p2.x -= d;
+        p1.y += d; p2.y -= d;
+        g->Add( new Rect( p1, p2 ) );
+        series->ApplyLineStyle( g->Last() );
+        g->Last()->Attr()->SetLineJoin( LineJoin::Sharp );
       }
     }
 
