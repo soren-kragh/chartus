@@ -1256,6 +1256,9 @@ void Main::BuildSeries(
         0, 1
       );
     }
+  }
+
+  for ( auto series : series_list ) {
     if (
       series->type == SeriesType::Bar ||
       series->type == SeriesType::StackedBar ||
@@ -1296,6 +1299,9 @@ void Main::BuildSeries(
       bar_prev_y_n = series->axis_y_n;
       bar_first = false;
     }
+  }
+
+  for ( auto series : series_list ) {
     if ( series->type == SeriesType::Lollipop ) {
       series->Build(
         lollipop_stem_g, lollipop_stem_g, nullptr, above_axes_g, tag_g,
@@ -1303,6 +1309,9 @@ void Main::BuildSeries(
       );
       lol_num++;
     }
+  }
+
+  for ( auto series : series_list ) {
     if (
       series->type == SeriesType::XY ||
       series->type == SeriesType::Line ||
