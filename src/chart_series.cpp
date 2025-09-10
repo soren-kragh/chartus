@@ -1048,6 +1048,10 @@ void Series::DetermineMinMax(
   min_y_is_base = false;
   max_y_is_base = false;
 
+  datum_def_y = false;
+  datum_min_y = num_invalid;
+  datum_max_y = num_invalid;
+
   max_tag_x_size = 0;
   max_tag_y_size = 0;
 
@@ -1112,6 +1116,9 @@ void Series::DetermineMinMax(
     }
     def_x = true;
     def_y = true;
+    if ( !datum_def_y || datum_min_y > y ) datum_min_y = y;
+    if ( !datum_def_y || datum_max_y < y ) datum_max_y = y;
+    datum_def_y = true;
   }
 
   return;

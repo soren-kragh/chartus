@@ -454,14 +454,23 @@ void Axis::LegalizeMinMax(
                 series->type != SeriesType::StackedBar &&
                 series->type != SeriesType::LayeredBar &&
                 series->type != SeriesType::Lollipop
-              )
+              ) ||
+              !series->datum_def_y
             )
               continue;
+            U tag_extent = series->tag_db->GetExtent( series, tag_g );
             U tag_beyond = series->tag_db->GetBeyond( series, tag_g );
-            if ( !series->def_y || tag_beyond == 0 ) continue;
-            if ( Valid( series->min_y ) && !series->min_y_is_base ) {
-              U coor =
-                Coor( series->min_y ) + (reverse ? +tag_beyond : -tag_beyond);
+            if ( series->datum_min_y < series->base ) {
+              U coor = 0;
+              if ( tag_beyond > 0 ) {
+                coor =
+                  Coor( series->datum_min_y ) +
+                  (reverse ? +tag_beyond : -tag_beyond);
+              } else {
+                coor =
+                  Coor( series->base ) +
+                  (reverse ? +tag_extent : -tag_extent);
+              }
               if ( coor < 0 || coor > length ) {
                 if ( log_scale ) {
                   min = min / major;
@@ -471,9 +480,22 @@ void Axis::LegalizeMinMax(
                 ok = false;
               }
             }
-            if ( Valid( series->max_y ) && !series->max_y_is_base ) {
-              U coor =
-                Coor( series->max_y ) + (reverse ? -tag_beyond : +tag_beyond);
+            if (
+              series->datum_max_y > series->base ||
+              ( series->datum_max_y == series->base &&
+                series->datum_min_y == series->base
+              )
+            ) {
+              U coor = 0;
+              if ( tag_beyond > 0 ) {
+                coor =
+                  Coor( series->datum_max_y ) +
+                  (reverse ? -tag_beyond : +tag_beyond);
+              } else {
+                coor =
+                  Coor( series->base ) +
+                  (reverse ? -tag_extent : +tag_extent);
+              }
               if ( coor < 0 || coor > length ) {
                 if ( log_scale ) {
                   max = max * major;
@@ -485,7 +507,7 @@ void Axis::LegalizeMinMax(
             }
           }
           if ( ok ) break;
-          if ( trial == 3 ) {
+          if ( trial == 10 ) {
             // No success, restore.
             min = saved_min;
             max = saved_max;

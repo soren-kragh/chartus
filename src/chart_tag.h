@@ -78,6 +78,9 @@ public:
     SVG::U& r
   );
 
+  // Get the extent of the tag in the Y-axis direction.
+  SVG::U GetExtent( Series* series, SVG::Group* tag_g );
+
   // Assuming bar type series, returns how much beyond the bar end the tag
   // takes up.
   SVG::U GetBeyond( Series* series, SVG::Group* tag_g );

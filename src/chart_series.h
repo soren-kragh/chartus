@@ -378,6 +378,10 @@ public:
   bool   min_y_is_base = false;
   bool   max_y_is_base = false;
 
+  bool   datum_def_y = false;
+  double datum_min_y;
+  double datum_max_y;
+
   size_t max_tag_x_size = 0;
   size_t max_tag_y_size = 0;
 };

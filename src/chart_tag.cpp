@@ -102,6 +102,24 @@ SVG::Group* Tag::BuildTag(
 
 //------------------------------------------------------------------------------
 
+SVG::U Tag::GetExtent( Series* series, SVG::Group* tag_g )
+{
+  std::string tag_y( series->max_tag_y_size, '0' );
+  U r;
+  Group* g = tag_g->AddNewGroup();
+  series->ApplyTagStyle( g );
+  BuildTag( series, g, "", tag_y, r );
+  BoundaryBox bb = g->GetBB();
+  tag_g->DeleteFront();
+
+  return
+    min_base_dist +
+    ( (series->axis_x->angle == 0)
+      ? (bb.max.y - bb.min.y)
+      : (bb.max.x - bb.min.x)
+    ) + tag_spacing;
+}
+
 SVG::U Tag::GetBeyond( Series* series, SVG::Group* tag_g )
 {
   bool bar_type =
@@ -117,19 +135,8 @@ SVG::U Tag::GetBeyond( Series* series, SVG::Group* tag_g )
 
   if ( !bar_type || tag_pos != Pos::Beyond ) return 0;
 
-  std::string tag_y( series->max_tag_y_size, '0' );
-  U r;
-  Group* g = tag_g->AddNewGroup();
-  series->ApplyTagStyle( g );
-  BuildTag( series, g, "", tag_y, r );
-  BoundaryBox bb = g->GetBB();
-  tag_g->DeleteFront();
+  U beyond = GetExtent( series, tag_g );
 
-  U beyond =
-    ( (series->axis_x->angle == 0)
-      ? (bb.max.y - bb.min.y)
-      : (bb.max.x - bb.min.x)
-    ) + tag_spacing;
   if ( series->type == SeriesType::Lollipop ) {
     beyond +=
       (series->axis_x->angle == 0)
@@ -137,7 +144,7 @@ SVG::U Tag::GetBeyond( Series* series, SVG::Group* tag_g )
       : series->tag_dist_x;
   }
 
-  return beyond + min_base_dist;
+  return beyond;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
