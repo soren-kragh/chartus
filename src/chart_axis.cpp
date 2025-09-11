@@ -439,6 +439,60 @@ void Axis::LegalizeMinMax(
         }
       }
 
+      // Possibly expand min/max to avoid collision with chart box.
+      if ( !is_x_axis && show && main->chart_box ) {
+        double saved_min = min;
+        double saved_max = max;
+        int trial = 0;
+        while ( ++trial ) {
+          bool ok = true;
+          for ( auto series : *series_list ) {
+            if (
+              series->axis_y != this ||
+              series->type == SeriesType::XY ||
+              series->type == SeriesType::Scatter ||
+              !series->datum_def_y
+            )
+              continue;
+            U mrg =
+              box_spacing +
+              ( (series->axis_x->angle == 0)
+                ? series->tag_dist_y
+                : series->tag_dist_x
+              );
+            {
+              U coor = Coor( series->datum_min_y ) + (reverse ? +mrg : -mrg);
+              if ( coor < 0 || coor > length ) {
+                if ( log_scale ) {
+                  min = min / major;
+                } else {
+                  min = min - major;
+                }
+                ok = false;
+              }
+            }
+            {
+              U coor = Coor( series->datum_max_y ) + (reverse ? -mrg : +mrg);
+              if ( coor < 0 || coor > length ) {
+                if ( log_scale ) {
+                  max = max * major;
+                } else {
+                  max = max + major;
+                }
+                ok = false;
+              }
+            }
+          }
+          if ( ok ) break;
+          if ( trial == 3 ) {
+            // No success, restore.
+            min = saved_min;
+            max = saved_max;
+            break;
+          }
+        }
+      }
+
       // Possibly expand min/max to make room for series tag.
       if ( !is_x_axis && show ) {
         double saved_min = min;
