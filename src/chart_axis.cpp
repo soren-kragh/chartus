@@ -507,7 +507,7 @@ void Axis::LegalizeMinMax(
             }
           }
           if ( ok ) break;
-          if ( trial == 10 ) {
+          if ( trial == 3 ) {
             // No success, restore.
             min = saved_min;
             max = saved_max;
