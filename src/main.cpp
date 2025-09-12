@@ -2021,6 +2021,9 @@ void parse_series_data( void )
         std::string_view cat;
         bool quoted;
         source.GetCategory( cat, quoted );
+        CurChart()->ParsedCat( state.category_idx, cat );
+      } else {
+        CurChart()->ParsedCat( state.category_idx, "" );
       }
       state.category_idx++;
     } else {

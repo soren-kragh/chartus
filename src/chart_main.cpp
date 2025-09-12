@@ -169,6 +169,24 @@ void Main::SetCategoryAnchor( size_t num, bool empty )
   category_num += num;
 }
 
+void Main::ParsedCat( size_t cat_idx, std::string_view cat )
+{
+  if ( !parse_cat.stride_found ) cat_empty_stride = cat_idx + 1;
+  if ( cat.empty() ) return;
+  cat_normal_width = cat_normal_width && NormalWidthUTF8( cat );
+  if ( parse_cat.non_empty_seen ) {
+    size_t stride = cat_idx - parse_cat.idx;
+    if ( parse_cat.stride_found ) {
+      cat_empty_stride = std::min( stride, cat_empty_stride );
+    } else {
+      cat_empty_stride = stride;
+    }
+    parse_cat.stride_found = true;
+  }
+  parse_cat.idx = cat_idx;
+  parse_cat.non_empty_seen = true;
+}
+
 void Main::CategoryBegin()
 {
   cat_list_idx = 0;

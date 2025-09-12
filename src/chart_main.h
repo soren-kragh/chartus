@@ -99,6 +99,9 @@ public:
   // is empty.
   void SetCategoryAnchor( size_t num, bool empty );
 
+  // Called for each category as they are parsed from the source.
+  void ParsedCat( size_t cat_idx, std::string_view cat );
+
   // Used to iterate through the categories directly in the source.
   void CategoryBegin();
   void CategoryLoad();
@@ -196,6 +199,19 @@ public:
 
   // Number of categories across all series.
   size_t category_num = 0;
+
+  // State used by ParsedCat().
+  struct {
+    bool   non_empty_seen = false;
+    bool   stride_found = false;
+    size_t idx = 0;
+  } parse_cat;
+
+  // Defines if all categories have normal character width.
+  bool cat_normal_width = true;
+
+  // Minimum distance between non-empty categories.
+  size_t cat_empty_stride = 1;
 
   Axis* axis_x;
   Axis* axis_y[ 2 ];
