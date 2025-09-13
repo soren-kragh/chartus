@@ -231,10 +231,10 @@ void Legend::CalcLegendDims(
     uint32_t max_chars = 1;
     {
       uint32_t cur_chars = 0;
-      auto it = series->name.cbegin();
-      while ( it != series->name.cend() ) {
-        auto c = *it;
-        if ( Text::UTF8_CharAdv( series->name, it ) ) {
+      size_t idx = 0;
+      while ( idx < series->name.size() ) {
+        auto c = series->name[ idx ];
+        if ( Text::UTF8_CharAdv( series->name, idx ) ) {
           if ( c == '\n' ) {
             max_lines++;
             max_chars = std::max( max_chars, cur_chars );
@@ -546,12 +546,14 @@ void Legend::BuildLegends(
     px += legend_dims.ow / 2 + legend_dims.tx;
     py -= (legend_dims.sy - lines * legend_dims.ch) / 2;
     std::string s;
-    auto cit = series->name.cbegin();
-    while ( cit != series->name.cend() ) {
-      auto oit = cit;
-      if ( Text::UTF8_CharAdv( series->name, cit ) ) {
-        if ( *oit != '\n' ) s.append( oit, cit );
-        if ( *oit == '\n' || cit == series->name.cend() ) {
+    size_t cidx = 0;
+    while ( cidx < series->name.size() ) {
+      size_t oidx = cidx;
+      if ( Text::UTF8_CharAdv( series->name, cidx ) ) {
+        if ( series->name[ oidx ] != '\n' ) {
+          s += series->name.substr( oidx, cidx - oidx );
+        }
+        if ( series->name[ oidx ] == '\n' || cidx == series->name.size() ) {
           if ( !s.empty() ) {
             g->Add( new Text( px, py, s ) );
           }
