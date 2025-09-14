@@ -125,10 +125,7 @@ void gen_template( bool full )
 
 void gen_example( int N )
 {
-//TBD
-//  std::random_device rd{};
-//  std::mt19937 gen{ rd() };
-  std::mt19937 gen{ 47 };
+  std::mt19937 gen{ 16 };
   switch ( N ) {
     case 0:
     {
@@ -2250,7 +2247,6 @@ int main( int argc, char* argv[] )
   signal( SIGFPE, sigfpe_handler );
   feenableexcept( FE_DIVBYZERO | FE_INVALID );
 
-  bool file_added = false;
   bool out_of_options = false;
   for ( int i = 1; i < argc; i++ ) {
     std::string a( argv[ i ] );
@@ -2324,7 +2320,6 @@ int main( int argc, char* argv[] )
       }
     }
     source.AddFile( a );
-    file_added = true;
   }
 
 /*
@@ -2335,10 +2330,6 @@ int main( int argc, char* argv[] )
     return 0;
   }
 */
-
-  if ( !file_added ) {
-    source.AddFile( "-" );
-  }
 
   source.ReadFiles();
 

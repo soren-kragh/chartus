@@ -14,6 +14,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <list>
 
 #include <chart_common.h>
 
@@ -32,27 +33,33 @@ public:
   void RestorePos( uint32_t context = 0 );
 
   void AddFile( std::string_view file_name );
-  void ProcessLine( std::string& line );
+  void ProcessSegment();
+  void ReadStream( std::istream& input, std::string name );
   void ReadFiles();
+  void LoadSegment();
+  void LoadLine();
   void NextLine( bool stay = false );
-  void LoadLine() { NextLine( true ); }
 
+  static bool IsLF( char c )
+  {
+    return c == '\n' || c == '\r';
+  }
   static bool IsWS( char c )
   {
-    return c == ' ' || c == '\t' || c == '\r';
+    return c == ' ' || c == '\t';
   }
   static bool IsSep( char c )
   {
-    return IsWS( c ) || c == '\n';
+    return IsWS( c ) || IsLF( c );
   }
 
   char CurChar()
   {
-    return file_recs[ cur_pos.loc.file_num ].data[ cur_pos.loc.char_idx ];
+    return cur_pos.loc.buf[ cur_pos.loc.char_idx ];
   }
   char GetChar()
   {
-    return file_recs[ cur_pos.loc.file_num ].data[ cur_pos.loc.char_idx++ ];
+    return cur_pos.loc.buf[ cur_pos.loc.char_idx++ ];
   }
 
   bool AtWS() { return IsWS( CurChar() ); }
@@ -60,21 +67,22 @@ public:
 
   bool AtEOF()  // At end of the last file.
   {
-    return cur_pos.loc.file_num == file_recs.size();
+    return cur_pos.loc.seg_idx == segments.size();
   }
   bool AtSOL()
   {
     return
       cur_pos.loc.char_idx == 0 ||
-      file_recs[ cur_pos.loc.file_num ].data[ cur_pos.loc.char_idx - 1 ] == '\n';
+      IsLF( cur_pos.loc.buf[ cur_pos.loc.char_idx - 1 ] );
   }
   bool AtEOL()
   {
-    return CurChar() == '\n';
+    return IsLF( CurChar() );
   }
 
   void ToSOL();
   void ToEOL();
+  void PastEOL();
   void SkipWS( bool multi_line = false );
   void ExpectEOL();
   void ExpectWS( const std::string& err_msg_if_eol = "" );
@@ -99,22 +107,50 @@ public:
 
 //------------------------------------------------------------------------------
 
-  struct file_rec_t {
+  std::vector< std::string > file_list;
+
+  static constexpr size_t buffer_size = 4 * 1024 * 1024;
+  size_t max_buffers = 1024;
+
+  struct segment_t {
     std::string name;
-    std::string data;
+    size_t byte_ofs = 0;
+    size_t byte_cnt = 0;
+    size_t line_ofs = 0;
+    int32_t pool_id = 0;
+    bool loaded = false;
   };
 
-  std::vector< file_rec_t > file_recs;
+  std::vector< segment_t > segments;
+
+  size_t active_seg = 0;
+
+  // We have fixed buffers and dynamic buffers in the pool. The fixed buffers
+  // are used for STDIN and use negative IDs, while the dynamic buffers use
+  // non-negative IDs.
+  struct pool_t {
+    uint32_t fix_cnt = 0;
+    uint32_t dyn_cnt = 0;
+    std::unordered_map< int32_t, char* > id2buf;
+    std::unordered_map< int32_t, size_t > id2seg;
+
+    void UseID( int32_t id );
+    int32_t GetID();
+    std::list< int32_t > lru_lst;
+    std::unordered_map< int32_t, std::list< int32_t >::iterator > lru_map;
+  };
+  pool_t pool;
 
   struct location_t {
-    size_t file_num = 0;
-    size_t line_num = 1;
+    size_t seg_idx = 0;
+    size_t line_idx = 0;
     size_t char_idx = 0;
+    std::string_view buf;
 
     bool operator==( const location_t& other ) const {
       return
-        file_num == other.file_num &&
-        line_num == other.line_num &&
+        seg_idx == other.seg_idx &&
+        line_idx == other.line_idx &&
         char_idx == other.char_idx;
     }
   };

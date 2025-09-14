@@ -21,7 +21,9 @@ $(TARGET): $(SRCS) $(INCS)
 examples: $(TARGET)
 	@for i in 1 2 3 4 5 6 7 8 9; do \
 	  echo "Generating example $${i}..."; \
-	  ${TARGET} -e$${i} | ${TARGET} >e$${i}.svg; \
+	  ${TARGET} -e$${i} >e$${i}.txt; \
+	  ${TARGET} e$${i}.txt >e$${i}.svg; \
+	  ### ${TARGET} -e$${i} | ${TARGET} >e$${i}.svg; \
 	done
 
 install: $(TARGET) $(SCRIPT)
@@ -37,6 +39,6 @@ uninstall:
 
 clean:
 	rm -f $(TARGET)
-	rm -f e?.svg
+	rm -f e?.txt e?.svg
 
 .PHONY: all examples install uninstall clean

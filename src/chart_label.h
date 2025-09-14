@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include <unordered_map>
+#include <map>
 #include <chart_common.h>
 
 namespace Chart {
@@ -36,8 +36,8 @@ public:
     SVG::BoundaryBox bb;
   };
 
-  std::unordered_map< SVG::Object*, Entry > entries;
-  std::unordered_map< SVG::Group*, Container > containers;
+  std::map< SVG::Object*, Entry > entries;
+  std::map< SVG::Group*, Container > containers;
 
   // Create the given label, which might be multi-line text. Return the created
   // container, which is a group of text objects (one per line). If append is

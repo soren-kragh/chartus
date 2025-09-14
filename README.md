@@ -7,7 +7,7 @@ HTML format.
 
 - Very [simple input format](#shortlist-of-all-specifiers) makes it easy to quickly visualize data.
 - Ideally suited for a fully automated work flow using scripts etc.
-- Works well for large data sets.
+- Works well for [large data sets](#large-data-sets).
 - Tweaking options are provided, but the automatic defaults should normally be fine.
 
 The generated SVG files are compatible with a wide variety of software, however,
@@ -919,3 +919,18 @@ Series.Data:
 #MacroEnd: MyMacro
 #Macro: MyMacro
 ```
+
+# Large Data Sets
+
+Chartus supports even extremely large data sets. For this to work please follow
+these recommendations:
+
+- Input should come from a file, not piped from SDTIN.
+- Preferably use Line or XY plot.
+- Make sure data pruning is enabled (see `Series.Prune`).
+
+Very large data sets cannot be directly visualized as the SVG file would be
+enormous, therefore the pruning mechanism built into Chartus is crucial for
+achieving a plot. Pruning is not a smoothing or averaging operation but rather
+an operation that removes obscured graphical elements. This means that pruning
+preserves all visual properties including single outliers, spikes, etc.
