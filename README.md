@@ -929,8 +929,9 @@ these recommendations:
 - Preferably use Line or XY plot.
 - Make sure data pruning is enabled (see `Series.Prune`).
 
-Very large data sets cannot be directly visualized as the SVG file would be
-enormous, therefore the pruning mechanism built into Chartus is crucial for
-achieving a plot. Pruning is not a smoothing or averaging operation but rather
-an operation that removes obscured graphical elements. This means that pruning
-preserves all visual properties including single outliers, spikes, etc.
+Very large data sets cannot be directly visualized as the SVG file would then
+become enormous, therefore the pruning mechanism built into Chartus is crucial
+for getting a reasonably sized SVG (or HTML) file. Pruning is not a smoothing or
+averaging operation but rather an operation that removes obscured graphical
+elements. This means that pruning preserves all visual properties including
+single outliers, spikes, etc.
