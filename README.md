@@ -925,7 +925,7 @@ Series.Data:
 Chartus supports even extremely large data sets. For this to work please follow
 these recommendations:
 
-- Input should come from a file, not piped from SDTIN.
+- Input should come from a file, not piped from standard input.
 - Preferably use Line or XY plot.
 - Make sure data pruning is enabled (see `Series.Prune`).
 
