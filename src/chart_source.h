@@ -15,6 +15,10 @@
 
 #include <unordered_map>
 #include <list>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
 
 #include <chart_common.h>
 
@@ -26,6 +30,7 @@ public:
 
   Source() = default;
 
+  void Quit( int code );
   void Err( const std::string& msg );
   void ParseErr( const std::string& msg, bool show_ref = false );
 
@@ -36,7 +41,7 @@ public:
   void ProcessSegment();
   void ReadStream( std::istream& input, std::string name );
   void ReadFiles();
-  void LoadSegment();
+  void LoadCurSegment();
   void LoadLine();
   void NextLine( bool stay = false );
 
@@ -107,10 +112,24 @@ public:
 
 //------------------------------------------------------------------------------
 
+  // This is spawned as a new thread and is responsible for pre-loading segments
+  // as needed.
+  void LoaderThread();
+
+  // Flag to stop LoaderThread().
+  std::atomic<bool> stop_loader{ false };
+
+  // Error message from LoaderThread().
+  std::string loader_msg;
+
+  std::thread loader_thread;
+  std::mutex loader_mutex;
+  std::condition_variable loader_cond;
+
   std::vector< std::string > file_list;
 
   static constexpr size_t buffer_size = 4 * 1024 * 1024;
-  size_t max_buffers = 1024;
+  size_t max_buffers = 16;
 
   struct segment_t {
     std::string name;
@@ -119,6 +138,7 @@ public:
     size_t line_ofs = 0;
     int32_t pool_id = 0;
     bool loaded = false;
+    char* bufptr = nullptr;
   };
 
   std::vector< segment_t > segments;

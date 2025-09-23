@@ -24,10 +24,18 @@ using namespace Chart;
 
 ////////////////////////////////////////////////////////////////////////////////
 
+void Source::Quit( int code )
+{
+  stop_loader = true;
+  loader_cond.notify_one();
+  if ( loader_thread.joinable() ) loader_thread.join();
+  exit( code );
+}
+
 void Source::Err( const std::string& msg )
 {
   std::cerr << "*** ERROR: " << msg << std::endl;
-  exit( 1 );
+  Quit( 1 );
 }
 
 void Source::ParseErr( const std::string& msg, bool show_ref )
@@ -65,7 +73,7 @@ void Source::ParseErr( const std::string& msg, bool show_ref )
   }
   std::cerr << std::endl;
 
-  exit( 1 );
+  Quit( 1 );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -110,8 +118,7 @@ void Source::AddFile( std::string_view file_name )
 void Source::ProcessSegment()
 {
   segment_t& segment = segments[ cur_pos.loc.seg_idx ];
-  cur_pos.loc.buf =
-    std::string_view( pool.id2buf[ segment.pool_id ], segment.byte_cnt );
+  cur_pos.loc.buf = std::string_view( segment.bufptr, segment.byte_cnt );
   while ( true ) {
     size_t num = segment.byte_cnt - cur_pos.loc.char_idx;
     if ( num == 0 ) break;
@@ -160,12 +167,14 @@ void Source::ReadStream( std::istream& input, std::string name )
         pool.fix_cnt++;
         pool_id = -pool.fix_cnt;
       } else {
-        if ( pool.dyn_cnt < 2 || pool.fix_cnt + pool.dyn_cnt < max_buffers ) {
+        size_t max = max_buffers + file_list.size();
+        if ( pool.dyn_cnt < 2 || pool.dyn_cnt < max ) {
           pool_id = +pool.dyn_cnt;
           pool.dyn_cnt++;
         } else {
           pool_id = pool.GetID();
           segments[ pool.id2seg[ pool_id ] ].loaded = false;
+          segments[ pool.id2seg[ pool_id ] ].bufptr = nullptr;
         }
       }
       segments.back().pool_id = pool_id;
@@ -190,6 +199,7 @@ void Source::ReadStream( std::istream& input, std::string name )
         pool.id2buf[ segment.pool_id ][ segment.byte_cnt++ ] = '\n';
       }
       segment.loaded = true;
+      segment.bufptr = pool.id2buf[ segment.pool_id ];
       segment.byte_ofs = byte_ofs;
       segment.line_ofs = line_ofs;
       ProcessSegment();
@@ -219,11 +229,11 @@ void Source::ReadStream( std::istream& input, std::string name )
     size_t to_move = 0;
     while ( true ) {
       auto ptr = pool.id2buf[ segments.back().pool_id ];
-      char c = ptr[ buffer_size - 1 - to_move ];
+      char c = ptr[ segments.back().byte_cnt - 1 - to_move ];
       if ( c == '\n' ) break;
       if ( c == '\r' && to_move > 0 ) break;
       ++to_move;
-      if ( to_move == buffer_size ) {
+      if ( to_move == segments.back().byte_cnt ) {
         Err( "line too long while reading '" + name + "'" );
       }
     }
@@ -264,55 +274,139 @@ void Source::ReadFiles()
       ReadStream( file, file_name );
     }
   }
-
   if ( !in_macro_name.empty() ) {
     ParseErr( "macro '" + in_macro_name + "' not ended" );
   }
 
+  {
+    std::lock_guard< std::mutex > lk( loader_mutex );
+  }
+  loader_thread = std::thread( &Source::LoaderThread, this );
+
   cur_pos = {};
+  LoadCurSegment();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void Source::LoadSegment()
+void Source::LoaderThread()
 {
-  active_seg = cur_pos.loc.seg_idx;
-  if ( !segments[ active_seg ].loaded ) {
-    int32_t pool_id = pool.GetID();
-    segments[ pool.id2seg[ pool_id ] ].loaded = false;
-    pool.id2seg[ pool_id ] = active_seg;
-    segments[ active_seg ].pool_id = pool_id;
+  size_t cur_seg = 0;
+
+  auto err = [&]( std::string msg )
     {
-      std::ifstream file( segments[ active_seg ].name, std::ios::binary );
-      if ( !file ) {
-        Err( "failed to open file '" + segments[ active_seg ].name + "'" );
+      std::lock_guard< std::mutex > lk( loader_mutex );
+      loader_msg = msg;
+      loader_cond.notify_one();
+    };
+
+  auto load_segment = [&]( size_t seg_idx )
+    {
+      int32_t pool_id = pool.GetID();
+      if ( pool.id2seg[ pool_id ] == cur_seg ) {
+        // Cannot overwrite current segment.
+        return false;
       }
-      file.seekg( segments[ active_seg ].byte_ofs, std::ios::beg );
-      if ( !file ) {
-        Err( "seek failed in '" + segments[active_seg].name + "'" );
+      {
+        std::lock_guard< std::mutex > lk( loader_mutex );
+        segments[ pool.id2seg[ pool_id ] ].loaded = false;
+        segments[ pool.id2seg[ pool_id ] ].bufptr = nullptr;
       }
-      std::streamsize bytes_to_read = segments[ active_seg ].byte_cnt;
+      pool.id2seg[ pool_id ] = seg_idx;
+      pool.UseID( pool_id );
+
+      std::ifstream file( segments[ seg_idx ].name, std::ios::binary );
+      if ( !file ) {
+        err( "failed to open file '" + segments[ seg_idx ].name + "'" );
+        return false;
+      }
+      file.seekg( segments[ seg_idx ].byte_ofs, std::ios::beg );
+      if ( !file ) {
+        err( "seek failed in '" + segments[ seg_idx ].name + "'" );
+        return false;
+      }
+      std::streamsize bytes_to_read = segments[ seg_idx ].byte_cnt;
       file.read( pool.id2buf[ pool_id ], bytes_to_read );
       std::streamsize bytes_read = file.gcount();
       if (
         bytes_read != bytes_to_read ||
         file.bad() || (file.fail() && !file.eof())
       ) {
-        Err( "error while reading '" + segments[ active_seg ].name + "'" );
+        err( "error while reading '" + segments[ seg_idx ].name + "'" );
+        return false;
+      }
+
+      {
+        std::lock_guard< std::mutex > lk( loader_mutex );
+        segments[ seg_idx ].pool_id = pool_id;
+        segments[ seg_idx ].loaded = true;
+        segments[ seg_idx ].bufptr = pool.id2buf[ pool_id ];
+        cur_seg = active_seg;
+      }
+      loader_cond.notify_one();
+
+      return true;
+    };
+
+  while ( !stop_loader ) {
+
+    // Make sure cur_seg is loaded.
+    while ( !segments[ cur_seg ].loaded ) {
+      if ( stop_loader ) return;
+      if ( !load_segment( cur_seg ) ) break;
+    }
+    if ( !loader_msg.empty() ) return;
+
+    // Pre-load more segments.
+    while ( segments[ cur_seg ].loaded ) {
+      if ( stop_loader ) return;
+      size_t seg_idx = cur_seg;
+      while ( true ) {
+        if ( stop_loader ) return;
+        seg_idx = (seg_idx + 1) % segments.size();
+        if ( seg_idx == cur_seg ) break;
+        if ( segments[ seg_idx ].pool_id < 0 ) continue;
+        if ( !segments[ seg_idx ].loaded ) break;
+      }
+      if ( !segments[ seg_idx ].loaded ) {
+        if ( !load_segment( seg_idx ) ) break;
       }
     }
-    segments[ active_seg ].loaded = true;
-    pool.UseID( pool_id );
+    if ( !loader_msg.empty() ) return;
+
+    // Wait for more work:
+    if ( segments[ cur_seg ].loaded ) {
+      std::unique_lock< std::mutex > lk( loader_mutex );
+      loader_cond.wait(
+        lk, [&]{ return stop_loader || active_seg != cur_seg; }
+      );
+      cur_seg = active_seg;
+    }
   }
+
+  return;
+}
+
+void Source::LoadCurSegment()
+{
+  std::unique_lock< std::mutex > lk( loader_mutex );
+  active_seg = cur_pos.loc.seg_idx;
+  loader_cond.notify_one();
+  loader_cond.wait(
+    lk, [&]{ return !loader_msg.empty() || segments[ active_seg ].loaded; }
+  );
+  if ( !loader_msg.empty() ) {
+    Err( loader_msg );
+  }
+  cur_pos.loc.buf =
+    std::string_view(
+      segments[ cur_pos.loc.seg_idx ].bufptr,
+      segments[ cur_pos.loc.seg_idx ].byte_cnt
+    );
 }
 
 void Source::LoadLine() {
-  LoadSegment();
-  cur_pos.loc.buf =
-    std::string_view(
-      pool.id2buf[ segments[ cur_pos.loc.seg_idx ].pool_id ],
-      segments[ cur_pos.loc.seg_idx ].byte_cnt
-    );
+  LoadCurSegment();
   NextLine( true );
 }
 
@@ -329,12 +423,7 @@ void Source::NextLine( bool stay )
       cur_pos.loc.char_idx = 0;
       cur_pos.loc.buf = std::string_view();
       if ( AtEOF() )  break;
-      LoadSegment();
-      cur_pos.loc.buf =
-        std::string_view(
-          pool.id2buf[ segments[ cur_pos.loc.seg_idx ].pool_id ],
-          segments[ cur_pos.loc.seg_idx ].byte_cnt
-        );
+      LoadCurSegment();
     }
     if ( AtEOF() ) break;
     if ( CurChar() == '#' ) continue;
@@ -365,12 +454,7 @@ void Source::NextLine( bool stay )
           if ( macro_end ) {
             if ( cur_pos.macro_stack.empty() ) ParseErr( "not defining macro" );
             cur_pos.loc = cur_pos.macro_stack.back();
-            LoadSegment();
-            cur_pos.loc.buf =
-              std::string_view(
-                pool.id2buf[ segments[ cur_pos.loc.seg_idx ].pool_id ],
-                segments[ cur_pos.loc.seg_idx ].byte_cnt
-              );
+            LoadCurSegment();
             cur_pos.macro_stack.pop_back();
           } else
           if ( macro_call ) {
@@ -382,12 +466,7 @@ void Source::NextLine( bool stay )
             }
             cur_pos.macro_stack.push_back( cur_pos.loc );
             cur_pos.loc = macros[ macro_name ];
-            LoadSegment();
-            cur_pos.loc.buf =
-              std::string_view(
-                pool.id2buf[ segments[ cur_pos.loc.seg_idx ].pool_id ],
-                segments[ cur_pos.loc.seg_idx ].byte_cnt
-              );
+            LoadCurSegment();
           }
         } else {
           if ( macro_def ) ParseErr( "nested MacroDef not allowed" );
