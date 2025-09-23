@@ -15,6 +15,10 @@
 
 #include <unordered_map>
 #include <list>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
 
 #include <chart_common.h>
 
@@ -26,6 +30,7 @@ public:
 
   Source() = default;
 
+  void Quit( int code );
   void Err( const std::string& msg );
   void ParseErr( const std::string& msg, bool show_ref = false );
 
@@ -36,13 +41,9 @@ public:
   void ProcessSegment();
   void ReadStream( std::istream& input, std::string name );
   void ReadFiles();
-  void LoadSegment();
+  void LoadCurSegment();
   void LoadLine();
   void NextLine( bool stay = false );
-
-  // This is spawned as a new thread and is responsible for pre-loading segments
-  // as needed.
-  void LoaderThread();
 
   static bool IsLF( char c )
   {
@@ -110,6 +111,18 @@ public:
   );
 
 //------------------------------------------------------------------------------
+
+  std::mutex err_mutex;
+
+  // This is spawned as a new thread and is responsible for pre-loading segments
+  // as needed.
+  void LoaderThread();
+
+  std::atomic<bool> stop_loader{ false };
+
+  std::mutex loader_mutex;
+  std::condition_variable loader_cond;
+  std::thread loader_thread;
 
   std::vector< std::string > file_list;
 

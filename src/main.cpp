@@ -67,15 +67,6 @@ state_t state;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define ERR( MSG_ ) \
-  do \
-  { \
-    std::cerr << "*** ERROR: " << MSG_ << std::endl; \
-    exit( 1 ); \
-  } while ( 0 )
-
-////////////////////////////////////////////////////////////////////////////////
-
 void show_version( void )
 {
   std::cout << R"EOF(chartus v1.0.0
@@ -2242,7 +2233,7 @@ int main( int argc, char* argv[] )
     g->FrontToBack();
     g->Last()->Attr()->SetLineWidth( 10 )->FillColor()->Set( SVG::ColorName::tomato );
     std::cout << canvas->GenSVG( 10 );
-    ERR( "Floating point exception" );
+    source.Err( "Floating point exception" );
   }
   signal( SIGFPE, sigfpe_handler );
   feenableexcept( FE_DIVBYZERO | FE_INVALID );
@@ -2316,7 +2307,7 @@ int main( int argc, char* argv[] )
         return 0;
       }
       if ( a != "-" && a[ 0 ] == '-' ) {
-        ERR( "Unrecognized option '" << a << "'; try --help" );
+        source.Err( "Unrecognized option '" + a + "'; try --help" );
       }
     }
     source.AddFile( a );
@@ -2337,7 +2328,7 @@ int main( int argc, char* argv[] )
 
   std::cout << ensemble.Build();
 
-  return 0;
+  source.Quit( 0 );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
