@@ -110,8 +110,7 @@ void Source::AddFile( std::string_view file_name )
 void Source::ProcessSegment()
 {
   segment_t& segment = segments[ cur_pos.loc.seg_idx ];
-  cur_pos.loc.buf =
-    std::string_view( pool.id2buf[ segment.pool_id ], segment.byte_cnt );
+  cur_pos.loc.buf = std::string_view( segment.bufptr, segment.byte_cnt );
   while ( true ) {
     size_t num = segment.byte_cnt - cur_pos.loc.char_idx;
     if ( num == 0 ) break;
@@ -166,6 +165,7 @@ void Source::ReadStream( std::istream& input, std::string name )
         } else {
           pool_id = pool.GetID();
           segments[ pool.id2seg[ pool_id ] ].loaded = false;
+          segments[ pool.id2seg[ pool_id ] ].bufptr = nullptr;
         }
       }
       segments.back().pool_id = pool_id;
@@ -190,6 +190,7 @@ void Source::ReadStream( std::istream& input, std::string name )
         pool.id2buf[ segment.pool_id ][ segment.byte_cnt++ ] = '\n';
       }
       segment.loaded = true;
+      segment.bufptr = pool.id2buf[ segment.pool_id ];
       segment.byte_ofs = byte_ofs;
       segment.line_ofs = line_ofs;
       ProcessSegment();
@@ -280,6 +281,7 @@ void Source::LoadSegment()
   if ( !segments[ active_seg ].loaded ) {
     int32_t pool_id = pool.GetID();
     segments[ pool.id2seg[ pool_id ] ].loaded = false;
+    segments[ pool.id2seg[ pool_id ] ].bufptr = nullptr;
     pool.id2seg[ pool_id ] = active_seg;
     segments[ active_seg ].pool_id = pool_id;
     {
@@ -302,17 +304,18 @@ void Source::LoadSegment()
       }
     }
     segments[ active_seg ].loaded = true;
+    segments[ active_seg ].bufptr = pool.id2buf[ pool_id ];
     pool.UseID( pool_id );
   }
+  cur_pos.loc.buf =
+    std::string_view(
+      segments[ cur_pos.loc.seg_idx ].bufptr,
+      segments[ cur_pos.loc.seg_idx ].byte_cnt
+    );
 }
 
 void Source::LoadLine() {
   LoadSegment();
-  cur_pos.loc.buf =
-    std::string_view(
-      pool.id2buf[ segments[ cur_pos.loc.seg_idx ].pool_id ],
-      segments[ cur_pos.loc.seg_idx ].byte_cnt
-    );
   NextLine( true );
 }
 
@@ -330,11 +333,6 @@ void Source::NextLine( bool stay )
       cur_pos.loc.buf = std::string_view();
       if ( AtEOF() )  break;
       LoadSegment();
-      cur_pos.loc.buf =
-        std::string_view(
-          pool.id2buf[ segments[ cur_pos.loc.seg_idx ].pool_id ],
-          segments[ cur_pos.loc.seg_idx ].byte_cnt
-        );
     }
     if ( AtEOF() ) break;
     if ( CurChar() == '#' ) continue;
@@ -366,11 +364,6 @@ void Source::NextLine( bool stay )
             if ( cur_pos.macro_stack.empty() ) ParseErr( "not defining macro" );
             cur_pos.loc = cur_pos.macro_stack.back();
             LoadSegment();
-            cur_pos.loc.buf =
-              std::string_view(
-                pool.id2buf[ segments[ cur_pos.loc.seg_idx ].pool_id ],
-                segments[ cur_pos.loc.seg_idx ].byte_cnt
-              );
             cur_pos.macro_stack.pop_back();
           } else
           if ( macro_call ) {
@@ -383,11 +376,6 @@ void Source::NextLine( bool stay )
             cur_pos.macro_stack.push_back( cur_pos.loc );
             cur_pos.loc = macros[ macro_name ];
             LoadSegment();
-            cur_pos.loc.buf =
-              std::string_view(
-                pool.id2buf[ segments[ cur_pos.loc.seg_idx ].pool_id ],
-                segments[ cur_pos.loc.seg_idx ].byte_cnt
-              );
           }
         } else {
           if ( macro_def ) ParseErr( "nested MacroDef not allowed" );

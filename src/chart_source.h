@@ -40,6 +40,10 @@ public:
   void LoadLine();
   void NextLine( bool stay = false );
 
+  // This is spawned as a new thread and is responsible for pre-loading segments
+  // as needed.
+  void LoaderThread();
+
   static bool IsLF( char c )
   {
     return c == '\n' || c == '\r';
@@ -119,6 +123,7 @@ public:
     size_t line_ofs = 0;
     int32_t pool_id = 0;
     bool loaded = false;
+    char* bufptr = nullptr;
   };
 
   std::vector< segment_t > segments;
