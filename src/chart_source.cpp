@@ -265,6 +265,10 @@ void Source::ReadFiles()
     }
   }
 
+  if ( !in_macro_name.empty() ) {
+    ParseErr( "macro '" + in_macro_name + "' not ended" );
+  }
+
   cur_pos = {};
 }
 
