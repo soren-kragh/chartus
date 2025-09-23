@@ -27,21 +27,21 @@ using namespace Chart;
 void Source::Quit( int code )
 {
   stop_loader = true;
-  loader_cond.notify_one();
+  loader_cond.notify_all();
   if ( loader_thread.joinable() ) loader_thread.join();
   exit( code );
 }
 
 void Source::Err( const std::string& msg )
 {
-  std::unique_lock< std::mutex > lk( err_mutex );
+  std::lock_guard< std::mutex > lk( err_mutex );
   std::cerr << "*** ERROR: " << msg << std::endl;
   Quit( 1 );
 }
 
 void Source::ParseErr( const std::string& msg, bool show_ref )
 {
-  std::unique_lock< std::mutex > lk( err_mutex );
+  std::lock_guard< std::mutex > lk( err_mutex );
 
   auto show_loc = [&]( location_t loc, size_t col, bool stack = false )
   {
@@ -266,7 +266,7 @@ void Source::ReadFiles()
   if ( file_list.empty() ) AddFile( "-" );
 
   {
-    std::unique_lock< std::mutex > lk( loader_mutex );
+    std::lock_guard< std::mutex > lk( loader_mutex );
 
     for ( const auto& file_name : file_list ) {
       if ( file_name == "-" ) {
@@ -303,7 +303,7 @@ void Source::LoaderThread()
     if ( !segments[ cur_seg ].loaded ) {
       int32_t pool_id = pool.GetID();
       {
-        std::unique_lock< std::mutex > lk( loader_mutex );
+        std::lock_guard< std::mutex > lk( loader_mutex );
         segments[ pool.id2seg[ pool_id ] ].loaded = false;
         segments[ pool.id2seg[ pool_id ] ].bufptr = nullptr;
       }
@@ -330,7 +330,7 @@ void Source::LoaderThread()
       }
       pool.UseID( pool_id );
       {
-        std::unique_lock< std::mutex > lk( loader_mutex );
+        std::lock_guard< std::mutex > lk( loader_mutex );
         segments[ cur_seg ].loaded = true;
         segments[ cur_seg ].bufptr = pool.id2buf[ pool_id ];
       }
