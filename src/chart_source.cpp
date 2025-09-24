@@ -360,16 +360,18 @@ void Source::LoaderThread()
     if ( !loader_msg.empty() ) return;
 
     // Pre-load more segments.
-    {
+    while ( segments[ cur_seg ].loaded ) {
+      if ( stop_loader ) return;
       size_t seg_idx = cur_seg;
-      while ( segments[ cur_seg ].loaded ) {
+      while ( true ) {
         if ( stop_loader ) return;
         seg_idx = (seg_idx + 1) % segments.size();
         if ( seg_idx == cur_seg ) break;
         if ( segments[ seg_idx ].pool_id < 0 ) continue;
-        if ( !segments[ seg_idx ].loaded ) {
-          if ( !load_segment( seg_idx ) ) break;
-        }
+        if ( !segments[ seg_idx ].loaded ) break;
+      }
+      if ( !segments[ seg_idx ].loaded ) {
+        if ( !load_segment( seg_idx ) ) break;
       }
     }
     if ( !loader_msg.empty() ) return;
