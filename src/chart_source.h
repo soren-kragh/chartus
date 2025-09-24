@@ -129,7 +129,7 @@ public:
   std::vector< std::string > file_list;
 
   static constexpr size_t buffer_size = 4 * 1024 * 1024;
-  size_t max_buffers = 1024;
+  size_t max_buffers = 16;
 
   struct segment_t {
     std::string name;
