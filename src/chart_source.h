@@ -112,17 +112,19 @@ public:
 
 //------------------------------------------------------------------------------
 
-  std::mutex err_mutex;
-
   // This is spawned as a new thread and is responsible for pre-loading segments
   // as needed.
   void LoaderThread();
 
+  // Flag to stop LoaderThread().
   std::atomic<bool> stop_loader{ false };
 
+  // Error message from LoaderThread().
+  std::string loader_msg;
+
+  std::thread loader_thread;
   std::mutex loader_mutex;
   std::condition_variable loader_cond;
-  std::thread loader_thread;
 
   std::vector< std::string > file_list;
 

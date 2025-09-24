@@ -27,22 +27,19 @@ using namespace Chart;
 void Source::Quit( int code )
 {
   stop_loader = true;
-  loader_cond.notify_all();
+  loader_cond.notify_one();
   if ( loader_thread.joinable() ) loader_thread.join();
   exit( code );
 }
 
 void Source::Err( const std::string& msg )
 {
-  std::lock_guard< std::mutex > lk( err_mutex );
   std::cerr << "*** ERROR: " << msg << std::endl;
   Quit( 1 );
 }
 
 void Source::ParseErr( const std::string& msg, bool show_ref )
 {
-  std::lock_guard< std::mutex > lk( err_mutex );
-
   auto show_loc = [&]( location_t loc, size_t col, bool stack = false )
   {
     segment_t& segment = segments[ loc.seg_idx ];
@@ -297,6 +294,13 @@ void Source::LoaderThread()
 {
   size_t cur_seg = 0;
 
+  auto err = [&]( std::string msg )
+    {
+      std::lock_guard< std::mutex > lk( loader_mutex );
+      loader_msg = msg;
+      loader_cond.notify_one();
+    };
+
   while ( !stop_loader ) {
 
     // Make sure cur_seg is loaded.
@@ -312,11 +316,13 @@ void Source::LoaderThread()
       {
         std::ifstream file( segments[ active_seg ].name, std::ios::binary );
         if ( !file ) {
-          Err( "failed to open file '" + segments[ active_seg ].name + "'" );
+          err( "failed to open file '" + segments[ active_seg ].name + "'" );
+          return;
         }
         file.seekg( segments[ active_seg ].byte_ofs, std::ios::beg );
         if ( !file ) {
-          Err( "seek failed in '" + segments[active_seg].name + "'" );
+          err( "seek failed in '" + segments[active_seg].name + "'" );
+          return;
         }
         std::streamsize bytes_to_read = segments[ active_seg ].byte_cnt;
         file.read( pool.id2buf[ pool_id ], bytes_to_read );
@@ -325,7 +331,8 @@ void Source::LoaderThread()
           bytes_read != bytes_to_read ||
           file.bad() || (file.fail() && !file.eof())
         ) {
-          Err( "error while reading '" + segments[ active_seg ].name + "'" );
+          err( "error while reading '" + segments[ active_seg ].name + "'" );
+          return;
         }
       }
       pool.UseID( pool_id );
@@ -353,7 +360,12 @@ void Source::LoadCurSegment()
   std::unique_lock< std::mutex > lk( loader_mutex );
   active_seg = cur_pos.loc.seg_idx;
   loader_cond.notify_one();
-  loader_cond.wait( lk, [&]{ return segments[ active_seg ].loaded; } );
+  loader_cond.wait(
+    lk, [&]{ return !loader_msg.empty() || segments[ active_seg ].loaded; }
+  );
+  if ( !loader_msg.empty() ) {
+    Err( loader_msg );
+  }
   cur_pos.loc.buf =
     std::string_view(
       segments[ cur_pos.loc.seg_idx ].bufptr,
