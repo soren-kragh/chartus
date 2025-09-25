@@ -229,11 +229,11 @@ void Source::ReadStream( std::istream& input, std::string name )
     size_t to_move = 0;
     while ( true ) {
       auto ptr = pool.id2buf[ segments.back().pool_id ];
-      char c = ptr[ buffer_size - 1 - to_move ];
+      char c = ptr[ segments.back().byte_cnt - 1 - to_move ];
       if ( c == '\n' ) break;
       if ( c == '\r' && to_move > 0 ) break;
       ++to_move;
-      if ( to_move == buffer_size ) {
+      if ( to_move == segments.back().byte_cnt ) {
         Err( "line too long while reading '" + name + "'" );
       }
     }
@@ -263,26 +263,24 @@ void Source::ReadFiles()
 {
   if ( file_list.empty() ) AddFile( "-" );
 
-  {
-    std::lock_guard< std::mutex > lk( loader_mutex );
-
-    for ( const auto& file_name : file_list ) {
-      if ( file_name == "-" ) {
-        ReadStream( std::cin, file_name );
-      } else {
-        std::ifstream file( file_name, std::ios::binary );
-        if ( !file ) {
-          Err( "failed to open file '" + file_name + "'" );
-        }
-        ReadStream( file, file_name );
+  for ( const auto& file_name : file_list ) {
+    if ( file_name == "-" ) {
+      ReadStream( std::cin, file_name );
+    } else {
+      std::ifstream file( file_name, std::ios::binary );
+      if ( !file ) {
+        Err( "failed to open file '" + file_name + "'" );
       }
+      ReadStream( file, file_name );
     }
   }
-
   if ( !in_macro_name.empty() ) {
     ParseErr( "macro '" + in_macro_name + "' not ended" );
   }
 
+  {
+    std::lock_guard< std::mutex > lk( loader_mutex );
+  }
   loader_thread = std::thread( &Source::LoaderThread, this );
 
   cur_pos = {};
