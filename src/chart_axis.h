@@ -56,7 +56,7 @@ public:
 
   // Applies to category axis only. Sets the starting category text to display
   // and the the stride after that; start=0 and stride=1 is the default.
-  void SetTickSpacing( size_t start, size_t stride );
+  void SetTickSpacing( cat_idx_t start, cat_idx_t stride );
 
   SVG::Color* GridColor( void ) { return &grid_color; }
 
@@ -251,8 +251,8 @@ public:
   bool   cat_coor_is_min;
   bool   cat_coor_is_max;
 
-  size_t cat_start = 0;
-  size_t cat_stride = 1;
+  cat_idx_t cat_start = 0;
+  cat_idx_t cat_stride = 1;
 };
 
 }

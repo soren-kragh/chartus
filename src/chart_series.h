@@ -107,12 +107,12 @@ public:
   // that no X-value is present and y_idx indicates the Y-value associated with
   // this series.
   void SetDatumAnchor(
-    size_t num, size_t cat_ofs, bool no_x, uint32_t y_idx
+    size_t num, cat_idx_t cat_ofs, bool no_x, uint32_t y_idx
   );
 
   Source::position_t datum_pos;
   size_t datum_num = 0;
-  size_t datum_cat_ofs = 0;
+  cat_idx_t datum_cat_ofs = 0;
   bool datum_no_x = false;
   uint32_t datum_y_idx = 0;
 
@@ -290,7 +290,7 @@ public:
 
     struct snap_point_t {
       SVG::Point p;
-      size_t cat_idx;
+      cat_idx_t cat_idx;
       std::string tag_x;
       std::string tag_y;
     };

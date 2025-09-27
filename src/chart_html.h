@@ -49,11 +49,11 @@ public:
   void MoveLegends( Main* main, SVG::U dx, SVG::U dy );
 
   // Returns true if the given category index must be included in snap points.
-  bool SnapCat( Main* main, size_t cat_idx );
+  bool SnapCat( Main* main, cat_idx_t cat_idx );
 
   bool AllocateSnap( Main* main, SVG::Point p );
   void RecordSnapPoint(
-    Series* series, SVG::Point p, size_t cat_idx,
+    Series* series, SVG::Point p, cat_idx_t cat_idx,
     std::string_view tag_x, std::string_view tag_y
   );
   void PreserveSnapPoint( Series* series, SVG::Point p );

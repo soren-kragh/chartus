@@ -159,7 +159,7 @@ Series* Main::AddSeries( SeriesType type )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void Main::SetCategoryAnchor( size_t num, bool empty )
+void Main::SetCategoryAnchor( cat_idx_t num, bool empty )
 {
   category_anchor_t anchor;
   anchor.pos = ensemble->source->cur_pos;
@@ -169,13 +169,13 @@ void Main::SetCategoryAnchor( size_t num, bool empty )
   category_num += num;
 }
 
-void Main::ParsedCat( size_t cat_idx, std::string_view cat )
+void Main::ParsedCat( cat_idx_t cat_idx, std::string_view cat )
 {
   if ( !parse_cat.stride_found ) cat_empty_stride = cat_idx + 1;
   if ( cat.empty() ) return;
   cat_normal_width = cat_normal_width && NormalWidthUTF8( cat );
   if ( parse_cat.non_empty_seen ) {
-    size_t stride = cat_idx - parse_cat.idx;
+    cat_idx_t stride = cat_idx - parse_cat.idx;
     if ( parse_cat.stride_found ) {
       cat_empty_stride = std::min( stride, cat_empty_stride );
     } else {
@@ -644,7 +644,7 @@ void Main::AxisPrepare( SVG::Group* tag_g )
     axis_x->min = (no_bar && category_num > 0) ? 0.0 : -0.5;
     axis_x->max =
       axis_x->min
-      + std::max( category_num, size_t( 1 ) )
+      + std::max( category_num, cat_idx_t( 1 ) )
       - ((axis_x->min < 0) ? 0 : 1);
     axis_x->min -= bar_margin;
     axis_x->max += bar_margin;

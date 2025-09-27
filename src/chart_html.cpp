@@ -89,15 +89,15 @@ void HTML::MoveLegends( Main* main, SVG::U dx, SVG::U dy )
 
 //------------------------------------------------------------------------------
 
-bool HTML::SnapCat( Main* main, size_t cat_idx )
+bool HTML::SnapCat( Main* main, cat_idx_t cat_idx )
 {
   if ( main->category_num <= main->axis_x->length ) return true;
-  size_t x = cat_idx;
-  size_t A = main->category_num - 1;
-  size_t B = static_cast< size_t >( snap_factor * main->axis_x->length);
+  cat_idx_t x = cat_idx;
+  cat_idx_t A = main->category_num - 1;
+  cat_idx_t B = static_cast< cat_idx_t >( snap_factor * main->axis_x->length);
   if ( x >= A/2 ) x = A - x;
-  size_t i = (x*B + A/2) / A;
-  size_t p = (i*A + B/2) / B;
+  cat_idx_t i = (x*B + A/2) / A;
+  cat_idx_t p = (i*A + B/2) / B;
   return x == p;
 }
 
@@ -110,7 +110,7 @@ bool HTML::AllocateSnap( Main* main, SVG::Point p )
 }
 
 void HTML::RecordSnapPoint(
-  Series* series, SVG::Point p, size_t cat_idx,
+  Series* series, SVG::Point p, cat_idx_t cat_idx,
   std::string_view tag_x, std::string_view tag_y
 )
 {
@@ -415,10 +415,10 @@ void HTML::GenChartData( Main* main, std::ostringstream& oss )
   if ( main->category_num > 0 ) {
     oss << "catCnt : " << main->category_num << ",\n";
     oss << "categories : [\n";
-    size_t j = 0;
+    cat_idx_t j = 0;
     main->CategoryBegin();
     for (
-      size_t i = 0; i < main->category_num;
+      cat_idx_t i = 0; i < main->category_num;
       ++i, main->CategoryNext()
     ) {
       bool snappable = SnapCat( main, i );

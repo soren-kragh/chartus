@@ -45,6 +45,8 @@ inline auto last_checkpoint_time = std::chrono::high_resolution_clock::now();
 
 namespace Chart {
 
+  using cat_idx_t = size_t;
+
   const double num_lo      = 1e-300;
   const double num_hi      = 1e+300;
   const double num_invalid = 0.56598313e+301;   // Magic reserved value.

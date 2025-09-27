@@ -504,7 +504,7 @@ double Series::ToDouble( const std::string_view sv )
 }
 
 void Series::SetDatumAnchor(
-  size_t num, size_t cat_ofs, bool no_x, uint32_t y_idx
+  size_t num, cat_idx_t cat_ofs, bool no_x, uint32_t y_idx
 )
 {
   datum_pos = source->cur_pos;
@@ -1005,10 +1005,7 @@ void Series::ComputeStackDir()
   if ( type != SeriesType::StackedArea ) return;
 
   DatumBegin();
-  for (
-    size_t i = 0; i < datum_num;
-    ++i, DatumNext()
-  ) {
+  for ( size_t i = 0; i < datum_num; ++i, DatumNext() ) {
     std::string_view svx;
     std::string_view svy;
     source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
@@ -1190,7 +1187,7 @@ void Series::BuildArea(
   size_t ap_line_cnt = 0;
   auto add_point =
   [&](
-    Point p, size_t cat_idx, std::string_view tag_x, std::string_view tag_y,
+    Point p, cat_idx_t cat_idx, std::string_view tag_x, std::string_view tag_y,
     bool is_datum, bool on_line
   )
   {
@@ -1236,7 +1233,7 @@ void Series::BuildArea(
   bool dp_first = true;
   auto do_point =
   [&](
-    Point p, size_t cat_idx, std::string_view tag_x, std::string_view tag_y,
+    Point p, cat_idx_t cat_idx, std::string_view tag_x, std::string_view tag_y,
     bool on_line = true
   )
   {
@@ -1308,7 +1305,7 @@ void Series::BuildArea(
     double prv_base = 0;
     bool prv_valid = false;
     bool first = true;
-    for ( size_t cat_idx = 0; cat_idx < main->category_num; ++cat_idx ) {
+    for ( cat_idx_t cat_idx = 0; cat_idx < main->category_num; ++cat_idx ) {
       std::string_view svx;
       std::string_view svy;
       double y = num_invalid;
@@ -1448,7 +1445,7 @@ void Series::BuildBar(
 
   DatumBegin();
   for ( size_t i = 0; i < datum_num; ++i, DatumNext() ) {
-    size_t cat_idx = datum_cat_ofs + i;
+    cat_idx_t cat_idx = datum_cat_ofs + i;
     double x = cat_idx + cx;
     std::string_view svx;
     std::string_view svy;
@@ -1682,7 +1679,7 @@ void Series::BuildLine(
     if ( !clipped ) {
       if ( marker_show ) PrunePointsAdd( mark_ps, p );
       if ( html_db ) {
-        size_t cat_idx = static_cast< size_t >( x );
+        cat_idx_t cat_idx = static_cast< cat_idx_t >( x );
         html_db->RecordSnapPoint( this, p, cat_idx, tag_x, tag_y );
       }
     }

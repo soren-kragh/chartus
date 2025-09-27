@@ -97,10 +97,10 @@ public:
   // Anchor a new range of num categories at the current position in the source.
   // The empty flag indicates if the category isn't given en the source and thus
   // is empty.
-  void SetCategoryAnchor( size_t num, bool empty );
+  void SetCategoryAnchor( cat_idx_t num, bool empty );
 
   // Called for each category as they are parsed from the source.
-  void ParsedCat( size_t cat_idx, std::string_view cat );
+  void ParsedCat( cat_idx_t cat_idx, std::string_view cat );
 
   // Used to iterate through the categories directly in the source.
   void CategoryBegin();
@@ -186,32 +186,32 @@ public:
 
   struct category_anchor_t {
     Source::position_t pos;
-    size_t num = 0;
+    cat_idx_t num = 0;
     bool empty = false;
   };
 
   std::vector< category_anchor_t > category_anchor_list;
 
   // This state is used by CategoryBegin(), CategoryNext(), and CategoryGet().
-  size_t cat_list_idx = 0;
-  size_t cat_list_cnt = 0;
-  bool   cat_list_empty = true;
+  cat_idx_t cat_list_idx = 0;
+  cat_idx_t cat_list_cnt = 0;
+  bool      cat_list_empty = true;
 
   // Number of categories across all series.
-  size_t category_num = 0;
+  cat_idx_t category_num = 0;
 
   // State used by ParsedCat().
   struct {
-    bool   non_empty_seen = false;
-    bool   stride_found = false;
-    size_t idx = 0;
+    bool      non_empty_seen = false;
+    bool      stride_found = false;
+    cat_idx_t idx = 0;
   } parse_cat;
 
   // Defines if all categories have normal character width.
   bool cat_normal_width = true;
 
   // Minimum distance between non-empty categories.
-  size_t cat_empty_stride = 1;
+  cat_idx_t cat_empty_stride = 1;
 
   Axis* axis_x;
   Axis* axis_y[ 2 ];
@@ -219,7 +219,7 @@ public:
   // Used by HTML class.
   struct html_t {
     std::unordered_set< uint64_t > snap_set;
-    std::unordered_set< size_t > cat_set;
+    std::unordered_set< cat_idx_t > cat_set;
 
     // Informs if all snap points are in line; for multiple bars per category
     // this will not be the case.

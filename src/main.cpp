@@ -41,7 +41,7 @@ struct state_t {
   Chart::SeriesType series_type = Chart::SeriesType::Line;
   bool snap = true;
   double prune_dist = 0.3;
-  size_t category_idx = 0;
+  Chart::cat_idx_t category_idx = 0;
   bool global_legend = false;
   bool legend_outline = true;
   int axis_y_n = 0;

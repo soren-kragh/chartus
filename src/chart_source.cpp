@@ -696,11 +696,6 @@ void Source::GetText( std::string& txt, bool multi_line )
   return;
 }
 
-std::string_view Source::GetStringView( size_t idx1, size_t idx2 )
-{
-  return cur_pos.loc.buf.substr( idx1, idx2 - idx1 );
-}
-
 void Source::GetDatum(
   std::string_view& x,
   std::string_view& y,

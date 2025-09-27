@@ -157,7 +157,7 @@ void Axis::SetTick( double major, int sub_divs )
   show = true;
 }
 
-void Axis::SetTickSpacing( size_t start, size_t stride )
+void Axis::SetTickSpacing( cat_idx_t start, cat_idx_t stride )
 {
   cat_start = start;
   cat_stride = (stride < 1) ? 1 : stride;
@@ -1298,10 +1298,10 @@ void Axis::BuildCategories(
     while ( true ) {
       bool collision = false;
       bool plc_vld = false;
-      size_t plc_idx = 0;
+      cat_idx_t plc_idx = 0;
       main->CategoryBegin();
       for (
-        size_t cat_idx = 0; cat_idx < main->category_num;
+        cat_idx_t cat_idx = 0; cat_idx < main->category_num;
         ++cat_idx, main->CategoryNext()
       ) {
         if ( cat_idx < cat_start ) continue;
