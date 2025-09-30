@@ -648,4 +648,114 @@ Series.Data:
 #<lines in macro>
 #MacroEnd: MyMacro
 #Macro: MyMacro
+
+#-------------------------------------------------------------------------------
+# Annotations are user created graphical elements; an annotation specifier is
+# indicated by @. Coordinates can be in chart coordinates or points (pixels) or
+# a combination. Point (pixel) coordinates use standard coordinates with (0,0)
+# in the lower left corner. Coordinate examples:
+#
+#       If @PointCoor Off, chart XY coordinate:             27.3 -44
+#       If @PointCoor On, point (pixel) XY coordinate:      50 300
+#       Chart XY coordinate with point displacement:        -12.2+10 45e2-8
+#       Special X coordinates:                              Left Right Center
+#       Special X coordinates (abbreviations):              L R C
+#       Special Y coordinates:                              Bottom Top Center
+#       Special Y coordinates (abbreviations):              B T C
+#       Point XY coordinate relative to bottom left corner: L+100 B+50
+#
+# Coordinates with point displacement can for example be used to place text near
+# to but displaced from interesting data points. The special coordinates Left,
+# Right, Top, Bottom can be used to indicate the edges of the chart area.
+# Non-XY-coordinates like Radius is always in points.
+#
+# Note that for annotations, the X- and Y-coordinates always follow the
+# horizontal and vertical orientations respectively. This means that if the
+# chart is rotated (see Axis.X.Orientation), then Y-axis chart-coordinates are
+# used for annotation X-coordinates (horizontal) and vice versa.
+#-------------------------------------------------------------------------------
+
+# Unused macro used to exclude the annotation examples, as they do not directly
+# compile, like X1 instead of actual coordinate etc.
+MacroDef: AnnotationDocumentation
+
+# Selects if coordinates are in points (pixels) or in chart values; may be
+# On or Off, default if Off. Applies to all subsequent annotations.
+@PointCoor: Off
+
+# Determines if Y-axis chart-coordinates refer to the Y1- of Y2-axis; default is
+# Y1. Applies to all subsequent annotations.
+@Axis: Y1
+
+# May be Top or Bottom and determines if annotations are placed above or below
+# the plots. Applies to all subsequent annotations.
+@Layer: Top
+
+# Width/Dash/Hole in points. Applies to all subsequent annotations.
+@LineWidth: Width
+@LineDash: Dash [Hole]
+
+# See earlier description of color format. Applies to all subsequent
+# annotations.
+@LineColor: black
+@FillColor: None
+@TextColor: black
+
+# Applies to all subsequent annotations.
+@TextAnchor: Top Center
+@TextSize: 24
+@TextBold: On
+
+# The LetterSpacing (see earler description) is used for all subsequent @Text
+# and @TextBox elements.
+@LetterSpacing: 1.8 1.1 0.8
+
+# Rounded corners for rectangles; is used for all subsequent @Rect and @TextBox
+# elements.
+@RectCornerRadius: 10
+
+@Line: X1 Y1 X2 Y2
+@Rect: X1 Y1 X2 Y2
+@Circle: X Y Radius
+@Ellipse: X Y RadiusX RadiusY
+@Polyline: X1 Y1 X2 Y2 X3 Y3 ...
+@Polygon: X1 Y1 X2 Y2 X3 Y3 ...
+
+# Enable an arrow pointer for all subsequent @Text and @TextBox elements. DX and
+# DY are in points (pixels) and defines the length and direction of the arrow
+# pointer; see @Arrow for descriptions of HeadGap and TailGap. The arrow is
+# drawn from the current @TextAnchor. Note that the pointer direction may be
+# changed depending on the current @TextAnchor. Disable arrow pointer by setting
+# both DX and DY to zero.
+@TextArrow: DX DY [HeadGap [TailGap]]
+
+# The X,Y is relative to the current @TextAnchor or the current @TextArrow if
+# enabled.
+@Text: X Y
+  Hello
+  World
+
+# Like @Text, but with a box.
+@TextBox: X Y
+  Hello
+  World
+
+# Draw an arrow. Often a data point coordinate is pointed out, but you would not
+# want the arrow to obscure the data point. In this case use HeadGap to shorten
+# the end of the arrow thereby crating a gap (in points) to the coordinate.
+# TailGap works similarly for the start of the arrow.
+@Arrow: X1 Y1 X2 Y2 [HeadGap [TailGap]]
+
+# Normally arrows are drawn with the current line width and color. Setting the
+# @ArrowWidth larger than zero causes arrows to be drawn as a polygon using the
+# current line and fill attributes.
+@ArrowWidth: 0
+
+# Use these to create a local annotation context where you can change settings
+# like colors etc. without affecting the parent context.
+@Context: {
+@Context: }
+
+MacroEnd: AnnotationDocumentation
+
 )EOF";

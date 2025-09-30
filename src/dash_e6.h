@@ -2,11 +2,18 @@ std::cout << R"EOF(
 Title: Climate Data
 SubSubTitle: (source: www.woodfortrees.org)
 
-Axis.Y1.Label: Temperature Anomaly (°C)
-Axis.Y2.Label: Parts per Million CO₂
+Axis.Y1.Label   : Temperature Anomaly (°C)
+Axis.Y1.SubLabel: relative to 1951-1980 mean
+Axis.Y2.Label   : Parts per Million CO₂
 
 # Show + for positive temperature anomaly.
-Axis.PriY.NumberSign: On
+Axis.Y1.NumberSign: On
+Axis.Y1.Range: -1.5 1.75
+Axis.Y1.Tick: 0.25 1
+
+# Make Y2 ticks align with Y1 grid lines.
+Axis.Y2.Range: 310 440
+Axis.Y2.Tick: 10 1
 
 Axis.X.Unit: Year
 
@@ -229,8 +236,72 @@ Series.Data:
   2020  1.163  0.070 +1.198  413.22
   2021  0.858  0.068 +0.892  415.20
   2022  0.905  0.074 +0.942  417.84
-  2023  0.882  0.086 +0.925  419.18
+  2023  0.882  0.086 +0.925  419.16
 
 Footnote: https://github.com/soren-kragh/chartus
 FootnotePos: Right
+
+# Annotations:
+
+# Note that the X-axis is textual with the first bin being the year 1850. So,
+# for the chart X-coordinates used in the annotations below X = Year - 1850.
+
+@Context: {
+@LineDash: 12 4
+@LineWidth: 4
+
+@LineColor: yellow
+@Layer: Bottom
+@Line: L -0.37 R -0.37
+@TextAnchor: Bottom Right
+@Layer: Top
+@Text: R -0.37
+      Pre-industrial
+  1850-1900 baseline
+
+@LineColor: red
+@Layer: Bottom
+@Line: L 1.63 R 1.63
+@TextAnchor: Top Left
+@Layer: Top
+@Text: L 1.63
+  Paris Agreement 2 °C goal
+
+@LineColor: orange
+@Layer: Bottom
+@Line: L 1.13 R 1.13
+@TextAnchor: Top Left
+@Layer: Top
+@Text: L 1.13
+  Paris Agreement 1.5 °C goal
+@Context: }
+
+@Context: {
+@Layer: Bottom
+@RectCornerRadius: 5
+@TextSize: 12
+@LineWidth: 2
+@TextBold: On
+
+@Arrow: 110 1.13-40 110 -0.37 5
+@Arrow: 110 1.13-40 110 1.13 5
+@TextBox: 110 1.13-40
+  1.5 °C
+
+@Arrow: 140 1.63-40 140 -0.37 5
+@Arrow: 140 1.63-40 140 1.63 5
+@TextBox: 140 1.63-40
+  2 °C
+@Context: }
+
+@Context: {
+@Axis: Y2
+@TextArrow: 30 15 5
+@TextAnchor: Bottom Right
+@FillColor: deepskyblue 0.5
+@TextBox: 109 315.5
+  CO₂ data collection starts
+  at the Mauna Loa Observatory
+@Context: }
+
 )EOF";

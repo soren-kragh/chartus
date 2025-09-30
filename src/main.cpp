@@ -391,7 +391,7 @@ void do_Pos(
   Chart::Pos& pos, int& axis_y_n
 )
 {
-  std::string_view id = source.GetIdentifier( true );
+  std::string_view id = source.GetIdentifier();
   if ( id == "Auto"    ) pos = Chart::Pos::Auto  ; else
   if ( id == "Center"  ) pos = Chart::Pos::Center; else
   if ( id == "Left"    ) pos = Chart::Pos::Left  ; else
@@ -417,97 +417,6 @@ void do_Pos(
 {
   int axis_y_n;
   do_Pos( pos, axis_y_n );
-}
-
-void do_Switch(
-  bool& flag
-)
-{
-  source.SkipWS();
-  std::string_view id = source.GetIdentifier( true );
-  if ( id == "On"  ) flag = true ; else
-  if ( id == "Off" ) flag = false; else
-  if ( id == "Yes" ) flag = true ; else
-  if ( id == "No"  ) flag = false; else
-  if ( id == "" ) source.ParseErr( "On/Off (Yes/No) expected" ); else
-  source.ParseErr(
-    "On/Off (Yes/No) expected, saw '" + std::string( id ) + "'", true
-  );
-}
-
-void do_Color(
-  SVG::Color* color, double& transparency
-)
-{
-  source.SkipWS();
-  std::string color_id{ source.GetIdentifier( true ) };
-
-  bool color_ok = true;
-
-  color->Clear();
-  color->SetTransparency( 0.0 );
-
-  if ( color_id != "None" ) {
-    if (color_id.size() != 7 || color_id[0] != '#') {
-      color_ok = false;
-    }
-    for ( char c : color_id.substr( 1 ) ) {
-      if ( !std::isxdigit( c ) ) color_ok = false;
-    }
-    if ( color_ok ) {
-      uint8_t r =
-        static_cast<uint8_t>( std::stoi( color_id.substr(1, 2), nullptr, 16 ) );
-      uint8_t g =
-        static_cast<uint8_t>( std::stoi( color_id.substr(3, 2), nullptr, 16 ) );
-      uint8_t b =
-        static_cast<uint8_t>( std::stoi( color_id.substr(5, 2), nullptr, 16 ) );
-      color->Set( r, g, b );
-    } else {
-      color_ok = color->Set( color_id ) == color;
-    }
-  }
-
-  if ( !color_ok ) {
-    source.ParseErr( "invalid color", true );
-  }
-
-  if ( !source.AtEOL() ) {
-    double lighten = 0.0;
-    source.ExpectWS();
-    if ( !source.AtEOL() ) {
-      if ( !source.GetDouble( lighten ) ) {
-        source.ParseErr( "malformed lighten value" );
-      }
-      if ( lighten < -1.0 || lighten > 1.0 ) {
-        source.ParseErr( "lighten value out of range [-1.0;1.0]", true );
-      }
-      if ( lighten < 0 )
-        color->Darken( -lighten );
-      else
-        color->Lighten( lighten );
-    }
-  }
-
-  if ( !source.AtEOL() ) {
-    source.ExpectWS();
-    if ( !source.AtEOL() ) {
-      if ( !source.GetDouble( transparency ) ) {
-        source.ParseErr( "malformed transparency value" );
-      }
-      if ( transparency < 0.0 || transparency > 1.0 ) {
-        source.ParseErr( "transparency value out of range [0.0;1.0]", true );
-      }
-      color->SetTransparency( transparency );
-    }
-  }
-
-  source.ExpectEOL();
-}
-
-void do_Color( SVG::Color* color )
-{
-  double transparency;
-  do_Color( color, transparency );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -627,7 +536,7 @@ void do_Margin( void )
   double m;
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "margin expected" );
-  if ( !source.GetDouble( m ) ) source.ParseErr( "malformed margin" );
+  source.GetDouble( m );
   if ( m < 0 || m > 1000 ) {
     source.ParseErr( "margin out of range [0;1000]", true );
   }
@@ -637,7 +546,7 @@ void do_Margin( void )
 
 void do_BorderColor( void )
 {
-  do_Color( ensemble.BorderColor() );
+  source.GetColor( ensemble.BorderColor() );
 }
 
 void do_BorderWidth( void )
@@ -645,7 +554,7 @@ void do_BorderWidth( void )
   double m;
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "border width expected" );
-  if ( !source.GetDouble( m ) ) source.ParseErr( "malformed border width" );
+  source.GetDouble( m );
   if ( m < 0 || m > 1000 ) {
     source.ParseErr( "border width out of range [0;1000]", true );
   }
@@ -658,7 +567,7 @@ void do_Padding( void )
   double m;
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "padding expected" );
-  if ( !source.GetDouble( m ) ) source.ParseErr( "malformed padding" );
+  source.GetDouble( m );
   if ( m < 0 || m > 1000 ) {
     source.ParseErr( "padding out of range [0;1000]", true );
   }
@@ -673,13 +582,14 @@ void do_GridPadding( void )
 
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "grid padding expected" );
-  if ( !source.GetDouble( grid_padding ) ) source.ParseErr( "malformed grid padding" );
+  source.GetDouble( grid_padding );
   if ( grid_padding > 1000 ) {
     source.ParseErr( "grid padding out of range [-inf;1000]", true );
   }
 
   source.SkipWS();
-  if ( source.GetDouble( area_padding ) ) {
+  if ( !source.AtEOL() ) {
+    source.GetDouble( area_padding );
     if ( area_padding < 0 || area_padding > 1000 ) {
       source.ParseErr( "chart area padding out of range [0;1000]", true );
     }
@@ -701,7 +611,7 @@ void do_GlobalLegendHeading( void )
 void do_GlobalLegendFrame( void )
 {
   bool frame;
-  do_Switch( frame );
+  source.GetSwitch( frame );
   source.ExpectEOL();
   ensemble.SetLegendFrame( frame );
 }
@@ -741,9 +651,7 @@ void do_GlobalLegendSize( void )
   double size;
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "legend size value expected" );
-  if ( !source.GetDouble( size ) ) {
-    source.ParseErr( "malformed Legend size value" );
-  }
+  source.GetDouble( size );
   if ( size < 0.01 || size > 100 ) {
     source.ParseErr( "legend size value out of range", true );
   }
@@ -753,50 +661,15 @@ void do_GlobalLegendSize( void )
 
 void do_GlobalLegendColor( void )
 {
-  do_Color( ensemble.LegendColor() );
+  source.GetColor( ensemble.LegendColor() );
 }
 
 void do_LetterSpacing( void )
 {
-  double width_adj    = 1.0;
-  double height_adj   = 1.0;
-  double baseline_adj = 1.0;
-
-  source.SkipWS();
-  if ( source.AtEOL() ) source.ParseErr( "width adjustment expected" );
-  if ( !source.GetDouble( width_adj ) ) {
-    source.ParseErr( "malformed width adjustment" );
-  }
-  if ( width_adj < 0 || width_adj > 100 ) {
-    source.ParseErr( "width adjustment out of range [0;100]", true );
-  }
-
-  if ( !source.AtEOL() ) {
-    source.ExpectWS();
-    if ( !source.AtEOL() ) {
-      if ( !source.GetDouble( height_adj ) ) {
-        source.ParseErr( "malformed height adjustment" );
-      }
-      if ( height_adj < 0 || height_adj > 100 ) {
-        source.ParseErr( "height adjustment out of range [0;100]", true );
-      }
-    }
-  }
-
-  if ( !source.AtEOL() ) {
-    source.ExpectWS();
-    if ( !source.AtEOL() ) {
-      if ( !source.GetDouble( baseline_adj ) ) {
-        source.ParseErr( "malformed baseline adjustment" );
-      }
-      if ( baseline_adj < 0 || baseline_adj > 100 ) {
-        source.ParseErr( "baseline adjustment out of range [0;100]", true );
-      }
-    }
-  }
-
-  source.ExpectEOL();
-
+  double width_adj;
+  double height_adj;
+  double baseline_adj;
+  source.GetLetterSpacing( width_adj, height_adj, baseline_adj );
   ensemble.SetLetterSpacing( width_adj, height_adj, baseline_adj );
 }
 
@@ -827,7 +700,7 @@ void do_ChartArea( void )
 void do_ChartBox( void )
 {
   bool chart_box;
-  do_Switch( chart_box );
+  source.GetSwitch( chart_box );
   source.ExpectEOL();
   CurChart()->SetChartBox( chart_box );
 }
@@ -836,27 +709,27 @@ void do_ChartBox( void )
 
 void do_ForegroundColor( void )
 {
-  do_Color( ensemble.ForegroundColor() );
+  source.GetColor( ensemble.ForegroundColor() );
 }
 
 void do_BackgroundColor( void )
 {
-  do_Color( ensemble.BackgroundColor() );
+  source.GetColor( ensemble.BackgroundColor() );
 }
 
 void do_ChartAreaColor( void )
 {
-  do_Color( CurChart()->ChartAreaColor() );
+  source.GetColor( CurChart()->ChartAreaColor() );
 }
 
 void do_AxisColor( void )
 {
-  do_Color( CurChart()->AxisColor() );
+  source.GetColor( CurChart()->AxisColor() );
 }
 
 void do_GridColor( void )
 {
-  do_Color( CurChart()->AxisX()->GridColor() );
+  source.GetColor( CurChart()->AxisX()->GridColor() );
   for ( auto n : { 0, 1 } ) {
     CurChart()->AxisY( n )->GridColor()->Set( CurChart()->AxisX()->GridColor() );
   }
@@ -864,12 +737,12 @@ void do_GridColor( void )
 
 void do_TextColor( void )
 {
-  do_Color( CurChart()->TextColor() );
+  source.GetColor( CurChart()->TextColor() );
 }
 
 void do_FrameColor( void )
 {
-  do_Color( CurChart()->FrameColor() );
+  source.GetColor( CurChart()->FrameColor() );
 }
 
 //------------------------------------------------------------------------------
@@ -916,9 +789,7 @@ void do_GlobalTitleSize( void )
   double size;
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "title size value expected" );
-  if ( !source.GetDouble( size ) ) {
-    source.ParseErr( "malformed title size value" );
-  }
+  source.GetDouble( size );
   if ( size < 0.01 || size > 100 ) {
     source.ParseErr( "title size value out of range", true );
   }
@@ -929,7 +800,7 @@ void do_GlobalTitleSize( void )
 void do_GlobalTitleLine( void )
 {
   bool title_line;
-  do_Switch( title_line );
+  source.GetSwitch( title_line );
   source.ExpectEOL();
   ensemble.SetTitleLine( title_line );
 }
@@ -960,7 +831,7 @@ void do_SubSubTitle( void )
 void do_TitleFrame( void )
 {
   bool frame;
-  do_Switch( frame );
+  source.GetSwitch( frame );
   source.ExpectEOL();
   CurChart()->SetTitleFrame( frame );
 }
@@ -987,7 +858,7 @@ void do_TitlePos( void )
 void do_TitleInside( void )
 {
   bool inside;
-  do_Switch( inside );
+  source.GetSwitch( inside );
   source.ExpectEOL();
   CurChart()->SetTitleInside( inside );
 }
@@ -997,9 +868,7 @@ void do_TitleSize( void )
   double size;
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "title size value expected" );
-  if ( !source.GetDouble( size ) ) {
-    source.ParseErr( "malformed title size value" );
-  }
+  source.GetDouble( size );
   if ( size < 0.01 || size > 100 ) {
     source.ParseErr( "title size value out of range", true );
   }
@@ -1028,7 +897,7 @@ void do_FootnotePos( void )
 void do_FootnoteLine( void )
 {
   bool footnote_line;
-  do_Switch( footnote_line );
+  source.GetSwitch( footnote_line );
   source.ExpectEOL();
   ensemble.SetFootnoteLine( footnote_line );
 }
@@ -1038,9 +907,7 @@ void do_FootnoteSize( void )
   double size;
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "footnote size value expected" );
-  if ( !source.GetDouble( size ) ) {
-    source.ParseErr( "malformed footnote size value" );
-  }
+  source.GetDouble( size );
   if ( size < 0.01 || size > 100 ) {
     source.ParseErr( "footnote size value out of range", true );
   }
@@ -1055,7 +922,7 @@ void do_Axis_Orientation( Chart::Axis* axis )
   bool vertical = false;
 
   source.SkipWS();
-  std::string_view id = source.GetIdentifier( true );
+  std::string_view id = source.GetIdentifier();
   if ( id == "Horizontal" ) vertical = false; else
   if ( id == "Vertical"   ) vertical = true ; else
   if ( id == "" ) source.ParseErr( "axis orientation expected" ); else
@@ -1075,7 +942,7 @@ void do_Axis_Orientation( Chart::Axis* axis )
 void do_Axis_Reverse( Chart::Axis* axis )
 {
   bool reverse;
-  do_Switch( reverse );
+  source.GetSwitch( reverse );
   source.ExpectEOL();
   axis->SetReverse( reverse );
 }
@@ -1087,7 +954,7 @@ void do_Axis_Style( Chart::Axis* axis )
   Chart::AxisStyle style = Chart::AxisStyle::Auto;
   source.SkipWS();
 
-  std::string_view id = source.GetIdentifier( true );
+  std::string_view id = source.GetIdentifier();
   if ( id == "Auto"   ) style = Chart::AxisStyle::Auto ; else
   if ( id == "None"   ) style = Chart::AxisStyle::None ; else
   if ( id == "Line"   ) style = Chart::AxisStyle::Line ; else
@@ -1125,9 +992,7 @@ void do_Axis_LabelSize( Chart::Axis* axis )
   double size;
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "label size value expected" );
-  if ( !source.GetDouble( size ) ) {
-    source.ParseErr( "malformed label size value" );
-  }
+  source.GetDouble( size );
   if ( size < 0.01 || size > 100 ) {
     source.ParseErr( "label size value out of range", true );
   }
@@ -1160,7 +1025,7 @@ void do_Axis_UnitPos( Chart::Axis* axis )
 void do_Axis_LogScale( Chart::Axis* axis )
 {
   bool log_scale;
-  do_Switch( log_scale );
+  source.GetSwitch( log_scale );
   source.ExpectEOL();
   axis->SetLogScale( log_scale );
 }
@@ -1175,19 +1040,17 @@ void do_Axis_Range( Chart::Axis* axis )
 
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "min expected" );
-  if ( !source.GetDouble( min ) ) source.ParseErr( "malformed min" );
+  source.GetDouble( min );
 
   source.ExpectWS( "max expected" );
-  if ( !source.GetDouble( max ) ) source.ParseErr( "malformed max" );
+  source.GetDouble( max );
   if ( !(max > min) ) source.ParseErr( "max must be greater than min", true );
 
   cross = 0;
   if ( !source.AtEOL() ) {
     source.ExpectWS();
     if ( !source.AtEOL() ) {
-      if ( !source.GetDouble( cross ) ) {
-        source.ParseErr( "malformed orthogonal axis cross" );
-      }
+      source.GetDouble( cross );
     }
   }
 
@@ -1217,7 +1080,7 @@ void do_Axis_Tick( Chart::Axis* axis )
 
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "major tick expected" );
-  if ( !source.GetDouble( major ) ) source.ParseErr( "malformed major tick" );
+  source.GetDouble( major );
   if ( !(major > 0) ) source.ParseErr( "major tick must be positive", true );
 
   source.ExpectWS( "minor tick expected" );
@@ -1263,14 +1126,14 @@ void do_Axis_Grid( Chart::Axis* axis )
   bool major;
   bool minor;
 
-  do_Switch( major );
+  source.GetSwitch( major );
 
   minor = major;
 
   if ( !source.AtEOL() ) {
     source.ExpectWS();
     if ( !source.AtEOL() ) {
-      do_Switch( minor );
+      source.GetSwitch( minor );
     }
   }
 
@@ -1285,7 +1148,7 @@ void do_Axis_GridStyle( Chart::Axis* axis )
 {
   Chart::GridStyle style = Chart::GridStyle::Auto;
   source.SkipWS();
-  std::string_view id = source.GetIdentifier( true );
+  std::string_view id = source.GetIdentifier();
   if ( id == "Auto"  ) style = Chart::GridStyle::Auto ; else
   if ( id == "Dash"  ) style = Chart::GridStyle::Dash ; else
   if ( id == "Solid" ) style = Chart::GridStyle::Solid; else
@@ -1299,7 +1162,7 @@ void do_Axis_GridStyle( Chart::Axis* axis )
 
 void do_Axis_GridColor( Chart::Axis* axis )
 {
-  do_Color( axis->GridColor() );
+  source.GetColor( axis->GridColor() );
 }
 
 //------------------------------------------------------------------------------
@@ -1309,7 +1172,7 @@ void do_Axis_NumberFormat( Chart::Axis* axis )
   Chart::NumberFormat number_format = Chart::NumberFormat::Auto;
   source.SkipWS();
 
-  std::string_view id = source.GetIdentifier( true );
+  std::string_view id = source.GetIdentifier();
   if ( id == "Auto"       ) number_format = Chart::NumberFormat::Auto      ; else
   if ( id == "None"       ) number_format = Chart::NumberFormat::None      ; else
   if ( id == "Fixed"      ) number_format = Chart::NumberFormat::Fixed     ; else
@@ -1327,7 +1190,7 @@ void do_Axis_NumberFormat( Chart::Axis* axis )
 void do_Axis_NumberSign( Chart::Axis* axis )
 {
   bool number_sign;
-  do_Switch( number_sign );
+  source.GetSwitch( number_sign );
   source.ExpectEOL();
   axis->SetNumberSign( number_sign );
 }
@@ -1350,7 +1213,7 @@ void do_Axis_NumberUnit( Chart::Axis* axis )
 void do_Axis_MinorNumber( Chart::Axis* axis )
 {
   bool minor_num;
-  do_Switch( minor_num );
+  source.GetSwitch( minor_num );
   source.ExpectEOL();
   axis->ShowMinorNumbers( minor_num );
 }
@@ -1373,9 +1236,7 @@ void do_Axis_NumberSize( Chart::Axis* axis )
   double size;
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "number size value expected" );
-  if ( !source.GetDouble( size ) ) {
-    source.ParseErr( "malformed number size value" );
-  }
+  source.GetDouble( size );
   if ( size < 0.01 || size > 100 ) {
     source.ParseErr( "number size value out of range", true );
   }
@@ -1395,7 +1256,7 @@ void do_LegendHeading( void )
 void do_LegendFrame( void )
 {
   bool frame;
-  do_Switch( frame );
+  source.GetSwitch( frame );
   source.ExpectEOL();
   CurChart()->SetLegendFrame( frame );
 }
@@ -1414,9 +1275,7 @@ void do_LegendSize( void )
   double size;
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "legend size value expected" );
-  if ( !source.GetDouble( size ) ) {
-    source.ParseErr( "malformed Legend size value" );
-  }
+  source.GetDouble( size );
   if ( size < 0.01 || size > 100 ) {
     source.ParseErr( "legend size value out of range", true );
   }
@@ -1433,7 +1292,7 @@ void do_BarWidth( void )
 
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "width expected" );
-  if ( !source.GetDouble( one_width ) ) source.ParseErr( "malformed width" );
+  source.GetDouble( one_width );
   if ( one_width < 0.0 || one_width > 1.0 ) {
     source.ParseErr( "relative width out of range [0.0;1.0]", true );
   }
@@ -1442,7 +1301,7 @@ void do_BarWidth( void )
   if ( !source.AtEOL() ) {
     source.ExpectWS();
     if ( !source.AtEOL() ) {
-      if ( !source.GetDouble( all_width ) ) source.ParseErr( "malformed width" );
+      source.GetDouble( all_width );
       if ( all_width < 0.0 || all_width > 1.0 ) {
         source.ParseErr( "relative width out of range [0.0;1.0]", true );
       }
@@ -1459,7 +1318,7 @@ void do_LayeredBarWidth( void )
   double width;
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "width expected" );
-  if ( !source.GetDouble( width ) ) source.ParseErr( "malformed width" );
+  source.GetDouble( width );
   if ( width <= 0.0 || width > 1.0 ) source.ParseErr( "invalid width", true );
   source.ExpectEOL();
   CurChart()->SetLayeredBarWidth( width );
@@ -1471,7 +1330,7 @@ void do_BarMargin( void )
 
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "margin expected" );
-  if ( !source.GetDouble( margin ) ) source.ParseErr( "malformed margin" );
+  source.GetDouble( margin );
   if ( margin < 0.0 ) source.ParseErr( "invalid margin", true );
 
   source.ExpectEOL();
@@ -1546,7 +1405,7 @@ void AddSeries( std::string name = "" )
 void do_Series_Type( void )
 {
   source.SkipWS();
-  std::string_view id = source.GetIdentifier( true );
+  std::string_view id = source.GetIdentifier();
   if ( id == "XY"          ) state.series_type = Chart::SeriesType::XY         ; else
   if ( id == "Scatter"     ) state.series_type = Chart::SeriesType::Scatter    ; else
   if ( id == "Line"        ) state.series_type = Chart::SeriesType::Line       ; else
@@ -1572,7 +1431,7 @@ void do_Series_New( void )
 
 void do_Series_Snap( void )
 {
-  do_Switch( state.snap );
+  source.GetSwitch( state.snap );
   source.ExpectEOL();
   if ( state.defining_series ) {
     state.series_list.back()->SetSnap( state.snap );
@@ -1583,7 +1442,7 @@ void do_Series_Prune( void )
 {
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "prune distance expected" );
-  if ( !source.GetDouble( state.prune_dist ) ) source.ParseErr( "malformed prune distance" );
+  source.GetDouble( state.prune_dist );
   if ( state.prune_dist < 0 || state.prune_dist > 100 ) {
     source.ParseErr( "prune distance out of range [0;100]", true );
   }
@@ -1595,7 +1454,7 @@ void do_Series_Prune( void )
 
 void do_Series_GlobalLegend( void )
 {
-  do_Switch( state.global_legend );
+  source.GetSwitch( state.global_legend );
   source.ExpectEOL();
   if ( state.defining_series ) {
     state.series_list.back()->SetGlobalLegend( state.global_legend );
@@ -1604,7 +1463,7 @@ void do_Series_GlobalLegend( void )
 
 void do_Series_LegendOutline( void )
 {
-  do_Switch( state.legend_outline );
+  source.GetSwitch( state.legend_outline );
   source.ExpectEOL();
   if ( state.defining_series ) {
     state.series_list.back()->SetLegendOutline( state.legend_outline );
@@ -1613,14 +1472,7 @@ void do_Series_LegendOutline( void )
 
 void do_Series_Axis( void )
 {
-  source.SkipWS();
-  std::string_view id = source.GetIdentifier( true );
-  if ( id == "Primary"   ) state.axis_y_n = 0; else
-  if ( id == "Y1"        ) state.axis_y_n = 0; else
-  if ( id == "Secondary" ) state.axis_y_n = 1; else
-  if ( id == "Y2"        ) state.axis_y_n = 1; else
-  if ( id == "" ) source.ParseErr( "Primary/Y1 or Secondary/Y2 expected" ); else
-  source.ParseErr( "unknown Y-axis '" + std::string( id ) + "'", true );
+  source.GetAxis( state.axis_y_n );
   source.ExpectEOL();
   if ( state.defining_series ) {
     state.series_list.back()->SetAxisY( state.axis_y_n );
@@ -1631,7 +1483,7 @@ void do_Series_Base( void )
 {
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "base expected" );
-  if ( !source.GetDouble( state.series_base ) ) source.ParseErr( "malformed base" );
+  source.GetDouble( state.series_base );
   source.ExpectEOL();
   if ( state.defining_series ) {
     state.series_list.back()->SetBase( state.series_base );
@@ -1669,7 +1521,7 @@ void do_Series_Style( void )
 void do_Series_MarkerShape( void )
 {
   source.SkipWS();
-  std::string_view id = source.GetIdentifier( true );
+  std::string_view id = source.GetIdentifier();
   if ( id == "Circle"      ) state.marker_shape = Chart::MarkerShape::Circle     ; else
   if ( id == "Square"      ) state.marker_shape = Chart::MarkerShape::Square     ; else
   if ( id == "Triangle"    ) state.marker_shape = Chart::MarkerShape::Triangle   ; else
@@ -1691,7 +1543,7 @@ void do_Series_MarkerSize( void )
 {
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "marker size expected" );
-  if ( !source.GetDouble( state.marker_size ) ) source.ParseErr( "malformed marker size" );
+  source.GetDouble( state.marker_size );
   if ( state.marker_size < 0 || state.marker_size > 100 ) {
     source.ParseErr( "marker size out of range [0;100]", true );
   }
@@ -1705,9 +1557,7 @@ void do_Series_LineWidth( void )
 {
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "line width expected" );
-  if ( !source.GetDouble( state.line_width ) ) {
-    source.ParseErr( "malformed line width" );
-  }
+  source.GetDouble( state.line_width );
   if ( state.line_width < 0 || state.line_width > 100 ) {
     source.ParseErr( "line width out of range [0;100]", true );
   }
@@ -1722,9 +1572,7 @@ void do_Series_LineDash( void )
   state.line_dash = 0;
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "line dash expected" );
-  if ( !source.GetDouble( state.line_dash ) ) {
-    source.ParseErr( "malformed line dash" );
-  }
+  source.GetDouble( state.line_dash );
   if ( state.line_dash < 0 || state.line_dash > 100 ) {
     source.ParseErr( "line dash out of range [0;100]", true );
   }
@@ -1732,9 +1580,7 @@ void do_Series_LineDash( void )
   if ( !source.AtEOL() ) {
     source.ExpectWS();
     if ( !source.AtEOL() ) {
-      if ( !source.GetDouble( state.line_hole ) ) {
-        source.ParseErr( "malformed line hole" );
-      }
+      source.GetDouble( state.line_hole );
       if ( state.line_hole < 0 || state.line_hole > 100 ) {
         source.ParseErr( "line hole out of range [0;100]", true );
       }
@@ -1750,9 +1596,7 @@ void do_Series_Lighten( void )
 {
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "lighten value expected" );
-  if ( !source.GetDouble( state.lighten ) ) {
-    source.ParseErr( "malformed lighten value" );
-  }
+  source.GetDouble( state.lighten );
   if ( state.lighten < -1.0 || state.lighten > +1.0 ) {
     source.ParseErr( "lighten value out of range [-1.0;1.0]", true );
   }
@@ -1767,9 +1611,7 @@ void do_Series_FillTransparency( void )
 {
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "transparency value expected" );
-  if ( !source.GetDouble( state.fill_transparency ) ) {
-    source.ParseErr( "malformed transparency value" );
-  }
+  source.GetDouble( state.fill_transparency );
   if ( state.fill_transparency < 0.0 || state.fill_transparency > 1.0 ) {
     source.ParseErr( "transparency value out of range [-1.0;1.0]", true );
   }
@@ -1787,7 +1629,7 @@ void do_Series_Color( void )
   }
   auto series = state.series_list.back();
   double transparency = -1.0;
-  do_Color( series->LineColor(), transparency );
+  source.GetColor( series->LineColor(), transparency );
   series->LineColor()->Lighten( state.lighten )->SetTransparency( 0.0 );
   series->SetDefaultFillColor();
   if ( transparency >= 0.0 ) {
@@ -1804,7 +1646,7 @@ void do_Series_LineColor( void )
     source.ParseErr( "LineColor outside defining series" );
   }
   auto series = state.series_list.back();
-  do_Color( series->LineColor() );
+  source.GetColor( series->LineColor() );
   series->LineColor()->Lighten( state.lighten );
 }
 
@@ -1814,7 +1656,7 @@ void do_Series_FillColor( void )
     source.ParseErr( "FillColor outside defining series" );
   }
   auto series = state.series_list.back();
-  do_Color( series->FillColor() );
+  source.GetColor( series->FillColor() );
   series->FillColor()->Lighten( state.lighten );
   if ( state.fill_transparency >= 0 ) {
     series->FillColor()->SetTransparency( state.fill_transparency );
@@ -1825,7 +1667,7 @@ void do_Series_FillColor( void )
 
 void do_Series_Tag( void )
 {
-  do_Switch( state.tag_enable );
+  source.GetSwitch( state.tag_enable );
   source.ExpectEOL();
   if ( state.defining_series ) {
     state.series_list.back()->SetTagEnable( state.tag_enable );
@@ -1846,9 +1688,7 @@ void do_Series_TagSize( void )
 {
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "tag size value expected" );
-  if ( !source.GetDouble( state.tag_size ) ) {
-    source.ParseErr( "malformed tag size value" );
-  }
+  source.GetDouble( state.tag_size );
   if ( state.tag_size < 0.01 || state.tag_size > 100 ) {
     source.ParseErr( "tag size value out of range", true );
   }
@@ -1860,7 +1700,7 @@ void do_Series_TagSize( void )
 
 void do_Series_TagBox( void )
 {
-  do_Switch( state.tag_box );
+  source.GetSwitch( state.tag_box );
   source.ExpectEOL();
   if ( state.defining_series ) {
     state.series_list.back()->SetTagBox( state.tag_box );
@@ -1869,7 +1709,7 @@ void do_Series_TagBox( void )
 
 void do_Series_TagTextColor( void )
 {
-  do_Color( &state.tag_text_color );
+  source.GetColor( &state.tag_text_color );
   if ( state.defining_series ) {
     state.series_list.back()->TagTextColor()->Set( &state.tag_text_color );
   }
@@ -1877,7 +1717,7 @@ void do_Series_TagTextColor( void )
 
 void do_Series_TagFillColor( void )
 {
-  do_Color( &state.tag_fill_color );
+  source.GetColor( &state.tag_fill_color );
   if ( state.defining_series ) {
     state.series_list.back()->TagFillColor()->Set( &state.tag_fill_color );
   }
@@ -1885,7 +1725,7 @@ void do_Series_TagFillColor( void )
 
 void do_Series_TagLineColor( void )
 {
-  do_Color( &state.tag_line_color );
+  source.GetColor( &state.tag_line_color );
   if ( state.defining_series ) {
     state.series_list.back()->TagLineColor()->Set( &state.tag_line_color );
   }
@@ -1912,7 +1752,7 @@ void parse_series_data( void )
       double d;
       bool got_number = false;
       if ( !x_is_text ) {
-        got_number = source.GetDouble( d, true );
+        got_number = source.TryGetDoubleOrNone( d );
       }
       if ( !got_number ) {
         std::string_view t;
@@ -2016,17 +1856,13 @@ void parse_series_data( void )
       state.category_idx++;
     } else {
       double x;
-      if ( !source.GetDouble( x, true ) ) {
-        source.ParseErr( "malformed X-value" );
-      }
+      source.GetDoubleOrNone( x );
     }
     for ( uint32_t n = 0; n < y_values; ++n ) {
       source.SkipWS();
       if ( !source.AtEOL() ) {
         double y;
-        if ( !source.GetDouble( y, true ) ) {
-          source.ParseErr( "malformed Y-value" );
-        }
+        source.GetDoubleOrNone( y );
       }
     }
     source.ExpectEOL();
@@ -2151,15 +1987,25 @@ std::unordered_map< std::string_view, AxisAction > axis_actions = {
 
 bool parse_spec( void )
 {
-  std::string_view key;
-  source.SkipWS( true );
-  if ( source.AtEOF() ) return false;
-  if ( !source.AtSOL() ) source.ParseErr( "KEY must be unindented" );
-  key = source.GetIdentifier();
-  source.SkipWS();
-  if ( key.empty() ) source.ParseErr( "KEY expected", true );
-  if ( source.CurChar() != ':' ) source.ParseErr( "':' expected" );
-  source.GetChar();
+  bool anno = false;
+  while ( true ) {
+    source.SkipWS( true );
+    if ( source.AtEOF() ) return false;
+    char c = source.CurChar();
+    bool sol = source.AtSOL();
+    if ( !anno && sol && c == '@' ) {
+      CurChart()->AddAnnotationAnchor();
+    }
+    anno = anno ? (!sol || c == '@') : (sol && c == '@');
+    if ( anno ) {
+      source.NextLine();
+      continue;
+    }
+    if ( !sol ) source.ParseErr( "KEY must be unindented" );
+    break;
+  }
+
+  std::string_view key = source.GetKey();
 
   bool ok = false;
 

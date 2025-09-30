@@ -4,10 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Add Series.Color
+- Support annotations
 
 ### Changed
 - Reduce memory usage
-- Add Series.Color
 - Support huge files
 
 ### Deprecated

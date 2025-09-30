@@ -119,4 +119,31 @@ Series.Data :
 # MacroDef: MyMacro
 # MacroEnd: MyMacro
 # Macro: MyMacro
+#
+# @PointCoor: Off
+# @Axis: Y1
+# @Layer: Top
+# @LineWidth: Width
+# @LineDash: Dash [Hole]
+# @LineColor: black
+# @FillColor: None
+# @TextColor: black
+# @TextAnchor: Top Center
+# @TextSize: 24
+# @TextBold: On
+# @LetterSpacing: 1.8 1.1 0.8
+# @RectCornerRadius: 10
+# @Line: X1 Y1 X2 Y2
+# @Rect: X1 Y1 X2 Y2
+# @Circle: X Y Radius
+# @Ellipse: X Y RadiusX RadiusY
+# @Polyline: X1 Y1 X2 Y2 X3 Y3 ...
+# @Polygon: X1 Y1 X2 Y2 X3 Y3 ...
+# @TextArrow: DX DY [HeadGap [TailGap]]
+# @Text: X Y
+# @TextBox: X Y
+# @Arrow: X1 Y1 X2 Y2 [HeadGap [TailGap]]
+# @ArrowWidth: 0
+# @Context: {
+# @Context: }
 )EOF";

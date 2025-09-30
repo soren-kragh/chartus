@@ -17,6 +17,7 @@
 
 #include <chart_common.h>
 #include <chart_source.h>
+#include <chart_annotate.h>
 #include <chart_label.h>
 #include <chart_tag.h>
 #include <chart_html.h>
@@ -107,6 +108,10 @@ public:
   void CategoryLoad();
   void CategoryNext();
   void CategoryGet( std::string_view& cat );
+
+  // Called each time current position is at a new streak of annotation
+  // specifiers.
+  void AddAnnotationAnchor();
 
   void Build( void );
 
@@ -242,6 +247,8 @@ public:
     axis_t y_axis[ 2 ];
   };
   html_t html;
+
+  Annotate* annotate = nullptr;
 
 };
 

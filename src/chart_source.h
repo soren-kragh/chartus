@@ -92,9 +92,27 @@ public:
   void ExpectEOL();
   void ExpectWS( const std::string& err_msg_if_eol = "" );
 
-  std::string_view GetIdentifier( bool all_non_ws = false );
+  std::string_view GetKey();
+  std::string_view GetIdentifier();
   bool GetInt64( int64_t& i );
-  bool GetDouble( double& d, bool none_allowed = false );
+
+  bool GetDoubleFull(
+    double& d,
+    bool none_allowed, bool sep_after, bool fail_on_error
+  );
+  void GetDouble( double& d )
+  {
+    GetDoubleFull( d, false, true, true );
+  }
+  void GetDoubleOrNone( double& d )
+  {
+    GetDoubleFull( d, true, true, true );
+  }
+  bool TryGetDoubleOrNone( double& d )
+  {
+    return GetDoubleFull( d, true, true, false );
+  }
+
   void GetCategory( std::string_view& cat, bool& quoted );
   void GetText( std::string& txt, bool multi_line );
 
@@ -105,6 +123,18 @@ public:
     std::string_view& y,
     bool no_x, uint32_t y_idx
   );
+
+  void GetColor( SVG::Color* color, double& transparency );
+  void GetColor( SVG::Color* color );
+  void GetSwitch( bool& flag );
+
+  void GetLetterSpacing(
+    double& width_adj,
+    double& height_adj,
+    double& baseline_adj
+  );
+
+  void GetAxis( int& axis_y_n );
 
 //------------------------------------------------------------------------------
 

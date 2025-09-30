@@ -150,7 +150,7 @@ void Source::ProcessSegment()
           in_macro_name.clear();
         }
       }
-      cur_pos.loc = sol_loc;
+      cur_pos.loc.char_idx = sol_loc.char_idx;
     }
     PastEOL();
   }
@@ -434,19 +434,17 @@ void Source::NextLine( bool stay )
 
     if ( len >= 5 && memcmp( ptr, "Macro", 5 ) == 0 ) {
       auto sol_loc = cur_pos.loc;
-      std::string_view key = GetIdentifier();
-      if ( key == "MacroDef" || key == "MacroEnd" || key == "Macro" ) {
-        SkipWS();
-        if ( CurChar() != ':' ) ParseErr( "':' expected" );
-        GetChar();
+      bool macro_def  = len >= 8 && memcmp( ptr, "MacroDef", 8 ) == 0;
+      bool macro_end  = len >= 8 && memcmp( ptr, "MacroEnd", 8 ) == 0;
+      bool macro_call = !macro_def && !macro_end;
+      cur_pos.loc.char_idx += macro_call ? 5 : 8;
+      SkipWS();
+      if ( GetChar() == ':' ) {
         SkipWS();
         std::string macro_name{ GetIdentifier() };
         if ( macro_name.empty() ) ParseErr( "macro name expected", true );
         ExpectEOL();
-        cur_pos.loc = sol_loc;
-        bool macro_def  = key == "MacroDef";
-        bool macro_end  = key == "MacroEnd";
-        bool macro_call = key == "Macro";
+        cur_pos.loc.char_idx = sol_loc.char_idx;
         if ( in_macro_name.empty() ) {
           if ( macro_def ) {
             in_macro_name = macro_name;
@@ -479,7 +477,7 @@ void Source::NextLine( bool stay )
         }
         continue;
       }
-      cur_pos.loc = sol_loc;
+      cur_pos.loc.char_idx = sol_loc.char_idx;
     }
 
     if ( in_macro_name.empty() ) break;
@@ -552,7 +550,34 @@ void Source::ExpectWS( const std::string& err_msg_if_eol )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-std::string_view Source::GetIdentifier( bool all_non_ws )
+std::string_view Source::GetKey()
+{
+  if ( !AtSOL() ) ParseErr( "KEY must be unindented" );
+  ref_idx = cur_pos.loc.char_idx;
+  const char* cur = cur_pos.loc.buf.data() + cur_pos.loc.char_idx;
+  const char* ptr = cur;
+  while ( true ) {
+    char c = *ptr;
+    if (
+      (c >= 'a' && c <= 'z') ||
+      (c >= 'A' && c <= 'Z') ||
+      (c >= '0' && c <= '9') ||
+      c == '_' || c == '.' || c == '@'
+    ) {
+      ++ptr;
+    } else {
+      break;
+    }
+  }
+  cur_pos.loc.char_idx += ptr - cur;
+  if ( ptr == cur ) ParseErr( "KEY expected", true );
+  SkipWS();
+  if ( CurChar() != ':' ) ParseErr( "':' expected" );
+  cur_pos.loc.char_idx++;
+  return std::string_view( cur, ptr - cur );
+}
+
+std::string_view Source::GetIdentifier()
 {
   ref_idx = cur_pos.loc.char_idx;
   const char* cur = cur_pos.loc.buf.data() + cur_pos.loc.char_idx;
@@ -560,11 +585,10 @@ std::string_view Source::GetIdentifier( bool all_non_ws )
   while ( true ) {
     char c = *ptr;
     if (
-      (all_non_ws && !IsSep( c )) ||
       (c >= 'a' && c <= 'z') ||
       (c >= 'A' && c <= 'Z') ||
       (c >= '0' && c <= '9') ||
-      (c == '.' || c == '-' || c == '+' || c == '_')
+      c == '_'
     ) {
       ++ptr;
     } else {
@@ -597,7 +621,10 @@ bool Source::GetInt64( int64_t& i )
   return true;
 }
 
-bool Source::GetDouble( double& d, bool none_allowed )
+bool Source::GetDoubleFull(
+  double& d,
+  bool none_allowed, bool sep_after, bool fail_on_error
+)
 {
   ref_idx = cur_pos.loc.char_idx;
 
@@ -618,7 +645,12 @@ bool Source::GetDouble( double& d, bool none_allowed )
   }
   auto [ptr, ec] = std::from_chars( p, end, result );
 
-  if ( ec != std::errc() || !IsSep( *ptr ) ) return false;
+  if ( ec != std::errc() || (sep_after && !IsSep( *ptr )) ) {
+    if ( fail_on_error ) {
+      ParseErr( "invalid number", true );
+    }
+    return false;
+  }
 
   if ( std::abs( result ) > Chart::num_hi ) {
     ParseErr( "number too big", true );
@@ -733,6 +765,151 @@ void Source::GetDatum(
 
   cur_pos.loc.char_idx += p - b;
   return;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void Source::GetColor( SVG::Color* color, double& transparency )
+{
+  SkipWS();
+  std::string color_id{ GetIdentifier() };
+  if ( color_id.empty() ) ParseErr( "color expected" );
+
+  bool color_ok = true;
+
+  color->Clear();
+  color->SetTransparency( 0.0 );
+
+  if ( color_id != "None" ) {
+    if (color_id.size() != 7 || color_id[0] != '#') {
+      color_ok = false;
+    }
+    for ( char c : color_id.substr( 1 ) ) {
+      if ( !std::isxdigit( c ) ) color_ok = false;
+    }
+    if ( color_ok ) {
+      uint8_t r =
+        static_cast<uint8_t>( std::stoi( color_id.substr(1, 2), nullptr, 16 ) );
+      uint8_t g =
+        static_cast<uint8_t>( std::stoi( color_id.substr(3, 2), nullptr, 16 ) );
+      uint8_t b =
+        static_cast<uint8_t>( std::stoi( color_id.substr(5, 2), nullptr, 16 ) );
+      color->Set( r, g, b );
+    } else {
+      color_ok = color->Set( color_id ) == color;
+    }
+  }
+
+  if ( !color_ok ) {
+    ParseErr( "invalid color", true );
+  }
+
+  if ( !color->IsClear() ) {
+    if ( !AtEOL() ) {
+      double lighten = 0.0;
+      ExpectWS();
+      if ( !AtEOL() ) {
+        GetDouble( lighten );
+        if ( lighten < -1.0 || lighten > 1.0 ) {
+          ParseErr( "lighten value out of range [-1.0;1.0]", true );
+        }
+        if ( lighten < 0 )
+          color->Darken( -lighten );
+        else
+          color->Lighten( lighten );
+      }
+    }
+    if ( !AtEOL() ) {
+      ExpectWS();
+      if ( !AtEOL() ) {
+        GetDouble( transparency );
+        if ( transparency < 0.0 || transparency > 1.0 ) {
+          ParseErr( "transparency value out of range [0.0;1.0]", true );
+        }
+        color->SetTransparency( transparency );
+      }
+    }
+  }
+
+  ExpectEOL();
+}
+
+void Source::GetColor( SVG::Color* color )
+{
+  double transparency;
+  GetColor( color, transparency );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void Source::GetSwitch( bool& flag )
+{
+  SkipWS();
+  std::string_view id = GetIdentifier();
+  if ( id == "On"  ) flag = true ; else
+  if ( id == "Off" ) flag = false; else
+  if ( id == "Yes" ) flag = true ; else
+  if ( id == "No"  ) flag = false; else
+  if ( id == "" ) ParseErr( "On/Off (Yes/No) expected" ); else
+  ParseErr(
+    "On/Off (Yes/No) expected, saw '" + std::string( id ) + "'", true
+  );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void Source::GetLetterSpacing(
+  double& width_adj,
+  double& height_adj,
+  double& baseline_adj
+)
+{
+  width_adj    = 1.0;
+  height_adj   = 1.0;
+  baseline_adj = 1.0;
+
+  SkipWS();
+  if ( AtEOL() ) ParseErr( "width adjustment expected" );
+  GetDouble( width_adj );
+  if ( width_adj < 0 || width_adj > 100 ) {
+    ParseErr( "width adjustment out of range [0;100]", true );
+  }
+
+  if ( !AtEOL() ) {
+    ExpectWS();
+    if ( !AtEOL() ) {
+      GetDouble( height_adj );
+      if ( height_adj < 0 || height_adj > 100 ) {
+        ParseErr( "height adjustment out of range [0;100]", true );
+      }
+    }
+  }
+
+  if ( !AtEOL() ) {
+    ExpectWS();
+    if ( !AtEOL() ) {
+      GetDouble( baseline_adj );
+      if ( baseline_adj < 0 || baseline_adj > 100 ) {
+        ParseErr( "baseline adjustment out of range [0;100]", true );
+      }
+    }
+  }
+
+  ExpectEOL();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void Source::GetAxis( int& axis_y_n )
+{
+  SkipWS();
+  std::string_view id = GetIdentifier();
+  if ( id == "Primary"   ) axis_y_n = 0; else
+  if ( id == "Y1"        ) axis_y_n = 0; else
+  if ( id == "Secondary" ) axis_y_n = 1; else
+  if ( id == "Y2"        ) axis_y_n = 1; else
+  if ( id == "" ) ParseErr( "Primary/Y1 or Secondary/Y2 expected" ); else
+  ParseErr( "unknown Y-axis '" + std::string( id ) + "'", true );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

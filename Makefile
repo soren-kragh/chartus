@@ -1,22 +1,30 @@
 # Makefile for Chartus
 
-CXX      := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -Wfatal-errors -O3
-SRC_DIR  := src
-SVG_DIR  := svg
-INCLUDES := -I$(SRC_DIR) -I$(SVG_DIR)
-SRCS     := $(wildcard $(SRC_DIR)/*.cpp) $(wildcard $(SVG_DIR)/*.cpp)
-INCS     := $(wildcard $(SRC_DIR)/*.h) $(wildcard $(SVG_DIR)/*.h)
-TARGET   := ./chartus
-SCRIPT   := bin/svg2png
-PREFIX   ?= /usr/local
-BINDIR   := $(PREFIX)/bin
+MAKEFLAGS += -j
+
+CXX       := g++
+CXXFLAGS  := -std=c++17 -Wall -Wextra -Wfatal-errors -O3
+SRC_DIRS  := src svg
+INCLUDES  := $(addprefix -I, $(SRC_DIRS))
+INCS      := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.h))
+SRCS      := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.cpp))
+BUILD_DIR := build
+OBJS      := $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
+TARGET    := ./chartus
+SCRIPT    := bin/svg2png
+PREFIX    ?= /usr/local
+BINDIR    := $(PREFIX)/bin
 
 all: $(TARGET)
 
-$(TARGET): $(SRCS) $(INCS)
-	@echo "Building $(notdir $(TARGET))..."
-	@$(CXX) $(CXXFLAGS) $(INCLUDES) $(SRCS) -o $(TARGET)
+$(TARGET): $(OBJS)
+	@echo "Linking $(notdir $(TARGET))..."
+	@$(CXX) $(CXXFLAGS) $(INCLUDES) $^ -o $@
+
+$(BUILD_DIR)/%.o: %.cpp $(INCS)
+	@mkdir -p $(dir $@)
+	@echo "Compiling $<..."
+	@$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 examples: $(TARGET)
 	@for i in 1 2 3 4 5 6 7 8 9; do \
@@ -25,6 +33,7 @@ examples: $(TARGET)
 	  ${TARGET} e$${i}.txt >e$${i}.svg; \
 	  ### ${TARGET} -e$${i} | ${TARGET} >e$${i}.svg; \
 	done
+	@cat `ls -1 e?.svg` | cksum
 
 install: $(TARGET) $(SCRIPT)
 	install -d $(BINDIR)
@@ -38,7 +47,7 @@ uninstall:
 	rm -f $(BINDIR)/$(notdir $(SCRIPT))
 
 clean:
-	rm -f $(TARGET)
+	rm -rf $(BUILD_DIR) $(TARGET)
 	rm -f e?.txt e?.svg
 
 .PHONY: all examples install uninstall clean

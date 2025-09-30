@@ -80,5 +80,48 @@ MacroEnd: DataStyle
 Footnote: https://github.com/soren-kragh/chartus
 FootnotePos: Right
 
+### Annotations ###
+
+@Context: {
+@Layer: Bottom
+@LineWidth: 0
+@FillColor: blue 0 0.9
+@Polygon: L T 10e6 T 100e3 100 L B
+@FillColor: yellow 0 0.9
+@Polygon: L B 100e3 100 10e6 200 R B
+@FillColor: red 0 0.9
+@Polygon: R B 10e6 200 100e3 100 10e6 T R T
+@Context: }
+
+@Context: {
+@TextSize: 24
+@Text: 3000 4
+  Cosmic stability
+@Text: 300e3 400
+  Divergent pirate coupling flux
+@Text: 40e6 30
+  Circus formation zone
+@Context: }
+
+@Context: {
+@LineDash: 4 2
+@LineWidth: 2
+@FillColor: None
+@Circle: 100e3 100 10
+@FillColor: black
+@LineDash: 0
+@LineWidth: 0
+@Circle: 100e3 100 3
+@Context: }
+
+@Context: {
+@ArrowWidth: 15
+@FillColor: white 0 0.4
+@TextArrow: 65 0 15 5
+@TextAnchor: Left
+@TextBox: 100e3 100
+  Singularity
+@Context: }
+
 ### Data ###
 )EOF";
