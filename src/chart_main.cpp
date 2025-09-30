@@ -236,6 +236,13 @@ void Main::CategoryGet( std::string_view& cat )
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void Main::AddAnnotationAnchor()
+{
+  annotation_anchor_list.push_back( ensemble->source->cur_pos );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 // Determine potential placement of series legends in chart interior.
 void Main::CalcLegendBoxes(
   Group* g, std::vector< LegendBox >& lb_list,

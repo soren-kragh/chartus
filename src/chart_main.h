@@ -108,6 +108,10 @@ public:
   void CategoryNext();
   void CategoryGet( std::string_view& cat );
 
+  // Called each time current position is at a new streak of annotation
+  // specifiers.
+  void AddAnnotationAnchor();
+
   void Build( void );
 
   Ensemble* ensemble = nullptr;
@@ -191,6 +195,8 @@ public:
   };
 
   std::vector< category_anchor_t > category_anchor_list;
+
+  std::vector< Source::position_t > annotation_anchor_list;
 
   // This state is used by CategoryBegin(), CategoryNext(), and CategoryGet().
   cat_idx_t cat_list_idx = 0;

@@ -648,4 +648,70 @@ Series.Data:
 #<lines in macro>
 #MacroEnd: MyMacro
 #Macro: MyMacro
+
+#-------------------------------------------------------------------------------
+# Annotations are user created graphical elements; an annotation specifier is
+# indicated by @. Coordinates can be in chart coordinates or points (pixels) or
+# a combination. Point (pixel) coordinates use standard coordinates with (0,0)
+# in the lower left corner. Coordinate examples:
+#
+#       Chart XY coordinate:                            27.3 -44.3
+#       Chart XY coordinate with point displacement:    -12.2(10) 45e4(-8)
+#       Point XY coordinate:                            (100) (200)
+#
+# Coordinates with point displacement are very often used to e.g. place text
+# near to but displaced from interesting data points. The special coordinates
+# Left/Right/Top/Bottom can be used to indicate the edges of the chart area.
+# Non-XY-coordinates like Radius is always in points.
+#-------------------------------------------------------------------------------
+
+# Unused macro used to exclude the annotation examples, as they do not directly
+# compile, like X1 instead of actual coordinate etc.
+MacroDef: AnnotationDocumentation
+
+# May be Top or Bottom and determined if annotations are placed above or below
+# the plots.
+@Layer: Top
+
+# Width/Dash/Hole in points.
+@LineWidth: Width
+@LineDash: Dash [Hole]
+
+# See earlier description of color format.
+@LineColor: black
+@FillColor: None
+@TextColor: black
+
+@Line: X1 Y1 X2 Y2
+@Rect: X1 Y1 X2 Y2 [CornerRadius]
+@Circle: X Y Radius
+@Ellipse: X Y RadiusX RadiusY
+@PolyLine: X1 Y1 X2 Y2 X3 Y3 ...
+@Polygon: X1 Y1 X2 Y2 X3 Y3 ...
+
+@TextAnchor: Top Center
+@TextSize: 24
+@TextBold: On
+
+# The LetterSpacing (see earler description) is used for the following @Text or
+# @TextBox element.
+@LetterSpacing: 1.8 1.1 0.8
+
+@Text: X Y
+  Hello
+  World
+
+@TextBox: X Y [CornerRadius]
+  Hello
+  World
+
+# Draw an arrow polygon using the current line and fill. Often a data point is
+# pointed out, but you would not want the arrow to obscure the data point. In
+# this case use ShortenEnd to shorten the end of the arrow thereby crating a gap
+# (in points) to the point. ShortenStart works similarly for the start of the
+# arrow.
+@Arrow: X1 Y1 X2 Y2 [[ShortenStart] ShortenEnd]
+
+MacroEnd: AnnotationDocumentation
+
 )EOF";
