@@ -40,6 +40,8 @@ Main::Main( Ensemble* ensemble, SVG::Group* svg_g )
   title_frame_specified  = false;
   legend_frame           = false;
   legend_frame_specified = false;
+
+  annotate = new Annotate( this );
 }
 
 Main::~Main( void )
@@ -53,6 +55,7 @@ Main::~Main( void )
   delete label_db;
   delete legend_obj;
   delete tag_db;
+  delete annotate;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -238,7 +241,7 @@ void Main::CategoryGet( std::string_view& cat )
 
 void Main::AddAnnotationAnchor()
 {
-  annotation_anchor_list.push_back( ensemble->source->cur_pos );
+  annotate->anchor_list.push_back( ensemble->source->cur_pos );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

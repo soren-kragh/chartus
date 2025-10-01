@@ -17,13 +17,33 @@
 
 namespace Chart {
 
+class Main;
+
 class Annotate
 {
 public:
 
-  Annotate( void );
+  Annotate( Main* main );
   ~Annotate( void );
 
+  Main* main = nullptr;
+
+  std::vector< Source::position_t > anchor_list;
+
+  void do_Layer();
+
+  using Doer = void ( Annotate::* )();
+  inline static const std::unordered_map< std::string_view, Doer > doers = {
+    { "@Layer", &Annotate::do_Layer },
+  };
+
+  void Build( SVG::Group* lower_g, SVG::Group* upper_g );
+
+  struct {
+    SVG::Group* lower_g = nullptr;
+    SVG::Group* upper_g = nullptr;
+    SVG::Group* g = nullptr;
+  } state;
 
 };
 

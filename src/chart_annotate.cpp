@@ -12,18 +12,46 @@
 //
 
 #include <chart_annotate.h>
+#include <chart_main.h>
+#include <chart_ensemble.h>
 
 using namespace SVG;
 using namespace Chart;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-Annotate::Annotate( void )
+Annotate::Annotate( Main* main )
 {
+  this->main = main;
 }
 
 Annotate::~Annotate( void )
 {
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void Annotate::do_Layer()
+{
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void Annotate::Build( SVG::Group* lower_g, SVG::Group* upper_g )
+{
+  state.lower_g = lower_g;
+  state.upper_g = upper_g;
+  state.g = state.upper_g;
+
+  for ( const auto& anchor : anchor_list ) {
+    main->ensemble->source->cur_pos = anchor;
+    main->ensemble->source->LoadLine();
+  }
+
+  auto it = Annotate::doers.find( "@Layer" );
+  (this->*( it->second ))();
+
+  return;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

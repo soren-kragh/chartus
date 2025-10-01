@@ -197,8 +197,6 @@ public:
 
   std::vector< category_anchor_t > category_anchor_list;
 
-  std::vector< Source::position_t > annotation_anchor_list;
-
   // This state is used by CategoryBegin(), CategoryNext(), and CategoryGet().
   cat_idx_t cat_list_idx = 0;
   cat_idx_t cat_list_cnt = 0;
@@ -250,7 +248,7 @@ public:
   };
   html_t html;
 
-  Annotate annotate;
+  Annotate* annotate = nullptr;
 
 };
 
