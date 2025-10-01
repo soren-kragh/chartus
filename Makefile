@@ -33,6 +33,7 @@ examples: $(TARGET)
 	  ${TARGET} e$${i}.txt >e$${i}.svg; \
 	  ### ${TARGET} -e$${i} | ${TARGET} >e$${i}.svg; \
 	done
+	@cat `ls -1 e?.svg` | cksum
 
 install: $(TARGET) $(SCRIPT)
 	install -d $(BINDIR)

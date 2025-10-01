@@ -37,11 +37,11 @@ public:
     { "@Layer", &Annotate::do_Layer },
   };
 
-  void Build( SVG::Group* lower_g, SVG::Group* upper_g );
+  void Build( SVG::Group* upper_g, SVG::Group* lower_g = nullptr );
 
   struct {
-    SVG::Group* lower_g = nullptr;
     SVG::Group* upper_g = nullptr;
+    SVG::Group* lower_g = nullptr;
     SVG::Group* g = nullptr;
   } state;
 

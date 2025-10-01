@@ -37,10 +37,10 @@ void Annotate::do_Layer()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void Annotate::Build( SVG::Group* lower_g, SVG::Group* upper_g )
+void Annotate::Build( SVG::Group* upper_g, SVG::Group* lower_g )
 {
-  state.lower_g = lower_g;
   state.upper_g = upper_g;
+  state.lower_g = lower_g;
   state.g = state.upper_g;
 
   for ( const auto& anchor : anchor_list ) {
