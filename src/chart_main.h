@@ -17,6 +17,7 @@
 
 #include <chart_common.h>
 #include <chart_source.h>
+#include <chart_annotate.h>
 #include <chart_label.h>
 #include <chart_tag.h>
 #include <chart_html.h>
@@ -248,6 +249,8 @@ public:
     axis_t y_axis[ 2 ];
   };
   html_t html;
+
+  Annotate annotate;
 
 };
 
