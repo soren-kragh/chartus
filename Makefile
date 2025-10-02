@@ -6,7 +6,7 @@ CXX       := g++
 CXXFLAGS  := -std=c++17 -Wall -Wextra -Wfatal-errors -O3
 SRC_DIRS  := src svg
 INCLUDES  := $(addprefix -I, $(SRC_DIRS))
-INCS      := $(wildcard $(SRC_DIRS)/*.h)
+INCS      := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.h))
 SRCS      := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.cpp))
 BUILD_DIR := build
 OBJS      := $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
