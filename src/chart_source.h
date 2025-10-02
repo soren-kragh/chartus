@@ -106,6 +106,9 @@ public:
     bool no_x, uint32_t y_idx
   );
 
+  void GetColor( SVG::Color* color, double& transparency );
+  void GetColor( SVG::Color* color );
+
 //------------------------------------------------------------------------------
 
   // This is spawned as a new thread and is responsible for pre-loading segments

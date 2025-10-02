@@ -435,81 +435,6 @@ void do_Switch(
   );
 }
 
-void do_Color(
-  SVG::Color* color, double& transparency
-)
-{
-  source.SkipWS();
-  std::string color_id{ source.GetIdentifier( true ) };
-
-  bool color_ok = true;
-
-  color->Clear();
-  color->SetTransparency( 0.0 );
-
-  if ( color_id != "None" ) {
-    if (color_id.size() != 7 || color_id[0] != '#') {
-      color_ok = false;
-    }
-    for ( char c : color_id.substr( 1 ) ) {
-      if ( !std::isxdigit( c ) ) color_ok = false;
-    }
-    if ( color_ok ) {
-      uint8_t r =
-        static_cast<uint8_t>( std::stoi( color_id.substr(1, 2), nullptr, 16 ) );
-      uint8_t g =
-        static_cast<uint8_t>( std::stoi( color_id.substr(3, 2), nullptr, 16 ) );
-      uint8_t b =
-        static_cast<uint8_t>( std::stoi( color_id.substr(5, 2), nullptr, 16 ) );
-      color->Set( r, g, b );
-    } else {
-      color_ok = color->Set( color_id ) == color;
-    }
-  }
-
-  if ( !color_ok ) {
-    source.ParseErr( "invalid color", true );
-  }
-
-  if ( !source.AtEOL() ) {
-    double lighten = 0.0;
-    source.ExpectWS();
-    if ( !source.AtEOL() ) {
-      if ( !source.GetDouble( lighten ) ) {
-        source.ParseErr( "malformed lighten value" );
-      }
-      if ( lighten < -1.0 || lighten > 1.0 ) {
-        source.ParseErr( "lighten value out of range [-1.0;1.0]", true );
-      }
-      if ( lighten < 0 )
-        color->Darken( -lighten );
-      else
-        color->Lighten( lighten );
-    }
-  }
-
-  if ( !source.AtEOL() ) {
-    source.ExpectWS();
-    if ( !source.AtEOL() ) {
-      if ( !source.GetDouble( transparency ) ) {
-        source.ParseErr( "malformed transparency value" );
-      }
-      if ( transparency < 0.0 || transparency > 1.0 ) {
-        source.ParseErr( "transparency value out of range [0.0;1.0]", true );
-      }
-      color->SetTransparency( transparency );
-    }
-  }
-
-  source.ExpectEOL();
-}
-
-void do_Color( SVG::Color* color )
-{
-  double transparency;
-  do_Color( color, transparency );
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 
 bool do_GridPos(
@@ -637,7 +562,7 @@ void do_Margin( void )
 
 void do_BorderColor( void )
 {
-  do_Color( ensemble.BorderColor() );
+  source.GetColor( ensemble.BorderColor() );
 }
 
 void do_BorderWidth( void )
@@ -753,7 +678,7 @@ void do_GlobalLegendSize( void )
 
 void do_GlobalLegendColor( void )
 {
-  do_Color( ensemble.LegendColor() );
+  source.GetColor( ensemble.LegendColor() );
 }
 
 void do_LetterSpacing( void )
@@ -836,27 +761,27 @@ void do_ChartBox( void )
 
 void do_ForegroundColor( void )
 {
-  do_Color( ensemble.ForegroundColor() );
+  source.GetColor( ensemble.ForegroundColor() );
 }
 
 void do_BackgroundColor( void )
 {
-  do_Color( ensemble.BackgroundColor() );
+  source.GetColor( ensemble.BackgroundColor() );
 }
 
 void do_ChartAreaColor( void )
 {
-  do_Color( CurChart()->ChartAreaColor() );
+  source.GetColor( CurChart()->ChartAreaColor() );
 }
 
 void do_AxisColor( void )
 {
-  do_Color( CurChart()->AxisColor() );
+  source.GetColor( CurChart()->AxisColor() );
 }
 
 void do_GridColor( void )
 {
-  do_Color( CurChart()->AxisX()->GridColor() );
+  source.GetColor( CurChart()->AxisX()->GridColor() );
   for ( auto n : { 0, 1 } ) {
     CurChart()->AxisY( n )->GridColor()->Set( CurChart()->AxisX()->GridColor() );
   }
@@ -864,12 +789,12 @@ void do_GridColor( void )
 
 void do_TextColor( void )
 {
-  do_Color( CurChart()->TextColor() );
+  source.GetColor( CurChart()->TextColor() );
 }
 
 void do_FrameColor( void )
 {
-  do_Color( CurChart()->FrameColor() );
+  source.GetColor( CurChart()->FrameColor() );
 }
 
 //------------------------------------------------------------------------------
@@ -1299,7 +1224,7 @@ void do_Axis_GridStyle( Chart::Axis* axis )
 
 void do_Axis_GridColor( Chart::Axis* axis )
 {
-  do_Color( axis->GridColor() );
+  source.GetColor( axis->GridColor() );
 }
 
 //------------------------------------------------------------------------------
@@ -1787,7 +1712,7 @@ void do_Series_Color( void )
   }
   auto series = state.series_list.back();
   double transparency = -1.0;
-  do_Color( series->LineColor(), transparency );
+  source.GetColor( series->LineColor(), transparency );
   series->LineColor()->Lighten( state.lighten )->SetTransparency( 0.0 );
   series->SetDefaultFillColor();
   if ( transparency >= 0.0 ) {
@@ -1804,7 +1729,7 @@ void do_Series_LineColor( void )
     source.ParseErr( "LineColor outside defining series" );
   }
   auto series = state.series_list.back();
-  do_Color( series->LineColor() );
+  source.GetColor( series->LineColor() );
   series->LineColor()->Lighten( state.lighten );
 }
 
@@ -1814,7 +1739,7 @@ void do_Series_FillColor( void )
     source.ParseErr( "FillColor outside defining series" );
   }
   auto series = state.series_list.back();
-  do_Color( series->FillColor() );
+  source.GetColor( series->FillColor() );
   series->FillColor()->Lighten( state.lighten );
   if ( state.fill_transparency >= 0 ) {
     series->FillColor()->SetTransparency( state.fill_transparency );
@@ -1869,7 +1794,7 @@ void do_Series_TagBox( void )
 
 void do_Series_TagTextColor( void )
 {
-  do_Color( &state.tag_text_color );
+  source.GetColor( &state.tag_text_color );
   if ( state.defining_series ) {
     state.series_list.back()->TagTextColor()->Set( &state.tag_text_color );
   }
@@ -1877,7 +1802,7 @@ void do_Series_TagTextColor( void )
 
 void do_Series_TagFillColor( void )
 {
-  do_Color( &state.tag_fill_color );
+  source.GetColor( &state.tag_fill_color );
   if ( state.defining_series ) {
     state.series_list.back()->TagFillColor()->Set( &state.tag_fill_color );
   }
@@ -1885,7 +1810,7 @@ void do_Series_TagFillColor( void )
 
 void do_Series_TagLineColor( void )
 {
-  do_Color( &state.tag_line_color );
+  source.GetColor( &state.tag_line_color );
   if ( state.defining_series ) {
     state.series_list.back()->TagLineColor()->Set( &state.tag_line_color );
   }

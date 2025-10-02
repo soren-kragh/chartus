@@ -736,3 +736,78 @@ void Source::GetDatum(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+void Source::GetColor( SVG::Color* color, double& transparency )
+{
+  SkipWS();
+  std::string color_id{ GetIdentifier( true ) };
+
+  bool color_ok = true;
+
+  color->Clear();
+  color->SetTransparency( 0.0 );
+
+  if ( color_id != "None" ) {
+    if (color_id.size() != 7 || color_id[0] != '#') {
+      color_ok = false;
+    }
+    for ( char c : color_id.substr( 1 ) ) {
+      if ( !std::isxdigit( c ) ) color_ok = false;
+    }
+    if ( color_ok ) {
+      uint8_t r =
+        static_cast<uint8_t>( std::stoi( color_id.substr(1, 2), nullptr, 16 ) );
+      uint8_t g =
+        static_cast<uint8_t>( std::stoi( color_id.substr(3, 2), nullptr, 16 ) );
+      uint8_t b =
+        static_cast<uint8_t>( std::stoi( color_id.substr(5, 2), nullptr, 16 ) );
+      color->Set( r, g, b );
+    } else {
+      color_ok = color->Set( color_id ) == color;
+    }
+  }
+
+  if ( !color_ok ) {
+    ParseErr( "invalid color", true );
+  }
+
+  if ( !AtEOL() ) {
+    double lighten = 0.0;
+    ExpectWS();
+    if ( !AtEOL() ) {
+      if ( !GetDouble( lighten ) ) {
+        ParseErr( "malformed lighten value" );
+      }
+      if ( lighten < -1.0 || lighten > 1.0 ) {
+        ParseErr( "lighten value out of range [-1.0;1.0]", true );
+      }
+      if ( lighten < 0 )
+        color->Darken( -lighten );
+      else
+        color->Lighten( lighten );
+    }
+  }
+
+  if ( !AtEOL() ) {
+    ExpectWS();
+    if ( !AtEOL() ) {
+      if ( !GetDouble( transparency ) ) {
+        ParseErr( "malformed transparency value" );
+      }
+      if ( transparency < 0.0 || transparency > 1.0 ) {
+        ParseErr( "transparency value out of range [0.0;1.0]", true );
+      }
+      color->SetTransparency( transparency );
+    }
+  }
+
+  ExpectEOL();
+}
+
+void Source::GetColor( SVG::Color* color )
+{
+  double transparency;
+  GetColor( color, transparency );
+}
+
+////////////////////////////////////////////////////////////////////////////////
