@@ -564,7 +564,7 @@ std::string_view Source::GetIdentifier( bool all_non_ws )
       (c >= 'a' && c <= 'z') ||
       (c >= 'A' && c <= 'Z') ||
       (c >= '0' && c <= '9') ||
-      (c == '.' || c == '-' || c == '+' || c == '_')
+      (c == '.' || c == '-' || c == '+' || c == '_' || c == '@')
     ) {
       ++ptr;
     } else {

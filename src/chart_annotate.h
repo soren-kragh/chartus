@@ -27,6 +27,7 @@ public:
   ~Annotate( void );
 
   Main* main = nullptr;
+  Source* source = nullptr;
 
   std::vector< Source::position_t > anchor_list;
 
@@ -43,6 +44,8 @@ public:
     SVG::Group* upper_g = nullptr;
     SVG::Group* lower_g = nullptr;
     SVG::Group* g = nullptr;
+
+    Chart::Pos layer = Chart::Pos::Top;
   } state;
 
 };

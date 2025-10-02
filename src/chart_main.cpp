@@ -1641,6 +1641,7 @@ void Main::Build( void )
   Group* grid_major_g          = svg_g->AddNewGroup();
   Group* grid_zero_g           = svg_g->AddNewGroup();
   Group* label_bg_g            = svg_g->AddNewGroup();
+  Group* anno_lower_g          = svg_g->AddNewGroup();
   Group* chartbox_below_axes_g = svg_g->AddNewGroup();
   Group* axes_line_g           = svg_g->AddNewGroup();
   Group* chartbox_above_axes_g = svg_g->AddNewGroup();
@@ -1648,6 +1649,7 @@ void Main::Build( void )
   Group* axes_label_g          = svg_g->AddNewGroup();
   Group* tag_g                 = svg_g->AddNewGroup();
   Group* legend_g              = svg_g->AddNewGroup();
+  Group* anno_upper_g          = svg_g->AddNewGroup();
 
   axes_line_g->Attr()->SetLineWidth( 2 )->LineColor()->Set( AxisColor() );
   axes_line_g->Attr()->SetLineCap( LineCap::Square );
@@ -1747,6 +1749,8 @@ void Main::Build( void )
     area.min.y = 0; area.max.y = chart_h;
     label_db->AddBackground( label_bg_g, area, partial_ok );
   }
+
+  annotate->Build( anno_upper_g, anno_lower_g );
 
   if ( ensemble->enable_html ) {
     PrepareHTML();

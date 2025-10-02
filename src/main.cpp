@@ -2152,19 +2152,22 @@ std::unordered_map< std::string_view, AxisAction > axis_actions = {
 bool parse_spec( void )
 {
   bool anno = false;
-  do {
+  while ( true ) {
     source.SkipWS( true );
     if ( source.AtEOF() ) return false;
     char c = source.CurChar();
     bool sol = source.AtSOL();
-    if ( !anno && sol && c == '@' ) CurChart()->AddAnnotationAnchor();
+    if ( !anno && sol && c == '@' ) {
+      CurChart()->AddAnnotationAnchor();
+    }
     anno = anno ? (!sol || c == '@') : (sol && c == '@');
     if ( anno ) {
       source.NextLine();
       continue;
     }
     if ( !sol ) source.ParseErr( "KEY must be unindented" );
-  } while ( false );
+    break;
+  }
 
   std::string_view key = source.GetIdentifier();
   source.SkipWS();
