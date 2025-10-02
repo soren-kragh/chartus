@@ -32,20 +32,30 @@ public:
   std::vector< Source::position_t > anchor_list;
 
   void do_Layer();
+  void do_LineWidth();
+  void do_LineDash();
 
   using Doer = void ( Annotate::* )();
   inline static const std::unordered_map< std::string_view, Doer > doers = {
-    { "@Layer", &Annotate::do_Layer },
+    { "@Layer"          , &Annotate::do_Layer           },
+    { "@LineWidth"      , &Annotate::do_LineWidth       },
+    { "@LineDash"       , &Annotate::do_LineDash        },
   };
 
   void Build( SVG::Group* upper_g, SVG::Group* lower_g = nullptr );
 
   struct {
+    bool changed = true;
+
     SVG::Group* upper_g = nullptr;
     SVG::Group* lower_g = nullptr;
     SVG::Group* g = nullptr;
 
     Chart::Pos layer = Chart::Pos::Top;
+
+    double line_width = 1;
+    double line_dash = -1;
+    double line_hole = -1;
   } state;
 
 };

@@ -43,6 +43,48 @@ void Annotate::do_Layer()
   state.g = (state.layer == Chart::Pos::Top) ? state.upper_g : state.lower_g;
   if ( !state.g ) source->ParseErr( "illegal layer", true );
   source->ExpectEOL();
+  state.changed = true;
+}
+
+void Annotate::do_LineWidth()
+{
+  source->SkipWS();
+  if ( source->AtEOL() ) source->ParseErr( "line width expected" );
+  if ( !source->GetDouble( state.line_width ) ) {
+    source->ParseErr( "malformed line width" );
+  }
+  if ( state.line_width < 0 ) {
+    source->ParseErr( "invalid line width", true );
+  }
+  source->ExpectEOL();
+  state.changed = true;
+}
+
+void Annotate::do_LineDash()
+{
+  state.line_dash = 0;
+  source->SkipWS();
+  if ( source->AtEOL() ) source->ParseErr( "line dash expected" );
+  if ( !source->GetDouble( state.line_dash ) ) {
+    source->ParseErr( "malformed line dash" );
+  }
+  if ( state.line_dash < 0 ) {
+    source->ParseErr( "invalid line dash", true );
+  }
+  state.line_hole = state.line_dash;
+  if ( !source->AtEOL() ) {
+    source->ExpectWS();
+    if ( !source->AtEOL() ) {
+      if ( !source->GetDouble( state.line_hole ) ) {
+        source->ParseErr( "malformed line hole" );
+      }
+      if ( state.line_hole < 0 ) {
+        source->ParseErr( "invalid line hole", true );
+      }
+    }
+  }
+  source->ExpectEOL();
+  state.changed = true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

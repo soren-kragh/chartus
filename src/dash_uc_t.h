@@ -669,7 +669,7 @@ Series.Data:
 # compile, like X1 instead of actual coordinate etc.
 MacroDef: AnnotationDocumentation
 
-# May be Top or Bottom and determined if annotations are placed above or below
+# May be Top or Bottom and determines if annotations are placed above or below
 # the plots.
 @Layer: Top
 
@@ -682,13 +682,6 @@ MacroDef: AnnotationDocumentation
 @FillColor: None
 @TextColor: black
 
-@Line: X1 Y1 X2 Y2
-@Rect: X1 Y1 X2 Y2 [CornerRadius]
-@Circle: X Y Radius
-@Ellipse: X Y RadiusX RadiusY
-@PolyLine: X1 Y1 X2 Y2 X3 Y3 ...
-@Polygon: X1 Y1 X2 Y2 X3 Y3 ...
-
 @TextAnchor: Top Center
 @TextSize: 24
 @TextBold: On
@@ -696,6 +689,13 @@ MacroDef: AnnotationDocumentation
 # The LetterSpacing (see earler description) is used for the following @Text or
 # @TextBox element.
 @LetterSpacing: 1.8 1.1 0.8
+
+@Line: X1 Y1 X2 Y2
+@Rect: X1 Y1 X2 Y2 [CornerRadius]
+@Circle: X Y Radius
+@Ellipse: X Y RadiusX RadiusY
+@PolyLine: X1 Y1 X2 Y2 X3 Y3 ...
+@Polygon: X1 Y1 X2 Y2 X3 Y3 ...
 
 @Text: X Y
   Hello
