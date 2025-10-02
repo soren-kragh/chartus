@@ -741,6 +741,7 @@ void Source::GetColor( SVG::Color* color, double& transparency )
 {
   SkipWS();
   std::string color_id{ GetIdentifier( true ) };
+  if ( color_id.empty() ) ParseErr( "color expected" );
 
   bool color_ok = true;
 
@@ -771,33 +772,34 @@ void Source::GetColor( SVG::Color* color, double& transparency )
     ParseErr( "invalid color", true );
   }
 
-  if ( !AtEOL() ) {
-    double lighten = 0.0;
-    ExpectWS();
+  if ( !color->IsClear() ) {
     if ( !AtEOL() ) {
-      if ( !GetDouble( lighten ) ) {
-        ParseErr( "malformed lighten value" );
+      double lighten = 0.0;
+      ExpectWS();
+      if ( !AtEOL() ) {
+        if ( !GetDouble( lighten ) ) {
+          ParseErr( "malformed lighten value" );
+        }
+        if ( lighten < -1.0 || lighten > 1.0 ) {
+          ParseErr( "lighten value out of range [-1.0;1.0]", true );
+        }
+        if ( lighten < 0 )
+          color->Darken( -lighten );
+        else
+          color->Lighten( lighten );
       }
-      if ( lighten < -1.0 || lighten > 1.0 ) {
-        ParseErr( "lighten value out of range [-1.0;1.0]", true );
-      }
-      if ( lighten < 0 )
-        color->Darken( -lighten );
-      else
-        color->Lighten( lighten );
     }
-  }
-
-  if ( !AtEOL() ) {
-    ExpectWS();
     if ( !AtEOL() ) {
-      if ( !GetDouble( transparency ) ) {
-        ParseErr( "malformed transparency value" );
+      ExpectWS();
+      if ( !AtEOL() ) {
+        if ( !GetDouble( transparency ) ) {
+          ParseErr( "malformed transparency value" );
+        }
+        if ( transparency < 0.0 || transparency > 1.0 ) {
+          ParseErr( "transparency value out of range [0.0;1.0]", true );
+        }
+        color->SetTransparency( transparency );
       }
-      if ( transparency < 0.0 || transparency > 1.0 ) {
-        ParseErr( "transparency value out of range [0.0;1.0]", true );
-      }
-      color->SetTransparency( transparency );
     }
   }
 

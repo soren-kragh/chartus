@@ -87,6 +87,24 @@ void Annotate::do_LineDash()
   state.changed = true;
 }
 
+void Annotate::do_LineColor()
+{
+  source->GetColor( &state.line_color );
+  state.changed = true;
+}
+
+void Annotate::do_FillColor()
+{
+  source->GetColor( &state.fill_color );
+  state.changed = true;
+}
+
+void Annotate::do_TextColor( )
+{
+  source->GetColor( &state.text_color );
+  state.changed = true;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 void Annotate::Build( SVG::Group* upper_g, SVG::Group* lower_g )
