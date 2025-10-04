@@ -40,8 +40,8 @@ void Annotate::do_Layer()
   if ( id == "Bottom"  ) state.layer = Chart::Pos::Bottom; else
   if ( id == "" ) source->ParseErr( "Top or Bottom expected" ); else
   source->ParseErr( "unknown layer '" + std::string( id ) + "'", true );
-  state.g = (state.layer == Chart::Pos::Top) ? state.upper_g : state.lower_g;
-  if ( !state.g ) source->ParseErr( "illegal layer", true );
+  Group* g = (state.layer == Chart::Pos::Top) ? state.upper_g : state.lower_g;
+  if ( !g ) source->ParseErr( "illegal layer", true );
   source->ExpectEOL();
   state.changed = true;
 }
@@ -105,13 +105,55 @@ void Annotate::do_TextColor( )
   state.changed = true;
 }
 
+void Annotate::do_TextAnchor( )
+{
+  source->SkipWS();
+  state.text_anchor_x = SVG::AnchorX::Mid;
+  state.text_anchor_y = SVG::AnchorY::Mid;
+  if ( source->AtEOL() ) {
+    source->ParseErr( "anchor expected" );
+  }
+  while ( !source->AtEOL() ) {
+    std::string_view id = source->GetIdentifier( true );
+    if ( id == "Left"    ) state.text_anchor_x = SVG::AnchorX::Min; else
+    if ( id == "Right"   ) state.text_anchor_x = SVG::AnchorX::Max; else
+    if ( id == "Bottom"  ) state.text_anchor_y = SVG::AnchorY::Min; else
+    if ( id == "Top"     ) state.text_anchor_y = SVG::AnchorY::Max; else
+    if ( id != "Center"  ) {
+      source->ParseErr( "unknown anchor '" + std::string( id ) + "'", true );
+    }
+    source->SkipWS();
+  }
+  source->ExpectEOL();
+  state.changed = true;
+}
+
+void Annotate::do_TextSize()
+{
+  source->SkipWS();
+  if ( source->AtEOL() ) source->ParseErr( "text size expected" );
+  if ( !source->GetDouble( state.text_size ) ) {
+    source->ParseErr( "malformed text size" );
+  }
+  if ( state.text_size <= 0 ) {
+    source->ParseErr( "invalid text size", true );
+  }
+  source->ExpectEOL();
+  state.changed = true;
+}
+
+void Annotate::do_TextBold()
+{
+  source->GetSwitch( state.text_bold );
+  state.changed = true;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 void Annotate::Build( SVG::Group* upper_g, SVG::Group* lower_g )
 {
   state.upper_g = upper_g;
   state.lower_g = lower_g;
-  state.g = state.upper_g;
 
   for ( const auto& anchor : anchor_list ) {
     source->cur_pos = anchor;

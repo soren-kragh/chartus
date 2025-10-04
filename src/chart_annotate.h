@@ -37,6 +37,9 @@ public:
   void do_LineColor();
   void do_FillColor();
   void do_TextColor();
+  void do_TextAnchor();
+  void do_TextSize();
+  void do_TextBold();
 
   using Doer = void ( Annotate::* )();
   inline static const std::unordered_map< std::string_view, Doer > doers = {
@@ -46,6 +49,9 @@ public:
     { "@LineColor"      , &Annotate::do_LineColor       },
     { "@FillColor"      , &Annotate::do_FillColor       },
     { "@TextColor"      , &Annotate::do_TextColor       },
+    { "@TextAnchor"     , &Annotate::do_TextAnchor      },
+    { "@TextSize"       , &Annotate::do_TextSize        },
+    { "@TextBold"       , &Annotate::do_TextBold        },
   };
 
   void Build( SVG::Group* upper_g, SVG::Group* lower_g = nullptr );
@@ -55,8 +61,6 @@ public:
 
     SVG::Group* upper_g = nullptr;
     SVG::Group* lower_g = nullptr;
-    SVG::Group* g = nullptr;
-
     Chart::Pos layer = Chart::Pos::Top;
 
     double line_width = 1;
@@ -65,6 +69,11 @@ public:
     SVG::Color line_color{ SVG::ColorName::black };
     SVG::Color fill_color{ SVG::ColorName::white };
     SVG::Color text_color{ SVG::ColorName::black };
+
+    SVG::AnchorX text_anchor_x = SVG::AnchorX::Mid;
+    SVG::AnchorY text_anchor_y = SVG::AnchorY::Mid;
+    double text_size = 16;
+    bool text_bold = false;
   } state;
 
 };

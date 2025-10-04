@@ -813,3 +813,19 @@ void Source::GetColor( SVG::Color* color )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+void Source::GetSwitch( bool& flag )
+{
+  SkipWS();
+  std::string_view id = GetIdentifier( true );
+  if ( id == "On"  ) flag = true ; else
+  if ( id == "Off" ) flag = false; else
+  if ( id == "Yes" ) flag = true ; else
+  if ( id == "No"  ) flag = false; else
+  if ( id == "" ) ParseErr( "On/Off (Yes/No) expected" ); else
+  ParseErr(
+    "On/Off (Yes/No) expected, saw '" + std::string( id ) + "'", true
+  );
+}
+
+////////////////////////////////////////////////////////////////////////////////

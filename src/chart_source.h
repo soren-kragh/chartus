@@ -108,6 +108,7 @@ public:
 
   void GetColor( SVG::Color* color, double& transparency );
   void GetColor( SVG::Color* color );
+  void GetSwitch( bool& flag );
 
 //------------------------------------------------------------------------------
 

@@ -419,22 +419,6 @@ void do_Pos(
   do_Pos( pos, axis_y_n );
 }
 
-void do_Switch(
-  bool& flag
-)
-{
-  source.SkipWS();
-  std::string_view id = source.GetIdentifier( true );
-  if ( id == "On"  ) flag = true ; else
-  if ( id == "Off" ) flag = false; else
-  if ( id == "Yes" ) flag = true ; else
-  if ( id == "No"  ) flag = false; else
-  if ( id == "" ) source.ParseErr( "On/Off (Yes/No) expected" ); else
-  source.ParseErr(
-    "On/Off (Yes/No) expected, saw '" + std::string( id ) + "'", true
-  );
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 
 bool do_GridPos(
@@ -626,7 +610,7 @@ void do_GlobalLegendHeading( void )
 void do_GlobalLegendFrame( void )
 {
   bool frame;
-  do_Switch( frame );
+  source.GetSwitch( frame );
   source.ExpectEOL();
   ensemble.SetLegendFrame( frame );
 }
@@ -752,7 +736,7 @@ void do_ChartArea( void )
 void do_ChartBox( void )
 {
   bool chart_box;
-  do_Switch( chart_box );
+  source.GetSwitch( chart_box );
   source.ExpectEOL();
   CurChart()->SetChartBox( chart_box );
 }
@@ -854,7 +838,7 @@ void do_GlobalTitleSize( void )
 void do_GlobalTitleLine( void )
 {
   bool title_line;
-  do_Switch( title_line );
+  source.GetSwitch( title_line );
   source.ExpectEOL();
   ensemble.SetTitleLine( title_line );
 }
@@ -885,7 +869,7 @@ void do_SubSubTitle( void )
 void do_TitleFrame( void )
 {
   bool frame;
-  do_Switch( frame );
+  source.GetSwitch( frame );
   source.ExpectEOL();
   CurChart()->SetTitleFrame( frame );
 }
@@ -912,7 +896,7 @@ void do_TitlePos( void )
 void do_TitleInside( void )
 {
   bool inside;
-  do_Switch( inside );
+  source.GetSwitch( inside );
   source.ExpectEOL();
   CurChart()->SetTitleInside( inside );
 }
@@ -953,7 +937,7 @@ void do_FootnotePos( void )
 void do_FootnoteLine( void )
 {
   bool footnote_line;
-  do_Switch( footnote_line );
+  source.GetSwitch( footnote_line );
   source.ExpectEOL();
   ensemble.SetFootnoteLine( footnote_line );
 }
@@ -1000,7 +984,7 @@ void do_Axis_Orientation( Chart::Axis* axis )
 void do_Axis_Reverse( Chart::Axis* axis )
 {
   bool reverse;
-  do_Switch( reverse );
+  source.GetSwitch( reverse );
   source.ExpectEOL();
   axis->SetReverse( reverse );
 }
@@ -1085,7 +1069,7 @@ void do_Axis_UnitPos( Chart::Axis* axis )
 void do_Axis_LogScale( Chart::Axis* axis )
 {
   bool log_scale;
-  do_Switch( log_scale );
+  source.GetSwitch( log_scale );
   source.ExpectEOL();
   axis->SetLogScale( log_scale );
 }
@@ -1188,14 +1172,14 @@ void do_Axis_Grid( Chart::Axis* axis )
   bool major;
   bool minor;
 
-  do_Switch( major );
+  source.GetSwitch( major );
 
   minor = major;
 
   if ( !source.AtEOL() ) {
     source.ExpectWS();
     if ( !source.AtEOL() ) {
-      do_Switch( minor );
+      source.GetSwitch( minor );
     }
   }
 
@@ -1252,7 +1236,7 @@ void do_Axis_NumberFormat( Chart::Axis* axis )
 void do_Axis_NumberSign( Chart::Axis* axis )
 {
   bool number_sign;
-  do_Switch( number_sign );
+  source.GetSwitch( number_sign );
   source.ExpectEOL();
   axis->SetNumberSign( number_sign );
 }
@@ -1275,7 +1259,7 @@ void do_Axis_NumberUnit( Chart::Axis* axis )
 void do_Axis_MinorNumber( Chart::Axis* axis )
 {
   bool minor_num;
-  do_Switch( minor_num );
+  source.GetSwitch( minor_num );
   source.ExpectEOL();
   axis->ShowMinorNumbers( minor_num );
 }
@@ -1320,7 +1304,7 @@ void do_LegendHeading( void )
 void do_LegendFrame( void )
 {
   bool frame;
-  do_Switch( frame );
+  source.GetSwitch( frame );
   source.ExpectEOL();
   CurChart()->SetLegendFrame( frame );
 }
@@ -1497,7 +1481,7 @@ void do_Series_New( void )
 
 void do_Series_Snap( void )
 {
-  do_Switch( state.snap );
+  source.GetSwitch( state.snap );
   source.ExpectEOL();
   if ( state.defining_series ) {
     state.series_list.back()->SetSnap( state.snap );
@@ -1520,7 +1504,7 @@ void do_Series_Prune( void )
 
 void do_Series_GlobalLegend( void )
 {
-  do_Switch( state.global_legend );
+  source.GetSwitch( state.global_legend );
   source.ExpectEOL();
   if ( state.defining_series ) {
     state.series_list.back()->SetGlobalLegend( state.global_legend );
@@ -1529,7 +1513,7 @@ void do_Series_GlobalLegend( void )
 
 void do_Series_LegendOutline( void )
 {
-  do_Switch( state.legend_outline );
+  source.GetSwitch( state.legend_outline );
   source.ExpectEOL();
   if ( state.defining_series ) {
     state.series_list.back()->SetLegendOutline( state.legend_outline );
@@ -1750,7 +1734,7 @@ void do_Series_FillColor( void )
 
 void do_Series_Tag( void )
 {
-  do_Switch( state.tag_enable );
+  source.GetSwitch( state.tag_enable );
   source.ExpectEOL();
   if ( state.defining_series ) {
     state.series_list.back()->SetTagEnable( state.tag_enable );
@@ -1785,7 +1769,7 @@ void do_Series_TagSize( void )
 
 void do_Series_TagBox( void )
 {
-  do_Switch( state.tag_box );
+  source.GetSwitch( state.tag_box );
   source.ExpectEOL();
   if ( state.defining_series ) {
     state.series_list.back()->SetTagBox( state.tag_box );
