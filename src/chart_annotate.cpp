@@ -177,11 +177,13 @@ void Annotate::do_RectCornerRadius()
 
 SVG::U Annotate::GetCoor( bool x_coor )
 {
+  bool y_axis = false;
   size_t main_idx = 0;
   Axis* axis;
   if ( x_coor ^ (main_list[ main_idx ]->axis_x->angle != 0) ) {
     axis = main_list[ main_idx ]->axis_x;
   } else {
+    y_axis = true;
     axis = main_list[ main_idx ]->axis_y[ state.axis_y_n[ main_idx ] ];
   }
 
@@ -196,6 +198,24 @@ SVG::U Annotate::GetCoor( bool x_coor )
   auto& loc = source->cur_pos.loc;
   const char* ptr = loc.buf.data() + loc.char_idx;
   size_t num = source->segments[ loc.seg_idx ].byte_cnt - loc.char_idx;
+
+  source->ref_idx = source->cur_pos.loc.char_idx;
+
+  if ( y_axis && *ptr == 'Y' && num >= 3 ) {
+    if ( strncmp( ptr, "Y1:", 3 ) == 0 ) {
+      axis = main_list[ main_idx ]->axis_y[ 0 ];
+      ptr += 3;
+      loc.char_idx += 3;
+    }
+    if ( strncmp( ptr, "Y2:", 3 ) == 0 ) {
+      axis = main_list[ main_idx ]->axis_y[ 1 ];
+      ptr += 3;
+      loc.char_idx += 3;
+    }
+    if ( !axis->show ) {
+      source->ParseErr( "no Y2-axis is defined", true );
+    }
+  }
 
   source->ref_idx = source->cur_pos.loc.char_idx;
 

@@ -673,6 +673,15 @@ Series.Data:
 # horizontal and vertical orientations respectively. This means that if the
 # chart is rotated (see Axis.X.Orientation), then Y-axis chart-coordinates are
 # used for annotation X-coordinates (horizontal) and vice versa.
+#
+# When an annotation coordinate refers to the Y-axis chart-coordinate and two
+# Y-axes are defined, the @Axis specifier (see below) defines which one to use.
+# However, you can always specify the Y-axis explicitly using the Y1: or Y2:
+# prefix, for example:
+#
+#       Non rotated chart:      50 Y2:17.4
+#       Rotated chart:          Y2:0.2 45
+#
 #-------------------------------------------------------------------------------
 
 # Unused macro used to exclude the annotation examples, as they do not directly
@@ -683,8 +692,12 @@ MacroDef: AnnotationDocumentation
 # On or Off, default if Off. Applies to all subsequent annotations.
 @PointCoor: Off
 
-# Determines if Y-axis chart-coordinates refer to the Y1- of Y2-axis; default is
-# Y1. Applies to all subsequent annotations.
+# Determines if default Y-axis chart-coordinates refer to the Y1- or Y2-axis;
+# default is Y1. Applies to all subsequent annotations. Note that chart-
+# coordinates can still be overridden with the Y1: or Y2: prefix, the @Axis just
+# defines the default when no override is given. And again, note that for
+# rotated charts that Y-axis chart-coordinates are used for annotation
+# X-coordinates and vice versa.
 @Axis: Y1
 
 # May be Top or Bottom and determines if annotations are placed above or below
