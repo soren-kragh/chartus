@@ -769,6 +769,31 @@ MacroDef: AnnotationDocumentation
 @Context: {
 @Context: }
 
+#-------------------------------------------------------------------------------
+# Global annotations.
+#
+# The above annotation specifiers are tied to the current chart being defined.
+# If several charts are organized in a grid, global annotations can be defined.
+# Global annotation specifier keys start with @@ instead of @ but are otherwise
+# the same as normal annotation specifier. There are some changes though for
+# global annotation specifiers, which will be described next.
+#
+# Coordinates for global annotations are still relative to a chart, but you now
+# have to specify which chart. All coordinates for global annotations must
+# therefore be prefixed by N: where N is the chart number; charts are numbered
+# in the order they are defined starting with 0.
+#
+#       Global coordinate example:      2:-17 2:Y2:23
+#
+#-------------------------------------------------------------------------------
+
+# For the default axis specifier, the chart number must be specified for global
+# annotations.
+@@Axis: 0:Y2
+
+# Only the Top layer is allowed for global annotations.
+@@Layer: Top
+
 MacroEnd: AnnotationDocumentation
 
 )EOF";

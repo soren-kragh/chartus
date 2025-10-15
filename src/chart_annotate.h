@@ -26,11 +26,12 @@ class Annotate
 {
 public:
 
-  Annotate( Source* source );
+  Annotate( Source* source, bool global = false );
   ~Annotate( void );
 
   std::vector< Main* > main_list;
   Source* source = nullptr;
+  bool global = false;
 
   void AddChart( Main* main )
   {
@@ -47,6 +48,7 @@ public:
   void BuildText( bool boxed );
   void BuildPoly( bool polygon );
 
+  size_t GetMainIdx();
   SVG::U GetCoor( bool x_coor = false );
   SVG::Group* CurGroup();
 

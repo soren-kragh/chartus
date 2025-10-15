@@ -1472,6 +1472,7 @@ void do_Series_LegendOutline( void )
 
 void do_Series_Axis( void )
 {
+  source.SkipWS();
   source.GetAxis( state.axis_y_n );
   source.ExpectEOL();
   if ( state.defining_series ) {
@@ -1987,21 +1988,31 @@ std::unordered_map< std::string_view, AxisAction > axis_actions = {
 
 bool parse_spec( void )
 {
-  bool anno = false;
+  bool normal_anno = false;
+  bool global_anno = false;
   while ( true ) {
     source.SkipWS( true );
     if ( source.AtEOF() ) return false;
-    char c = source.CurChar();
-    bool sol = source.AtSOL();
-    if ( !anno && sol && c == '@' ) {
-      CurChart()->AddAnnotationAnchor();
+    if ( source.AtSOL() ) {
+      if ( source.CurChar() == '@' ) {
+        if ( source.CurChar( 1 ) == '@' ) {
+          if ( !global_anno ) ensemble.AddAnnotationAnchor();
+          global_anno = true;
+          normal_anno = false;
+        } else {
+          if ( !normal_anno ) CurChart()->AddAnnotationAnchor();
+          normal_anno = true;
+          global_anno = false;
+        }
+      } else {
+        normal_anno = false;
+        global_anno = false;
+      }
     }
-    anno = anno ? (!sol || c == '@') : (sol && c == '@');
-    if ( anno ) {
+    if ( normal_anno || global_anno ) {
       source.NextLine();
       continue;
     }
-    if ( !sol ) source.ParseErr( "KEY must be unindented" );
     break;
   }
 

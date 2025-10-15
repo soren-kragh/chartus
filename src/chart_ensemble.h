@@ -96,6 +96,10 @@ public:
   // Footnote size scaling factor.
   void SetFootnoteSize( float size ) { footnote_size = size; }
 
+  // Called each time current position is at a new streak of global annotation
+  // specifiers.
+  void AddAnnotationAnchor();
+
   void MoveCharts( void );
   std::string Build( void );
 
@@ -154,6 +158,8 @@ public:
   void BuildTitle( void );
   void BuildFootnotes( void );
   void BuildBackground( void );
+
+  Annotate* annotate = nullptr;
 
 };
 

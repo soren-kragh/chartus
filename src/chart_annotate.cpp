@@ -22,13 +22,34 @@ using namespace Chart;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-Annotate::Annotate( Source* source )
+Annotate::Annotate( Source* source, bool global )
 {
   this->source = source;
+  this->global = global;
 }
 
 Annotate::~Annotate( void )
 {
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+size_t Annotate::GetMainIdx()
+{
+  int64_t i = 0;
+  if ( global ) {
+    if ( !source->GetInt64( i, false ) ) {
+      source->ParseErr( "invalid chart number" );
+    }
+    if ( source->CurChar() != ':' ) {
+      source->ParseErr( "':' expected" );
+    }
+    source->GetChar();
+  }
+  if ( i < 0 || i >= static_cast< int64_t >( main_list.size() ) ) {
+    source->ParseErr( "chart number out of range", true );
+  }
+  return i;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -41,7 +62,8 @@ void Annotate::do_PointCoor()
 
 void Annotate::do_Axis()
 {
-  size_t main_idx = 0;
+  source->SkipWS();
+  size_t main_idx = GetMainIdx();
   source->GetAxis( state.axis_y_n[ main_idx ] );
   source->ExpectEOL();
   if ( !main_list[ main_idx ]->axis_y[ state.axis_y_n[ main_idx ] ]->show ) {
@@ -177,8 +199,13 @@ void Annotate::do_RectCornerRadius()
 
 SVG::U Annotate::GetCoor( bool x_coor )
 {
+  source->SkipWS();
+  if ( source->AtEOL() ) {
+    source->ParseErr( "coordinate expected" );
+  }
+
+  size_t main_idx = GetMainIdx();
   bool y_axis = false;
-  size_t main_idx = 0;
   Axis* axis;
   if ( x_coor ^ (main_list[ main_idx ]->axis_x->angle != 0) ) {
     axis = main_list[ main_idx ]->axis_x;
@@ -189,11 +216,6 @@ SVG::U Annotate::GetCoor( bool x_coor )
 
   double d1 = 0;
   double d2 = 0;
-
-  source->SkipWS();
-  if ( source->AtEOL() ) {
-    source->ParseErr( "coordinate expected" );
-  }
 
   auto& loc = source->cur_pos.loc;
   const char* ptr = loc.buf.data() + loc.char_idx;
@@ -295,7 +317,11 @@ SVG::U Annotate::GetCoor( bool x_coor )
     source->GetDouble( d2 );
   }
 
-  return d1 + d2;
+  double d3 =
+    x_coor
+    ? main_list[ main_idx ]->g_dx
+    : main_list[ main_idx ]->g_dy;
+  return d1 + d2 + d3;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -640,9 +666,12 @@ void Annotate::Build( SVG::Group* upper_g, SVG::Group* lower_g )
     while ( true ) {
       source->SkipWS( true );
       if ( source->AtEOF() ) break;
-      if ( source->AtSOL() && source->CurChar() != '@' ) break;
+      if ( source->AtSOL() ) {
+        if ( source->CurChar() != '@' ) break;
+        if ( (source->CurChar( 1 ) == '@') ? !global : global ) break;
+      }
       std::string_view key = source->GetKey();
-      auto it = doers.find( key.substr( 1 ) );
+      auto it = doers.find( key.substr( global ? 2 : 1 ) );
       if ( it == doers.end() ) {
         source->ParseErr( "unknown KEY '" + std::string( key ) + "'", true );
       }

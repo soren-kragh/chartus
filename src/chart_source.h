@@ -58,9 +58,9 @@ public:
     return IsWS( c ) || IsLF( c );
   }
 
-  char CurChar()
+  char CurChar( size_t ofs = 0 )
   {
-    return cur_pos.loc.buf[ cur_pos.loc.char_idx ];
+    return cur_pos.loc.buf[ cur_pos.loc.char_idx + ofs ];
   }
   char GetChar()
   {
@@ -94,7 +94,7 @@ public:
 
   std::string_view GetKey();
   std::string_view GetIdentifier();
-  bool GetInt64( int64_t& i );
+  bool GetInt64( int64_t& i, bool sep_after = true );
 
   bool GetDoubleFull(
     double& d,

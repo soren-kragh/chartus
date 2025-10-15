@@ -33,6 +33,8 @@ Ensemble::Ensemble( Source* source )
   foreground_color.Set( ColorName::black );
   background_color.Set( ColorName::white );
   border_color.Set( ColorName::black );
+
+  annotate = new Annotate( source, true );
 }
 
 Ensemble::~Ensemble( void )
@@ -43,6 +45,7 @@ Ensemble::~Ensemble( void )
   delete legend_obj;
   delete html_db;
   delete canvas;
+  delete annotate;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -706,6 +709,13 @@ void Ensemble::BuildBackground( void )
 
 ////////////////////////////////////////////////////////////////////////////////
 
+void Ensemble::AddAnnotationAnchor()
+{
+  annotate->anchor_list.push_back( source->cur_pos );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 void Ensemble::MoveCharts( void )
 {
   for ( auto& elem : grid.element_list ) {
@@ -778,6 +788,13 @@ std::string Ensemble::Build( void )
   BuildFootnotes();
 
   BuildBackground();
+
+  for ( auto& elem : grid.element_list ) {
+    if ( elem.chart ) {
+      annotate->AddChart( elem.chart );
+    }
+  }
+  annotate->Build( top_g->AddNewGroup() );
 
 /*
   {

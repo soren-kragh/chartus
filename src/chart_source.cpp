@@ -599,7 +599,7 @@ std::string_view Source::GetIdentifier()
   return std::string_view( cur, ptr - cur );
 }
 
-bool Source::GetInt64( int64_t& i )
+bool Source::GetInt64( int64_t& i, bool sep_after )
 {
   ref_idx = cur_pos.loc.char_idx;
 
@@ -614,7 +614,7 @@ bool Source::GetInt64( int64_t& i )
   }
   auto [ptr, ec] = std::from_chars( p, end, result );
 
-  if ( ec != std::errc() || !IsSep( *ptr ) ) return false;
+  if ( ec != std::errc() || (sep_after && !IsSep( *ptr )) ) return false;
 
   cur_pos.loc.char_idx += ptr - cur;
   i = result;
@@ -902,7 +902,6 @@ void Source::GetLetterSpacing(
 
 void Source::GetAxis( int& axis_y_n )
 {
-  SkipWS();
   std::string_view id = GetIdentifier();
   if ( id == "Primary"   ) axis_y_n = 0; else
   if ( id == "Y1"        ) axis_y_n = 0; else
