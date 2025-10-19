@@ -164,7 +164,7 @@ void Ensemble::SetLegendPos( Pos pos )
 bool Ensemble::SetLegendPos(
   uint32_t grid_row1, uint32_t grid_col1,
   uint32_t grid_row2, uint32_t grid_col2,
-  Chart::Pos align_hor, Chart::Pos align_ver
+  Chart::Pos pos1, Chart::Pos pos2
 )
 {
   SetLegendPos( Pos::Auto );
@@ -194,10 +194,16 @@ bool Ensemble::SetLegendPos(
   elem.anchor_y_defined = true;
   elem.anchor_x = AnchorX::Mid;
   elem.anchor_y = AnchorY::Mid;
-  if ( align_hor == Pos::Left   ) elem.anchor_x = AnchorX::Min;
-  if ( align_hor == Pos::Right  ) elem.anchor_x = AnchorX::Max;
-  if ( align_ver == Pos::Bottom ) elem.anchor_y = AnchorY::Min;
-  if ( align_ver == Pos::Top    ) elem.anchor_y = AnchorY::Max;
+
+  if ( pos1 == Pos::Left   ) elem.anchor_x = AnchorX::Min;
+  if ( pos1 == Pos::Right  ) elem.anchor_x = AnchorX::Max;
+  if ( pos1 == Pos::Bottom ) elem.anchor_y = AnchorY::Min;
+  if ( pos1 == Pos::Top    ) elem.anchor_y = AnchorY::Max;
+
+  if ( pos2 == Pos::Left   ) elem.anchor_x = AnchorX::Min;
+  if ( pos2 == Pos::Right  ) elem.anchor_x = AnchorX::Max;
+  if ( pos2 == Pos::Bottom ) elem.anchor_y = AnchorY::Min;
+  if ( pos2 == Pos::Top    ) elem.anchor_y = AnchorY::Max;
 
   grid.element_list.push_back( elem );
 

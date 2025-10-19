@@ -80,7 +80,7 @@ public:
   bool SetLegendPos(
     uint32_t grid_row1, uint32_t grid_col1,
     uint32_t grid_row2, uint32_t grid_col2,
-    Chart::Pos align_hor, Chart::Pos align_ver
+    Chart::Pos pos1, Chart::Pos pos2
   );
   void SetLegendSize( float size );
   SVG::Color* LegendColor( void ) { return &legend_color; }

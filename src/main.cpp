@@ -625,17 +625,17 @@ void do_GlobalLegendPos( void )
   Chart::Pos pos;
   source.SkipWS();
   if ( do_GridPos( row1, col1, row2, col2 ) ) {
-    Chart::Pos align_hor = Chart::Pos::Auto;
-    Chart::Pos align_ver = Chart::Pos::Auto;
+    Chart::Pos pos1 = Chart::Pos::Auto;
+    Chart::Pos pos2 = Chart::Pos::Auto;
     source.SkipWS();
     if ( !source.AtEOL() ) {
-      do_Pos( align_hor );
-      source.ExpectWS( "vertical position expected" );
-      do_Pos( align_ver );
+      do_Pos( pos1 );
+      source.SkipWS();
+      if ( !source.AtEOL() ) do_Pos( pos2 );
     }
     source.ExpectEOL();
     if (
-      !ensemble.SetLegendPos( row1, col1, row2, col2, align_hor, align_ver
+      !ensemble.SetLegendPos( row1, col1, row2, col2, pos1, pos2
     ) ) {
       source.ParseErr( "grid collision" );
     }
