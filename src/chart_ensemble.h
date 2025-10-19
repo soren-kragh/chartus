@@ -35,8 +35,8 @@ public:
   bool NewChart(
     uint32_t grid_row1, uint32_t grid_col1,
     uint32_t grid_row2, uint32_t grid_col2,
-    Pos align_hor = Pos::Auto,
-    Pos align_ver = Pos::Auto
+    Pos pos1 = Pos::Auto,
+    Pos pos2 = Pos::Auto
   );
 
   void SetLetterSpacing(
@@ -80,7 +80,8 @@ public:
   bool SetLegendPos(
     uint32_t grid_row1, uint32_t grid_col1,
     uint32_t grid_row2, uint32_t grid_col2,
-    Chart::Pos pos1, Chart::Pos pos2
+    Chart::Pos pos1 = Pos::Auto,
+    Chart::Pos pos2 = Pos::Auto
   );
   void SetLegendSize( float size );
   SVG::Color* LegendColor( void ) { return &legend_color; }

@@ -481,8 +481,8 @@ Chart::Main* CurChart( void )
 
 void do_NewChartInGrid( void )
 {
-  Chart::Pos align_hor = Chart::Pos::Auto;
-  Chart::Pos align_ver = Chart::Pos::Auto;
+  Chart::Pos pos1 = Chart::Pos::Auto;
+  Chart::Pos pos2 = Chart::Pos::Auto;
 
   int64_t row1 = 0;
   int64_t col1 = 0;
@@ -492,9 +492,9 @@ void do_NewChartInGrid( void )
 
   source.SkipWS();
   if ( !source.AtEOL() ) {
-    do_Pos( align_hor );
-    source.ExpectWS( "vertical position expected" );
-    do_Pos( align_ver );
+    do_Pos( pos1 );
+    source.SkipWS();
+    if ( !source.AtEOL() ) do_Pos( pos2 );
   }
 
   source.ExpectEOL();
@@ -518,7 +518,7 @@ void do_NewChartInGrid( void )
     );
   }
 
-  if ( !ensemble.NewChart( row1, col1, row2, col2, align_hor, align_ver ) ) {
+  if ( !ensemble.NewChart( row1, col1, row2, col2, pos1, pos2 ) ) {
     source.ParseErr( "grid collision" );
   }
 

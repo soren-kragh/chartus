@@ -53,8 +53,7 @@ Ensemble::~Ensemble( void )
 bool Ensemble::NewChart(
   uint32_t grid_row1, uint32_t grid_col1,
   uint32_t grid_row2, uint32_t grid_col2,
-  Pos align_hor,
-  Pos align_ver
+  Pos pos1, Pos pos2
 )
 {
   for ( auto& elem : grid.element_list ) {
@@ -79,17 +78,37 @@ bool Ensemble::NewChart(
   elem.grid_x2 = grid_col2;
   elem.grid_y2 = grid_row2;
 
-  elem.anchor_x = SVG::AnchorX::Mid;
-  if ( align_hor != Chart::Pos::Auto ) {
-    if ( align_hor == Chart::Pos::Left   ) elem.anchor_x = SVG::AnchorX::Min;
-    if ( align_hor == Chart::Pos::Right  ) elem.anchor_x = SVG::AnchorX::Max;
+  if ( pos1 == Pos::Left ) {
+    elem.anchor_x = SVG::AnchorX::Min;
     elem.anchor_x_defined = true;
   }
+  if ( pos1 == Pos::Right ) {
+    elem.anchor_x = SVG::AnchorX::Max;
+    elem.anchor_x_defined = true;
+  }
+  if ( pos1 == Pos::Bottom ) {
+    elem.anchor_y = SVG::AnchorY::Min;
+    elem.anchor_y_defined = true;
+  }
+  if ( pos1 == Pos::Top ) {
+    elem.anchor_y = SVG::AnchorY::Max;
+    elem.anchor_y_defined = true;
+  }
 
-  elem.anchor_y = SVG::AnchorY::Mid;
-  if ( align_ver != Chart::Pos::Auto ) {
-    if ( align_ver == Chart::Pos::Bottom ) elem.anchor_y = SVG::AnchorY::Min;
-    if ( align_ver == Chart::Pos::Top    ) elem.anchor_y = SVG::AnchorY::Max;
+  if ( pos2 == Pos::Left ) {
+    elem.anchor_x = SVG::AnchorX::Min;
+    elem.anchor_x_defined = true;
+  }
+  if ( pos2 == Pos::Right ) {
+    elem.anchor_x = SVG::AnchorX::Max;
+    elem.anchor_x_defined = true;
+  }
+  if ( pos2 == Pos::Bottom ) {
+    elem.anchor_y = SVG::AnchorY::Min;
+    elem.anchor_y_defined = true;
+  }
+  if ( pos2 == Pos::Top ) {
+    elem.anchor_y = SVG::AnchorY::Max;
     elem.anchor_y_defined = true;
   }
 
