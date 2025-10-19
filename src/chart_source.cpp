@@ -57,19 +57,30 @@ void Source::ParseErr( const std::string& msg, bool show_ref )
     show_loc( loc, 0, true );
   }
 
-  auto idx = show_ref ? ref_idx : cur_pos.loc.char_idx;
+  size_t idx = show_ref ? ref_idx : cur_pos.loc.char_idx;
 
   if ( AtEOF() ) {
     std::cerr << "at EOF";
   } else {
     ToSOL();
     const char* p = cur_pos.loc.buf.data() + cur_pos.loc.char_idx;
-    auto col = idx - cur_pos.loc.char_idx;
+    size_t col = idx - cur_pos.loc.char_idx;
     show_loc( cur_pos.loc, col );
     idx = cur_pos.loc.char_idx;
     ToEOL();
     std::cerr << std::string_view( p, cur_pos.loc.char_idx - idx ) << '\n';
-    std::cerr << std::string( col, ' ' ) << '^';
+    std::string indent;
+    bool show_caret = true;
+    for ( size_t i = 0; i < col; ++i ) {
+      if ( p[ i ] & 0x80 ) {
+        show_caret = false;
+        break;
+      }
+      indent += (p[ i ] == '\t') ? '\t' : ' ';
+    }
+    if ( show_caret ) {
+      std::cerr << indent << '^';
+    }
   }
   std::cerr << std::endl;
 
