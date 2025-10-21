@@ -1,0 +1,23 @@
+NewChartInGrid: 0 0
+Title: Bar
+Series.Type: Bar
+#Macro: Setup
+Macro: Series
+MacroDef: Setup
+MacroEnd: Setup
+MacroDef: Series
+Series.New: Series A
+Series.New: Series B
+Series.New: Series C
+Series.Data:
+ 0 0.2 0.0 0.2
+ 1 0.5 0.0 0.4
+ 2 1.3 0.0 0.7
+ 3 2.4 0.1 1.1
+ 4 3.5 0.3 1.6
+ 5 4.0 0.8 2.4
+ 6 3.5 2.0 3.3
+ 7 2.4 4.1 4.3
+ 8 1.3 6.7 5.4
+ 9 0.5 9.0 6.4
+MacroEnd: Series

@@ -57,6 +57,33 @@ void Source::ParseErr( const std::string& msg, bool show_ref )
     show_loc( loc, 0, true );
   }
 
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  SVG_DBG( dbg_oss_main.str() );
+  SVG_DBG( dbg_oss_thread.str() );
+
+  SVG_DBG( "active_seg " << active_seg );
+  SVG_DBG( "cur_pos.loc.seg_idx = " << cur_pos.loc.seg_idx );
+  SVG_DBG(
+    "cur_pos.loc.buf.data() = "
+    << (reinterpret_cast< uint64_t>( cur_pos.loc.buf.data() ))
+  );
+  SVG_DBG( "------------------------------------------------------------" );
+  SVG_DBG( ">>> " << cur_pos.loc.seg_idx );
+  SVG_DBG( cur_pos.loc.buf );
+  SVG_DBG( "------------------------------------------------------------" );
+
+  {
+    size_t i = 0;
+    for ( auto& segment : segments ) {
+      SVG_DBG( "Segment " << i );
+      SVG_DBG( "  loaded  = " << (segment.loaded ? 'T' : 'F') );
+      SVG_DBG( "  pool_id = " << segment.pool_id );
+      SVG_DBG( "  bufptr  = " << (reinterpret_cast< uint64_t>( segment.bufptr )) );
+      ++i;
+    }
+  }
+
   size_t idx = show_ref ? ref_idx : cur_pos.loc.char_idx;
 
   if ( AtEOF() ) {
@@ -130,6 +157,10 @@ void Source::ProcessSegment()
 {
   segment_t& segment = segments[ cur_pos.loc.seg_idx ];
   cur_pos.loc.buf = std::string_view( segment.bufptr, segment.byte_cnt );
+//  SVG_DBG( "############################################################" );
+//  SVG_DBG( ">>> " << cur_pos.loc.seg_idx );
+//  SVG_DBG( cur_pos.loc.buf );
+//  SVG_DBG( "############################################################" );
   while ( true ) {
     size_t num = segment.byte_cnt - cur_pos.loc.char_idx;
     if ( num == 0 ) break;
@@ -289,6 +320,11 @@ void Source::ReadFiles()
     ParseErr( "macro '" + in_macro_name + "' not ended" );
   }
 
+  for ( auto& segment : segments ) {
+    segment.loaded = false;
+    segment.bufptr = nullptr;
+  }
+
   {
     std::lock_guard< std::mutex > lk( loader_mutex );
   }
@@ -320,8 +356,12 @@ void Source::LoaderThread()
       }
       {
         std::lock_guard< std::mutex > lk( loader_mutex );
-        segments[ pool.id2seg[ pool_id ] ].loaded = false;
-        segments[ pool.id2seg[ pool_id ] ].bufptr = nullptr;
+        size_t i = pool.id2seg[ pool_id ];
+        segments[ i ].loaded = false;
+        segments[ i ].bufptr = nullptr;
+        dbg_oss_thread
+          << "# delete " << i << "  cur_seg: " << cur_seg
+          << "\n";
       }
       pool.id2seg[ pool_id ] = seg_idx;
       pool.UseID( pool_id );
@@ -347,12 +387,20 @@ void Source::LoaderThread()
         return false;
       }
 
+//      std::this_thread::sleep_for(std::chrono::microseconds(1));
+
       {
         std::lock_guard< std::mutex > lk( loader_mutex );
         segments[ seg_idx ].pool_id = pool_id;
         segments[ seg_idx ].loaded = true;
         segments[ seg_idx ].bufptr = pool.id2buf[ pool_id ];
-        cur_seg = active_seg;
+        segments[ seg_idx ].assign_id = ++assign_id;
+//        cur_seg = active_seg;
+        dbg_oss_thread
+          << "# " << assign_id
+          << "  " << seg_idx
+          << "  " << reinterpret_cast< uint64_t>( pool.id2buf[ pool_id ] )
+          << "\n";
       }
       loader_cond.notify_one();
 
@@ -369,20 +417,28 @@ void Source::LoaderThread()
     if ( !loader_msg.empty() ) return;
 
     // Pre-load more segments.
-    while ( segments[ cur_seg ].loaded ) {
-      if ( stop_loader ) return;
-      size_t seg_idx = cur_seg;
-      while ( true ) {
-        if ( stop_loader ) return;
-        seg_idx = (seg_idx + 1) % segments.size();
-        if ( seg_idx == cur_seg ) break;
-        if ( segments[ seg_idx ].pool_id < 0 ) continue;
-        if ( !segments[ seg_idx ].loaded ) break;
-      }
+//    while ( segments[ cur_seg ].loaded ) {
+//      if ( stop_loader ) return;
+//      size_t seg_idx = cur_seg;
+//      while ( true ) {
+//        if ( stop_loader ) return;
+//        seg_idx = (seg_idx + 1) % segments.size();
+//        if ( seg_idx == cur_seg ) break;
+//        if ( segments[ seg_idx ].pool_id < 0 ) continue;
+//        if ( !segments[ seg_idx ].loaded ) break;
+//      }
+//      if ( !segments[ seg_idx ].loaded ) {
+//        if ( !load_segment( seg_idx ) ) break;
+//      }
+//    }
+
+    if ( segments[ cur_seg ].loaded ) {
+      size_t seg_idx = (cur_seg + 1) % segments.size();
       if ( !segments[ seg_idx ].loaded ) {
-        if ( !load_segment( seg_idx ) ) break;
+        load_segment( seg_idx );
       }
     }
+
     if ( !loader_msg.empty() ) return;
 
     // Wait for more work:
@@ -411,9 +467,14 @@ void Source::LoadCurSegment()
   }
   cur_pos.loc.buf =
     std::string_view(
-      segments[ cur_pos.loc.seg_idx ].bufptr,
-      segments[ cur_pos.loc.seg_idx ].byte_cnt
+      segments[ active_seg ].bufptr,
+      segments[ active_seg ].byte_cnt
     );
+  dbg_oss_main
+    << "% " << segments[ active_seg ].assign_id
+    << "  " << cur_pos.loc.seg_idx
+    << "  " << reinterpret_cast< uint64_t>( cur_pos.loc.buf.data() )
+    << "\n";
 }
 
 void Source::LoadLine() {
