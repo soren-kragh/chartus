@@ -1,51 +1,57 @@
 *** PARSE ERROR: unmatched macro name
-e4.txt (5,0)>
-% 73  2  94214401394560
-% 74  3  94214401395216
-% 73  2  94214401394560
+...
+% 62  1  94282664786272
+% 63  2  94282664785792
+% 64  3  94282664786272
+% 63  2  94282664785792
 
-# delete 0  cur_seg: 1
-# 73  2  94214401394560
-# delete 1  cur_seg: 2
-# 74  3  94214401395216
-# delete 2  cur_seg: 3
-# 75  0  94214401394560
-# delete 3  cur_seg: 2
-# 76  2  94214401395216
-# delete 0  cur_seg: 2
-# 77  3  94214401394560
+...
+# delete 3  my_active_seg: 0
+# 62  1  94282664786272
+# delete 0  my_active_seg: 2
+# 63  2  94282664785792
+# delete 1  my_active_seg: 2
+# 64  3  94282664786272
+# delete 2  my_active_seg: 3
+# 65  0  94282664785792
 
 active_seg 2
+locked_seg 2
 cur_pos.loc.seg_idx = 2
-cur_pos.loc.buf.data() = 94214401394560
+cur_pos.loc.buf.data() = 94282664785792
 ------------------------------------------------------------
 >>> 2
- 5 4.0 0.8 2.4
- 6 3.5 2.0 3.3
- 7 2.4 4.1 4.3
- 8 1.3 6.7 5.4
- 9 0.5 9.0 6.4
-MacroEnd: Ser
+NewChartInGrid: 0 0
+Title: Bar
+Series.Type: Bar
+#Macro: Setup
+Macro: Series
+MacroDef: Se
 ------------------------------------------------------------
 Segment 0
-  loaded  = F
-  pool_id = 0
-  bufptr  = 0
+  loaded    = T
+  pool_id   = 0
+  bufptr    = 94282664785792
+  assign_id = 65
 Segment 1
-  loaded  = F
-  pool_id = 1
-  bufptr  = 0
+  loaded    = F
+  pool_id   = 1
+  bufptr    = 0
+  assign_id = 62
 Segment 2
-  loaded  = T
-  pool_id = 1
-  bufptr  = 94214401395216
+  loaded    = F
+  pool_id   = 0
+  bufptr    = 0
+  assign_id = 63
 Segment 3
-  loaded  = T
-  pool_id = 0
-  bufptr  = 94214401394560
-e4.txt (24,12):
- 4 3.5 0.3 1.6
-            ^
+  loaded    = T
+  pool_id   = 1
+  bufptr    = 94282664786272
+  assign_id = 64
+test.txt (23,10):
+MacroEnd: Series
+          ^
+
 
 ############################################################
 >>> 0
