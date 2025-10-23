@@ -193,6 +193,7 @@ void Source::ReadStream( std::istream& input, std::string name )
         pool.id2buf[ pool_id ] =
           static_cast< char* >( malloc( buffer_size + 16 ) );
       }
+      segments.back().bufptr = pool.id2buf[ pool_id ];
       pool.id2seg[ pool_id ] = segments.size() - 1;
       if ( pool_id >= 0 ) pool.LRU_UseID( pool_id );
     };
@@ -204,13 +205,11 @@ void Source::ReadStream( std::istream& input, std::string name )
     [&]( size_t seg_idx ) {
       segment_t& segment = segments[ seg_idx ];
       if (
-        segment.byte_cnt > 0 &&
-        !IsLF( pool.id2buf[ segment.pool_id ][ segment.byte_cnt - 1 ] )
+        segment.byte_cnt > 0 && !IsLF( segment.bufptr[ segment.byte_cnt - 1 ] )
       ) {
-        pool.id2buf[ segment.pool_id ][ segment.byte_cnt++ ] = '\n';
+        segment.bufptr[ segment.byte_cnt++ ] = '\n';
       }
       segment.loaded = true;
-      segment.bufptr = pool.id2buf[ segment.pool_id ];
       segment.byte_ofs = byte_ofs;
       segment.line_ofs = line_ofs;
       ProcessSegment();
@@ -226,8 +225,7 @@ void Source::ReadStream( std::istream& input, std::string name )
   while ( true ) {
     std::streamsize bytes_to_read = buffer_size - segments.back().byte_cnt;
     input.read(
-      pool.id2buf[ segments.back().pool_id ] + segments.back().byte_cnt,
-      bytes_to_read
+      segments.back().bufptr + segments.back().byte_cnt, bytes_to_read
     );
     std::streamsize bytes_read = input.gcount();
     segments.back().byte_cnt += bytes_read;
@@ -239,7 +237,7 @@ void Source::ReadStream( std::istream& input, std::string name )
 
     size_t to_move = 0;
     while ( true ) {
-      auto ptr = pool.id2buf[ segments.back().pool_id ];
+      auto ptr = segments.back().bufptr;
       char c = ptr[ segments.back().byte_cnt - 1 - to_move ];
       if ( c == '\n' ) break;
       if ( c == '\r' && to_move > 0 ) break;
@@ -253,8 +251,8 @@ void Source::ReadStream( std::istream& input, std::string name )
     if ( to_move > 0 ) {
       size_t src = segments.size() - 2;
       size_t dst = segments.size() - 1;
-      auto src_ptr = pool.id2buf[ segments[ src ].pool_id ];
-      auto dst_ptr = pool.id2buf[ segments[ dst ].pool_id ];
+      auto src_ptr = segments[ src ].bufptr;
+      auto dst_ptr = segments[ dst ].bufptr;
       memcpy( dst_ptr, src_ptr + segments[ src ].byte_cnt - to_move, to_move );
       segments[ src ].byte_cnt -= to_move;
       segments[ dst ].byte_cnt += to_move;
