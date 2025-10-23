@@ -169,7 +169,8 @@ public:
 
   std::vector< segment_t > segments;
 
-  size_t active_seg = 0;
+  int32_t active_seg = -1;
+  int32_t locked_seg = -1;
 
   // We have fixed buffers and dynamic buffers in the pool. The fixed buffers
   // are used for STDIN and use negative IDs, while the dynamic buffers use
@@ -178,10 +179,10 @@ public:
     uint32_t fix_cnt = 0;
     uint32_t dyn_cnt = 0;
     std::unordered_map< int32_t, char* > id2buf;
-    std::unordered_map< int32_t, size_t > id2seg;
+    std::unordered_map< int32_t, int32_t > id2seg;
 
-    void UseID( int32_t id );
-    int32_t GetID();
+    void LRU_UseID( int32_t id );
+    int32_t LRU_GetID();
     std::list< int32_t > lru_lst;
     std::unordered_map< int32_t, std::list< int32_t >::iterator > lru_map;
   };

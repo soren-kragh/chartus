@@ -103,7 +103,7 @@ void Source::RestorePos( uint32_t context )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void Source::pool_t::UseID( int32_t id )
+void Source::pool_t::LRU_UseID( int32_t id )
 {
   auto it = lru_map.find( id );
   if ( it != lru_map.end() ) {
@@ -114,7 +114,7 @@ void Source::pool_t::UseID( int32_t id )
   }
 }
 
-int32_t Source::pool_t::GetID()
+int32_t Source::pool_t::LRU_GetID()
 {
   return lru_lst.back();
 }
@@ -183,7 +183,7 @@ void Source::ReadStream( std::istream& input, std::string name )
           pool_id = +pool.dyn_cnt;
           pool.dyn_cnt++;
         } else {
-          pool_id = pool.GetID();
+          pool_id = pool.LRU_GetID();
           segments[ pool.id2seg[ pool_id ] ].loaded = false;
           segments[ pool.id2seg[ pool_id ] ].bufptr = nullptr;
         }
@@ -194,7 +194,7 @@ void Source::ReadStream( std::istream& input, std::string name )
           static_cast< char* >( malloc( buffer_size + 16 ) );
       }
       pool.id2seg[ pool_id ] = segments.size() - 1;
-      if ( pool_id >= 0 ) pool.UseID( pool_id );
+      if ( pool_id >= 0 ) pool.LRU_UseID( pool_id );
     };
 
   size_t byte_ofs = 0;
@@ -302,7 +302,7 @@ void Source::ReadFiles()
 
 void Source::LoaderThread()
 {
-  size_t cur_seg = 0;
+  int32_t my_active_seg = -1;
 
   auto err = [&]( std::string msg )
     {
@@ -311,20 +311,21 @@ void Source::LoaderThread()
       loader_cond.notify_one();
     };
 
-  auto load_segment = [&]( size_t seg_idx )
+  auto load_segment = [&]( int32_t seg_idx )
     {
-      int32_t pool_id = pool.GetID();
-      if ( pool.id2seg[ pool_id ] == cur_seg ) {
-        // Cannot overwrite current segment.
-        return false;
-      }
+      int32_t pool_id = pool.LRU_GetID();
       {
         std::lock_guard< std::mutex > lk( loader_mutex );
+        my_active_seg = active_seg;
+        if ( seg_idx == locked_seg ) return false;
+        if ( pool.id2seg[ pool_id ] == locked_seg ) {
+          return false;
+        }
         segments[ pool.id2seg[ pool_id ] ].loaded = false;
         segments[ pool.id2seg[ pool_id ] ].bufptr = nullptr;
       }
       pool.id2seg[ pool_id ] = seg_idx;
-      pool.UseID( pool_id );
+      pool.LRU_UseID( pool_id );
 
       std::ifstream file( segments[ seg_idx ].name, std::ios::binary );
       if ( !file ) {
@@ -352,7 +353,7 @@ void Source::LoaderThread()
         segments[ seg_idx ].pool_id = pool_id;
         segments[ seg_idx ].loaded = true;
         segments[ seg_idx ].bufptr = pool.id2buf[ pool_id ];
-        cur_seg = active_seg;
+        my_active_seg = active_seg;
       }
       loader_cond.notify_one();
 
@@ -361,24 +362,25 @@ void Source::LoaderThread()
 
   while ( !stop_loader ) {
 
-    // Make sure cur_seg is loaded.
-    while ( !segments[ cur_seg ].loaded ) {
+    // Make sure my_active_seg is loaded.
+    while ( my_active_seg >= 0 && !segments[ my_active_seg ].loaded ) {
       if ( stop_loader ) return;
-      if ( !load_segment( cur_seg ) ) break;
+      if ( !load_segment( my_active_seg ) ) break;
     }
     if ( !loader_msg.empty() ) return;
 
     // Pre-load more segments.
-    while ( segments[ cur_seg ].loaded ) {
+    while ( my_active_seg >= 0 && segments[ my_active_seg ].loaded ) {
       if ( stop_loader ) return;
-      size_t seg_idx = cur_seg;
+      int32_t seg_idx = my_active_seg;
       while ( true ) {
         if ( stop_loader ) return;
         seg_idx = (seg_idx + 1) % segments.size();
-        if ( seg_idx == cur_seg ) break;
+        if ( seg_idx == my_active_seg ) break;
         if ( segments[ seg_idx ].pool_id < 0 ) continue;
         if ( !segments[ seg_idx ].loaded ) break;
       }
+      if ( seg_idx == my_active_seg ) break;
       if ( !segments[ seg_idx ].loaded ) {
         if ( !load_segment( seg_idx ) ) break;
       }
@@ -386,13 +388,16 @@ void Source::LoaderThread()
     if ( !loader_msg.empty() ) return;
 
     // Wait for more work:
-    if ( segments[ cur_seg ].loaded ) {
+    {
       std::unique_lock< std::mutex > lk( loader_mutex );
-      loader_cond.wait(
-        lk, [&]{ return stop_loader || active_seg != cur_seg; }
-      );
-      cur_seg = active_seg;
+      if ( my_active_seg >= 0 && segments[ my_active_seg ].loaded ) {
+        loader_cond.wait(
+          lk, [&]{ return stop_loader || active_seg != my_active_seg; }
+        );
+      }
+      my_active_seg = active_seg;
     }
+
   }
 
   return;
@@ -400,20 +405,24 @@ void Source::LoaderThread()
 
 void Source::LoadCurSegment()
 {
-  std::unique_lock< std::mutex > lk( loader_mutex );
-  active_seg = cur_pos.loc.seg_idx;
-  loader_cond.notify_one();
-  loader_cond.wait(
-    lk, [&]{ return !loader_msg.empty() || segments[ active_seg ].loaded; }
-  );
+  {
+    std::unique_lock< std::mutex > lk( loader_mutex );
+    active_seg = cur_pos.loc.seg_idx;
+    locked_seg = -1;
+    loader_cond.notify_one();
+    loader_cond.wait(
+      lk, [&]{ return !loader_msg.empty() || segments[ active_seg ].loaded; }
+    );
+    locked_seg = active_seg;
+    cur_pos.loc.buf =
+      std::string_view(
+        segments[ active_seg ].bufptr,
+        segments[ active_seg ].byte_cnt
+      );
+  }
   if ( !loader_msg.empty() ) {
     Err( loader_msg );
   }
-  cur_pos.loc.buf =
-    std::string_view(
-      segments[ cur_pos.loc.seg_idx ].bufptr,
-      segments[ cur_pos.loc.seg_idx ].byte_cnt
-    );
 }
 
 void Source::LoadLine() {
