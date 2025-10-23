@@ -335,13 +335,15 @@ void Source::LoaderThread()
 
   auto load_segment = [&]( int32_t seg_idx )
     {
-      if ( seg_idx == my_locked_seg ) return false;
       int32_t pool_id = seg_idx % pool.dyn_cnt;
-      if ( pool.id2seg[ pool_id ] == my_locked_seg ) {
-        return false;
-      }
       {
         std::lock_guard< std::mutex > lk( loader_mutex );
+        my_active_seg = active_seg;
+        my_locked_seg = locked_seg;
+        if ( seg_idx == my_locked_seg ) return false;
+        if ( pool.id2seg[ pool_id ] == my_locked_seg ) {
+          return false;
+        }
         int32_t i = pool.id2seg[ pool_id ];
         segments[ i ].loaded = false;
         segments[ i ].bufptr = nullptr;
