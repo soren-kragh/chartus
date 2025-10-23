@@ -1,24 +1,24 @@
 *** PARSE ERROR: unmatched macro name
 ...
-% 62  1  94282664786272
-% 63  2  94282664785792
-% 64  3  94282664786272
-% 63  2  94282664785792
+% 56  1  94046846626144
+% 57  2  94046846625664
+% 58  3  94046846626144
+% 57  2  94046846625664
 
 ...
-# delete 3  my_active_seg: 0
-# 62  1  94282664786272
-# delete 0  my_active_seg: 2
-# 63  2  94282664785792
-# delete 1  my_active_seg: 2
-# 64  3  94282664786272
-# delete 2  my_active_seg: 3
-# 65  0  94282664785792
+# delete 3  my_active_seg:0  my_locked_seg:-1
+# 56  1  94046846626144
+# delete 0  my_active_seg:2  my_locked_seg:-1
+# 57  2  94046846625664
+# delete 1  my_active_seg:2  my_locked_seg:-1
+# 58  3  94046846626144
+# delete 2  my_active_seg:3  my_locked_seg:3
+# 59  0  94046846625664
 
 active_seg 2
 locked_seg 2
 cur_pos.loc.seg_idx = 2
-cur_pos.loc.buf.data() = 94282664785792
+cur_pos.loc.buf.data() = 94046846625664
 ------------------------------------------------------------
 >>> 2
 NewChartInGrid: 0 0
@@ -31,60 +31,20 @@ MacroDef: Se
 Segment 0
   loaded    = T
   pool_id   = 0
-  bufptr    = 94282664785792
-  assign_id = 65
+  bufptr    = 94046846625664
+  assign_id = 59
 Segment 1
   loaded    = F
   pool_id   = 1
   bufptr    = 0
-  assign_id = 62
+  assign_id = 56
 Segment 2
   loaded    = F
   pool_id   = 0
   bufptr    = 0
-  assign_id = 63
+  assign_id = 57
 Segment 3
   loaded    = T
   pool_id   = 1
-  bufptr    = 94282664786272
-  assign_id = 64
-test.txt (23,10):
-MacroEnd: Series
-          ^
-
-
-############################################################
->>> 0
-NewChartInGrid: 0 0
-Title: Bar
-Series.Type: Bar
-#Macro: Setup
-Macro: Series
-MacroDef: Setup
-############################################################
-############################################################
->>> 1
-MacroEnd: Setup
-MacroDef: Series
-Series.New: Series A
-Series.New: Series B
-Series.New: Series C
-############################################################
-############################################################
->>> 2
-Series.Data:
- 0 0.2 0.0 0.2
- 1 0.5 0.0 0.4
- 2 1.3 0.0 0.7
- 3 2.4 0.1 1.1
- 4 3.5 0.3 1.6
-############################################################
-############################################################
->>> 3
- 5 4.0 0.8 2.4
- 6 3.5 2.0 3.3
- 7 2.4 4.1 4.3
- 8 1.3 6.7 5.4
- 9 0.5 9.0 6.4
-MacroEnd: Series
-############################################################
+  bufptr    = 94046846626144
+  assign_id = 58

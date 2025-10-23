@@ -1,0 +1,37 @@
+I'm building a source management class in C++ for handling extremely large files. The idea is that the source file is split into segments which are then brought into a limited number of memory buffers as needed. To get better performance a sub-thread (LoaderThread) is spawned from the main thread; the job of the LoaderThread is to pre-load segments so they usually are ready when the main thread needs them. The main thread use the LoadCurSegment whenever a new segments is taken into use.
+
+I am trying to synchronize the threads using the active_seg and locked_seg variables, which are updated by the main thread in LoadCurSegment in mutex protected regions. The LoaderThread will sample these variables and in turn set or clear the "loaded" flag in the segments as they are loaded or un-loaded. Everything is protected by mutex.
+
+My problem is that is is unstable: Very occasionally the active_seg of the main thread end up using a buffer pointer (location_t.buf) where the underlying buffer has been reclaimed and used for a different segment by LoaderThread, which then results in "PARSE ERROR".
+
+Now, to debug this I am collecting what the main thread sees in dbg_oss_main and what LoaderThread does in dbg_oss_thread. I have even added an "assign_id" so I can see exactly which update the main thread sees.
+
+I have uploaded a trace.txt file to you and the crucial point is the last lines of the trace (% is the main thread and # is the LoaderThread:
+
+...
+% 56  1  94046846626144
+% 57  2  94046846625664
+% 58  3  94046846626144
+% 57  2  94046846625664
+
+...
+# delete 3  my_active_seg:0  my_locked_seg:-1
+# 56  1  94046846626144
+# delete 0  my_active_seg:2  my_locked_seg:-1
+# 57  2  94046846625664
+# delete 1  my_active_seg:2  my_locked_seg:-1
+# 58  3  94046846626144
+# delete 2  my_active_seg:3  my_locked_seg:3
+# 59  0  94046846625664
+
+Here we see that the main thread uses assign_id=57 for segment 2, then uses 58 for segment 3, then goes back to using segment 2 again still with the old assignment (57).
+
+However, the LoaderThread deletes segment 2 and reclaims the underlying buffer to segment 0 instead (assignment 59), it sees my_active_seg=3 and my_locked_seg=3 so it thinks that is OK. The result is that the main thread sees segment 0 data for segment 2 and a "PARSE ERROR" results. The trace.txt shows the state as the error has happened and as you can see Segment 2 is no longer loaded and the pointer (bufptr) is used for Segment 0 instead.
+
+I have uploaded the entire chart_source.h file and selected code in chart_source_excerpt.cpp.
+
+Here is what I *think* might go wrong: main thread goes back to using segment 2 (assignment 57) and locks the segment, but the latest value LoaderThread has is (my_locked_seg=3). The actual loading of the file data in LoaderThread is not mutex protected as I had very bad experience holding the mutex while doing slow file I/O, so I guess that LoadCurSegment could quickly grab the mutex, switch back to segment 2, and release the mutex, all this while LoaderThread is loading data.
+
+I have difficulties understanding what goes wrong here, but I suspect that this architecture is fundamentally wrong and I must use a different design pattern here. Pre-loading a sliding window from a file seems pretty standard and I shouldn't have this much trouble.
+
+Anyway, all the help you an give me is appreciated. Focus on analyzing the situation and the general SW architecture. Do not drown me in code to begin with, the focus is understanding and analysis for now.
