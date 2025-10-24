@@ -27,11 +27,11 @@ $(BUILD_DIR)/%.o: %.cpp $(INCS)
 	@$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 examples: $(TARGET)
+	@mkdir -p ${BUILD_DIR}
 	@for i in 1 2 3 4 5 6 7 8 9; do \
 	  echo "Generating example $${i}..."; \
-	  ${TARGET} -e$${i} >e$${i}.txt; \
-	  ${TARGET} e$${i}.txt >e$${i}.svg; \
-	  ### ${TARGET} -e$${i} | ${TARGET} >e$${i}.svg; \
+	  ${TARGET} -e$${i} >${BUILD_DIR}/e$${i}.txt; \
+	  ${TARGET} ${BUILD_DIR}/e$${i}.txt >e$${i}.svg; \
 	done
 	@cat `ls -1 e?.svg` | cksum
 
@@ -48,6 +48,6 @@ uninstall:
 
 clean:
 	rm -rf $(BUILD_DIR) $(TARGET)
-	rm -f e?.txt e?.svg
+	rm -f e?.svg
 
 .PHONY: all examples install uninstall clean
