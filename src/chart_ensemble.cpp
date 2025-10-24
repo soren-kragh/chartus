@@ -78,6 +78,32 @@ bool Ensemble::NewChart(
   elem.grid_x2 = grid_col2;
   elem.grid_y2 = grid_row2;
 
+  if ( pos1 == Pos::Center ) {
+    if ( pos2 == Pos::Bottom || pos2 == Pos::Top || pos2 == Pos::Auto ) {
+      elem.anchor_x_defined = true;
+    }
+    if ( pos2 == Pos::Left || pos2 == Pos::Right ) {
+      elem.anchor_y_defined = true;
+    }
+    if ( pos2 == Pos::Undef || pos2 == Pos::Center ) {
+      elem.anchor_x_defined = true;
+      elem.anchor_y_defined = true;
+    }
+  }
+
+  if ( pos2 == Pos::Center ) {
+    if ( pos1 == Pos::Bottom || pos1 == Pos::Top ) {
+      elem.anchor_x_defined = true;
+    }
+    if ( pos1 == Pos::Left || pos1 == Pos::Right || pos1 == Pos::Auto ) {
+      elem.anchor_y_defined = true;
+    }
+    if ( pos1 == Pos::Undef || pos1 == Pos::Center ) {
+      elem.anchor_x_defined = true;
+      elem.anchor_y_defined = true;
+    }
+  }
+
   if ( pos1 == Pos::Left ) {
     elem.anchor_x = SVG::AnchorX::Min;
     elem.anchor_x_defined = true;

@@ -63,7 +63,7 @@ namespace Chart {
   const SVG::U tag_spacing = box_spacing / 2;
 
   enum class Pos {
-    Auto, Center, Right, Left, Top, Bottom, Base, End, Beyond
+    Undef, Auto, Center, Right, Left, Top, Bottom, Base, End, Beyond
   };
 
   enum class Dir { Right, Left, Up, Down };

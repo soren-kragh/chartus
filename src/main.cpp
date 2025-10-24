@@ -481,8 +481,8 @@ Chart::Main* CurChart( void )
 
 void do_NewChartInGrid( void )
 {
-  Chart::Pos pos1 = Chart::Pos::Auto;
-  Chart::Pos pos2 = Chart::Pos::Auto;
+  Chart::Pos pos1 = Chart::Pos::Undef;
+  Chart::Pos pos2 = Chart::Pos::Undef;
 
   int64_t row1 = 0;
   int64_t col1 = 0;
