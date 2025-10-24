@@ -201,6 +201,27 @@ FootnotePos: Right
 # in the grid.
 #NewChartInGrid: 0 0 1 1 Right Top
 
+# NewChartInChart has the same syntax as NewChartInGrid but with grid collision
+# check disabled. A typical (if not only) use case for this is to embed a
+# smaller chart within and on top of another chart. Note that when starting a
+# new chart with NewChartInChart, the ChartPadding (see below) defaults to 12 0.
+#NewChartInChart: 0 0 Left Top
+
+# Defines the padding for the current chart, it works somewhat like GridPadding
+# but applies to the current chart only. Normally charts arranged in a grid are
+# aligned based on their core chart areas as that usually looks better; with
+# ChartPadding you can adjust that behavior. The first number specifies that the
+# alignment shall be relative to all chart elements instead of just the core
+# chart area, the given number is the additional extra margin. If the first
+# number is negative only the core chart area is used for alignment. The second
+# optional number specifies the additional extra margin when aligning relative
+# the core chart area.
+# You typically use ChartPadding to adjust placement of embedded charts (see
+# NewChartInChart).
+# The NewChartInGrid and NewChartInChart defaults respectively are shown below.
+#ChartPadding: -1 0
+#ChartPadding: 12 0
+
 # Specifies the dimensions of the core chart area where the data is graphed.
 # The values are in points and should typically be around 1000. Since SVG is
 # scalable these dimensions primarily determine the relative size of text

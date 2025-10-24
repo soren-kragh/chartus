@@ -479,7 +479,7 @@ Chart::Main* CurChart( void )
   return ensemble.LastChart();
 }
 
-void do_NewChartInGrid( void )
+void do_NewChart( bool chart_in_chart )
 {
   Chart::Pos pos1 = Chart::Pos::Undef;
   Chart::Pos pos2 = Chart::Pos::Undef;
@@ -514,11 +514,14 @@ void do_NewChartInGrid( void )
     source.RestorePos( 1 );
     source.ToSOL();
     source.ParseErr(
-      "chart specifiers must be preceded by New for multi chart plots"
+      "chart specifiers must be preceded by NewChartInGrid for multi chart plots"
     );
   }
 
-  if ( !ensemble.NewChart( row1, col1, row2, col2, pos1, pos2 ) ) {
+  bool ok =
+    ensemble.NewChart( row1, col1, row2, col2, pos1, pos2, chart_in_chart );
+  if ( !ok ) {
+    source.ToSOL();
     source.ParseErr( "grid collision" );
   }
 
@@ -527,6 +530,17 @@ void do_NewChartInGrid( void )
   grid_max_defined = true;
 
   state = {};
+}
+
+void do_NewChartInGrid( void )
+{
+  do_NewChart( false );
+}
+
+void do_NewChartInChart( void )
+{
+  do_NewChart( true );
+  CurChart()->SetPadding( 12, 0 );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -674,6 +688,27 @@ void do_LetterSpacing( void )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+void do_ChartPadding( void )
+{
+  double full_padding = -1;
+  double area_padding = 0;
+
+  source.SkipWS();
+  if ( source.AtEOL() ) source.ParseErr( "padding value expected" );
+  source.GetDouble( full_padding );
+
+  source.SkipWS();
+  if ( !source.AtEOL() ) {
+    source.GetDouble( area_padding );
+    if ( area_padding < 0 ) {
+      source.ParseErr( "negative area padding not allowed", true );
+    }
+  }
+
+  source.ExpectEOL();
+  CurChart()->SetPadding( full_padding, area_padding );
+}
 
 void do_ChartArea( void )
 {
@@ -1897,6 +1932,8 @@ std::unordered_map< std::string_view, ChartAction > chart_actions = {
   { "GlobalLegendColor"      , do_GlobalLegendColor       },
   { "LetterSpacing"          , do_LetterSpacing           },
   { "NewChartInGrid"         , do_NewChartInGrid          },
+  { "NewChartInChart"        , do_NewChartInChart         },
+  { "ChartPadding"           , do_ChartPadding            },
   { "ChartArea"              , do_ChartArea               },
   { "ChartBox"               , do_ChartBox                },
   { "ForegroundColor"        , do_ForegroundColor         },

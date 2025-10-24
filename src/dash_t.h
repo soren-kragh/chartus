@@ -47,6 +47,8 @@ Series.Data :
 # LetterSpacing: 1.8 1.1 0.8
 # GridPadding: 0 12
 # NewChartInGrid: 0 0 3 0 Center Bottom
+# NewChartInChart: 0 0 Bottom Right
+# ChartPadding: -1 0
 # ChartArea: 1000 600
 # ChartBox: On
 # ChartAreaColor: dimgray

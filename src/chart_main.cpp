@@ -70,6 +70,12 @@ void Main::Move( SVG::U dx, SVG::U dy )
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void Main::SetPadding( SVG::U full_padding, SVG::U area_padding )
+{
+  this->full_padding = full_padding;
+  this->area_padding = area_padding;
+}
+
 void Main::SetChartArea( SVG::U width, SVG::U height )
 {
   chart_w = std::max( U( 10 ), width );
@@ -1526,7 +1532,7 @@ void Main::BuildTitle(
 
 //------------------------------------------------------------------------------
 
-SVG::U Main::GetAreaPadding( void )
+SVG::U Main::GetAreaOverhang( void )
 {
   U delta = 0;
   for ( auto series : series_list ) {

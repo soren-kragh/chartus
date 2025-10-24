@@ -36,7 +36,8 @@ public:
     uint32_t grid_row1, uint32_t grid_col1,
     uint32_t grid_row2, uint32_t grid_col2,
     Pos pos1 = Pos::Undef,
-    Pos pos2 = Pos::Undef
+    Pos pos2 = Pos::Undef,
+    bool collision_allowed = false
   );
 
   void SetLetterSpacing(
