@@ -43,6 +43,8 @@ public:
   // final position in the grid,
   void Move( SVG::U dx, SVG::U dy );
 
+  void SetPadding( SVG::U full_padding, SVG::U area_padding );
+
   void SetChartArea( SVG::U width, SVG::U height );
   void SetChartBox( bool chart_box = true );
 
@@ -120,6 +122,9 @@ public:
   SVG::U g_dx = 0;
   SVG::U g_dy = 0;
 
+  SVG::U full_padding = -1;
+  SVG::U area_padding = 0;
+
   SVG::U chart_w   = 1000;
   SVG::U chart_h   = 600;
   bool   chart_box = false;
@@ -150,9 +155,10 @@ public:
     std::vector< SVG::Object* >& avoid_objects
   );
 
-  // Get the padding around the core chart area required to account for markers
-  // and/or lines which due to their width may spill out of of the chart area.
-  SVG::U GetAreaPadding( void );
+  // Get the extra space around the core chart area required to account for
+  // markers and/or lines which due to their width may spill out of of the chart
+  // area.
+  SVG::U GetAreaOverhang( void );
 
   // Transfer various information to the HTML object (ensemble->html_db).
   void PrepareHTML( void );

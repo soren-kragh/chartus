@@ -53,17 +53,20 @@ Ensemble::~Ensemble( void )
 bool Ensemble::NewChart(
   uint32_t grid_row1, uint32_t grid_col1,
   uint32_t grid_row2, uint32_t grid_col2,
-  Pos pos1, Pos pos2
+  Pos pos1, Pos pos2,
+  bool collision_allowed
 )
 {
-  for ( auto& elem : grid.element_list ) {
-    if (
-      !(grid_col1 < elem.grid_x1 && grid_col2 < elem.grid_x1) &&
-      !(grid_col1 > elem.grid_x2 && grid_col2 > elem.grid_x2) &&
-      !(grid_row1 < elem.grid_y1 && grid_row2 < elem.grid_y1) &&
-      !(grid_row1 > elem.grid_y2 && grid_row2 > elem.grid_y2)
-    )
-      return false;
+  if ( !collision_allowed ) {
+    for ( auto& elem : grid.element_list ) {
+      if (
+        !(grid_col1 < elem.grid_x1 && grid_col2 < elem.grid_x1) &&
+        !(grid_col1 > elem.grid_x2 && grid_col2 > elem.grid_x2) &&
+        !(grid_row1 < elem.grid_y1 && grid_row2 < elem.grid_y1) &&
+        !(grid_row1 > elem.grid_y2 && grid_row2 > elem.grid_y2)
+      )
+        return false;
+    }
   }
 
   Grid::element_t elem;
@@ -315,11 +318,37 @@ void Ensemble::InitGrid( void )
     if ( elem.chart ) {
       elem.area_bb.Update( 0, 0 );
       elem.area_bb.Update( elem.chart->chart_w, elem.chart->chart_h );
+      auto full_bb = elem.chart->GetGroup()->GetBB();
       if ( grid_padding < 0 ) {
         elem.full_bb = elem.area_bb;
       } else {
-        elem.full_bb = elem.chart->GetGroup()->GetBB();
+        elem.full_bb = full_bb;
       }
+      if ( elem.chart->area_padding > 0 ) {
+        elem.area_bb.min.x -= elem.chart->area_padding;
+        elem.area_bb.min.y -= elem.chart->area_padding;
+        elem.area_bb.max.x += elem.chart->area_padding;
+        elem.area_bb.max.y += elem.chart->area_padding;
+      }
+      if ( elem.chart->full_padding >= 0 ) {
+        elem.area_bb.min.x =
+          std::min(
+            +elem.area_bb.min.x, full_bb.min.x - elem.chart->full_padding
+          );
+        elem.area_bb.min.y =
+          std::min(
+            +elem.area_bb.min.y, full_bb.min.y - elem.chart->full_padding
+          );
+        elem.area_bb.max.x =
+          std::max(
+            +elem.area_bb.max.x, full_bb.max.x + elem.chart->full_padding
+          );
+        elem.area_bb.max.y =
+          std::max(
+            +elem.area_bb.max.y, full_bb.max.y + elem.chart->full_padding
+          );
+      }
+      elem.full_bb.Update( elem.area_bb );
     }
   }
 }
@@ -815,7 +844,7 @@ std::string Ensemble::Build( void )
   for ( auto& elem : grid.element_list ) {
     if ( elem.chart ) {
       elem.chart->Build();
-      U area_pad = elem.chart->GetAreaPadding();
+      U area_pad = elem.chart->GetAreaOverhang();
       max_area_pad = std::max( max_area_pad, area_pad );
     }
   }

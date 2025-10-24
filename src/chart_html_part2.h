@@ -843,9 +843,9 @@ svg_snap.addEventListener("mousemove", (event) => {
 
     const dist = Math.sqrt(dx*dx + dy*dy);
 
-    if (dist < minDist) {
-      minDist = dist;
+    if (dist < minDist || dist == 0) {
       chart = c;
+      minDist = dist;
     }
   }
 
