@@ -735,6 +735,25 @@ void Ensemble::BuildBackground( void )
 {
   BoundaryBox top_bb = TopBB();
 
+  bool draw_bg = true;
+  for ( auto& elem : grid.element_list ) {
+    if ( elem.chart && elem.chart->frame_width >= 0 ) {
+      auto bb = elem.chart->svg_g->GetBB();
+      if ( bb.min == top_bb.min && bb.max == top_bb.max ) {
+        draw_bg = false;
+        break;
+      }
+    }
+  }
+
+  if ( padding >= 0 || border_width >= 0 ) draw_bg = true;
+  if ( border_width < 0 ) border_width = 0;
+  if ( padding < 0 ) padding = 8;
+  if ( !draw_bg ) {
+    border_width = 0;
+    padding = 0;
+  }
+
   {
     BoundaryBox bb{ top_bb };
 
@@ -766,7 +785,7 @@ void Ensemble::BuildBackground( void )
     top_g->FrontToBack();
   }
 
-  {
+  if ( draw_bg ) {
     BoundaryBox bb{ top_bb };
 
     bb.min.x -= padding + border_width / 2;
@@ -867,14 +886,14 @@ std::string Ensemble::Build( void )
   BuildTitle();
   BuildFootnotes();
 
-  BuildBackground();
-
   for ( auto& elem : grid.element_list ) {
     if ( elem.chart ) {
       annotate->AddChart( elem.chart );
     }
   }
   annotate->Build( top_g->AddNewGroup() );
+
+  BuildBackground();
 
 /*
   {

@@ -30,6 +30,8 @@ Main::Main( Ensemble* ensemble, SVG::Group* svg_g )
 
   this->ensemble = ensemble;
   this->svg_g = svg_g;
+  frame_color.Set( ColorName::black );
+  canvas_color.Set( ColorName::white );
   chart_area_color.Clear();
   box_color.Undef();
   title_pos_x  = Pos::Center;
@@ -74,6 +76,13 @@ void Main::SetPadding( SVG::U full_padding, SVG::U area_padding )
 {
   this->full_padding = full_padding;
   this->area_padding = area_padding;
+}
+
+void Main::SetFrame( SVG::U width, SVG::U padding, SVG::U radius )
+{
+  this->frame_width   = width;
+  this->frame_padding = padding;
+  this->frame_radius  = radius;
 }
 
 void Main::SetChartArea( SVG::U width, SVG::U height )
@@ -1101,7 +1110,11 @@ void Main::SeriesPrepare(
   if ( !ChartAreaColor()->IsClear() ) {
     tag_bg_color.Set( ChartAreaColor() );
   } else {
-    tag_bg_color.Set( ensemble->BackgroundColor() );
+    if ( frame_width >= 0 && !CanvasColor()->IsClear() ) {
+      tag_bg_color.Set( CanvasColor() );
+    } else {
+      tag_bg_color.Set( ensemble->BackgroundColor() );
+    }
   }
   if ( tag_bg_color.IsClear() ) tag_bg_color.Set( ColorName::white );
 
@@ -1557,6 +1570,39 @@ SVG::U Main::GetAreaOverhang( void )
 
 //------------------------------------------------------------------------------
 
+void Main::BuildFrame()
+{
+  if ( frame_width < 0 ) return;
+
+  auto bb = svg_g->GetBB();
+
+  bb.min.x -= frame_padding + frame_width / 2;
+  bb.min.y -= frame_padding + frame_width / 2;
+  bb.max.x += frame_padding + frame_width / 2;
+  bb.max.y += frame_padding + frame_width / 2;
+  svg_g->Add( new Rect( bb.min, bb.max, frame_radius ) );
+  svg_g->Last()->Attr()->FillColor()->Set( CanvasColor() );
+  svg_g->Last()->Attr()->LineColor()->Set( FrameColor() );
+  svg_g->Last()->Attr()->SetLineWidth( frame_width );
+  svg_g->FrontToBack();
+
+  if ( frame_width > 0 ) {
+    bb.min.x -= frame_width / 2;
+    bb.min.y -= frame_width / 2;
+    bb.max.x += frame_width / 2;
+    bb.max.y += frame_width / 2;
+    svg_g->Add( new Rect( bb.min, bb.max ) );
+    svg_g->Last()->Attr()->FillColor()->Clear();
+    svg_g->Last()->Attr()->LineColor()->Clear();
+    svg_g->Last()->Attr()->SetLineWidth( 0 );
+    svg_g->FrontToBack();
+  }
+
+  return;
+}
+
+//------------------------------------------------------------------------------
+
 void Main::PrepareHTML( void )
 {
   if ( axis_x->angle == 0 ) {
@@ -1638,11 +1684,7 @@ void Main::Build( void )
   svg_g->Attr()->TextColor()->Set( TextColor() );
   svg_g->Attr()->LineColor()->Clear();
   svg_g->Add( new Rect( 0, 0, chart_w, chart_h ) );
-  if ( ChartAreaColor()->IsClear() ) {
-    svg_g->Last()->Attr()->FillColor()->Clear();
-  } else {
-    svg_g->Last()->Attr()->FillColor()->Set( ChartAreaColor() );
-  }
+  svg_g->Last()->Attr()->FillColor()->Set( ChartAreaColor() );
 
   Group* grid_minor_g          = svg_g->AddNewGroup();
   Group* grid_major_g          = svg_g->AddNewGroup();
@@ -1746,7 +1788,11 @@ void Main::Build( void )
   {
     bool partial_ok = true;
     if ( ChartAreaColor()->IsClear() ) {
-      label_bg_g->Attr()->FillColor()->Set( ensemble->BackgroundColor() );
+      if ( frame_width >= 0 && !CanvasColor()->IsClear() ) {
+        label_bg_g->Attr()->FillColor()->Set( CanvasColor() );
+      } else {
+        label_bg_g->Attr()->FillColor()->Set( ensemble->BackgroundColor() );
+      }
     } else {
       label_bg_g->Attr()->FillColor()->Set( ChartAreaColor() );
       partial_ok = false;
@@ -1758,6 +1804,8 @@ void Main::Build( void )
   }
 
   annotate->Build( anno_upper_g, anno_lower_g );
+
+  BuildFrame();
 
   if ( ensemble->enable_html ) {
     PrepareHTML();

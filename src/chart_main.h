@@ -44,6 +44,10 @@ public:
   void Move( SVG::U dx, SVG::U dy );
 
   void SetPadding( SVG::U full_padding, SVG::U area_padding );
+  void SetFrame( SVG::U width, SVG::U padding, SVG::U radius );
+
+  SVG::Color* FrameColor( void ) { return &frame_color; }
+  SVG::Color* CanvasColor( void ) { return &canvas_color; }
 
   void SetChartArea( SVG::U width, SVG::U height );
   void SetChartBox( bool chart_box = true );
@@ -123,6 +127,12 @@ public:
   SVG::U full_padding = -1;
   SVG::U area_padding = 0;
 
+  SVG::U frame_width   = -1;
+  SVG::U frame_padding = 8;
+  SVG::U frame_radius  = 0;
+  SVG::Color frame_color;
+  SVG::Color canvas_color;
+
   SVG::U chart_w   = 1000;
   SVG::U chart_h   = 600;
   bool   chart_box = false;
@@ -152,6 +162,8 @@ public:
   void BuildTitle(
     std::vector< SVG::Object* >& avoid_objects
   );
+
+  void BuildFrame();
 
   // Get the extra space around the core chart area required to account for
   // markers and/or lines which due to their width may spill out of of the chart

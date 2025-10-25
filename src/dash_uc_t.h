@@ -222,6 +222,18 @@ FootnotePos: Right
 #ChartPadding: -1 0
 #ChartPadding: 12 0
 
+# Add a frame around the chart. First number is the frame width; second optional
+# number is the inside padding; third optional number is the corner radius of
+# the frame. When organizing framed charts in a grid you probably want to align
+# relative to the frames rather than the core chart areas, use ChartPadding
+# for this (e.g. ChartPadding: 0).
+#ChartFrame: 5 8 0
+
+# Specifies the color of the chart frame and the color of the canvas within the
+# frame.
+#ChartFrameColor: red
+#ChartCanvasColor: white
+
 # Specifies the dimensions of the core chart area where the data is graphed.
 # The values are in points and should typically be around 1000. Since SVG is
 # scalable these dimensions primarily determine the relative size of text

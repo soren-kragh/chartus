@@ -5,10 +5,14 @@
 Chartus is a simple Linux command line tool to generate basic charts in SVG or
 HTML format.
 
-- Very [simple input format](#shortlist-of-all-specifiers) makes it easy to quickly visualize data.
+- Very [simple input format](#shortlist-of-all-specifiers) makes it easy to
+  quickly visualize data.
 - Ideally suited for a fully automated work flow using scripts etc.
 - Works well for [large data sets](#large-data-sets).
-- Tweaking options are provided, but the automatic defaults should normally be fine.
+- Tweaking options are provided, but the automatic defaults should normally
+  be fine.
+- Support for custom annotations so you don't have to edit the image afterwards
+  to add extra texts etc.
 
 The generated SVG files are compatible with a wide variety of software, however,
 more often than not you should use the `svg2png` script to convert to bitmap,

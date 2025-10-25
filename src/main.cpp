@@ -695,19 +695,63 @@ void do_ChartPadding( void )
   double area_padding = 0;
 
   source.SkipWS();
-  if ( source.AtEOL() ) source.ParseErr( "padding value expected" );
+  if ( source.AtEOL() ) source.ParseErr( "chart padding expected" );
   source.GetDouble( full_padding );
+  if ( full_padding > 1000 ) {
+    source.ParseErr( "chart padding out of range [-inf;1000]", true );
+  }
 
   source.SkipWS();
   if ( !source.AtEOL() ) {
     source.GetDouble( area_padding );
-    if ( area_padding < 0 ) {
-      source.ParseErr( "negative area padding not allowed", true );
+    if ( area_padding < 0 || area_padding > 1000 ) {
+      source.ParseErr( "area padding out of range [0;1000]", true );
     }
   }
 
   source.ExpectEOL();
   CurChart()->SetPadding( full_padding, area_padding );
+}
+
+void do_ChartFrame( void )
+{
+  double width = -1;
+  double padding = 8;
+  double radius = 0;
+
+  source.SkipWS();
+  if ( source.AtEOL() ) source.ParseErr( "frame width expected" );
+  source.GetDouble( width );
+  if ( width > 1000 ) {
+    source.ParseErr( "frame width out of range [-inf;1000]", true );
+  }
+  source.SkipWS();
+  if ( !source.AtEOL() ) {
+    source.GetDouble( padding );
+    if ( padding < 0 || padding > 1000 ) {
+      source.ParseErr( "frame padding out of range [0;1000]", true );
+    }
+    source.SkipWS();
+    if ( !source.AtEOL() ) {
+      source.GetDouble( radius );
+      if ( radius < 0 || radius > 1000 ) {
+        source.ParseErr( "frame radius out of range [0;1000]", true );
+      }
+    }
+  }
+
+  source.ExpectEOL();
+  CurChart()->SetFrame( width, padding, radius );
+}
+
+void do_ChartFrameColor( void )
+{
+  source.GetColor( CurChart()->FrameColor() );
+}
+
+void do_ChartCanvasColor( void )
+{
+  source.GetColor( CurChart()->CanvasColor() );
 }
 
 void do_ChartArea( void )
@@ -1934,6 +1978,9 @@ std::unordered_map< std::string_view, ChartAction > chart_actions = {
   { "NewChartInGrid"         , do_NewChartInGrid          },
   { "NewChartInChart"        , do_NewChartInChart         },
   { "ChartPadding"           , do_ChartPadding            },
+  { "ChartFrame"             , do_ChartFrame              },
+  { "ChartFrameColor"        , do_ChartFrameColor         },
+  { "ChartCanvasColor"       , do_ChartCanvasColor        },
   { "ChartArea"              , do_ChartArea               },
   { "ChartBox"               , do_ChartBox                },
   { "ForegroundColor"        , do_ForegroundColor         },

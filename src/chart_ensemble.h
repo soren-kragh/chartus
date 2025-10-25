@@ -120,9 +120,9 @@ public:
   SVG::Color foreground_color;
   SVG::Color background_color;
   SVG::Color border_color;
-  SVG::U border_width = 0;
   SVG::U margin       = 0;
-  SVG::U padding      = 8;
+  SVG::U border_width = -1;
+  SVG::U padding      = -1;
   SVG::U grid_padding = 12;
   SVG::U area_padding = 0;
 

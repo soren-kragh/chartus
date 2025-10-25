@@ -6,8 +6,11 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Add Series.Color
 - Support annotations
-- Support NewChartInChart
-- Support ChartPadding
+- Add NewChartInChart
+- Add ChartPadding
+- Add ChartFrame
+- Add ChartFrameColor
+- Add ChartCanvasColor
 
 ### Changed
 - Reduce memory usage
