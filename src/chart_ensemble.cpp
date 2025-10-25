@@ -187,10 +187,10 @@ void Ensemble::SetLegendHeading( const std::string& txt )
   legend_obj->heading = txt;
 }
 
-void Ensemble::SetLegendFrame( bool enable )
+void Ensemble::SetLegendBox( bool enable )
 {
-  legend_frame = enable;
-  legend_frame_specified = true;
+  legend_box = enable;
+  legend_box_specified = true;
 }
 
 void Ensemble::SetLegendPos( Pos pos )
@@ -393,15 +393,15 @@ void Ensemble::BuildLegends( void )
   Group* legend_g = top_g->AddNewGroup();
   legend_g->Attr()->TextFont()->SetSize( 14 * legend_obj->size );
 
-  bool framed =
-    legend_frame_specified ? legend_frame : !legend_obj->heading.empty();
+  bool boxed =
+    legend_box_specified ? legend_box : !legend_obj->heading.empty();
 
   Legend::LegendDims legend_dims;
   legend_obj->CalcLegendDims( legend_g, legend_dims );
 
   U padding = 2 * std::max( grid_padding, area_padding );
-  U in_grid_mx = std::max( 0.0, legend_obj->MarginX( framed ) - padding );
-  U in_grid_my = std::max( 0.0, legend_obj->MarginY( framed ) - padding );
+  U in_grid_mx = std::max( 0.0, legend_obj->MarginX( boxed ) - padding );
+  U in_grid_my = std::max( 0.0, legend_obj->MarginY( boxed ) - padding );
 
   if ( legend_obj->grid_coor_specified ) {
     Grid::element_t* elem = nullptr;
@@ -434,12 +434,12 @@ void Ensemble::BuildLegends( void )
     U legend_w;
     U legend_h;
 
-    legend_obj->GetDims( min_w, legend_h, legend_dims, framed, 1 );
-    legend_obj->GetDims( legend_w, min_h, legend_dims, framed, legend_obj->Cnt() );
+    legend_obj->GetDims( min_w, legend_h, legend_dims, boxed, 1 );
+    legend_obj->GetDims( legend_w, min_h, legend_dims, boxed, legend_obj->Cnt() );
 
     auto update = [&]( void )
     {
-      legend_obj->GetDims( legend_w, legend_h, legend_dims, framed, nx );
+      legend_obj->GetDims( legend_w, legend_h, legend_dims, boxed, nx );
       elem->full_bb.Reset();
       elem->full_bb.Update( 0, 0 );
       elem->full_bb.Update( legend_w + 2 * in_grid_mx, legend_h + 2 * in_grid_my );
@@ -455,29 +455,29 @@ void Ensemble::BuildLegends( void )
 
     if ( no_space_x && no_space_y ) {
       legend_obj->GetBestFit(
-        legend_dims, nx, framed, 1.0, 1.0, num_hi, num_hi
+        legend_dims, nx, boxed, 1.0, 1.0, num_hi, num_hi
       );
       update();
     } else
     if ( no_space_x ) {
       legend_obj->GetBestFit(
-        legend_dims, nx, framed, 0, avail_h * 1.5, min_w, avail_h
+        legend_dims, nx, boxed, 0, avail_h * 1.5, min_w, avail_h
       );
       update();
     } else
     if ( no_space_y ) {
       legend_obj->GetBestFit(
-        legend_dims, nx, framed, avail_w * 1.5, 0, avail_w, min_h
+        legend_dims, nx, boxed, avail_w * 1.5, 0, avail_w, min_h
       );
       update();
     } else
     {
-      legend_obj->GetBestFit( legend_dims, nx, framed, avail_w, avail_h );
+      legend_obj->GetBestFit( legend_dims, nx, boxed, avail_w, avail_h );
       update();
     }
 
     legend_obj->BuildLegends(
-      framed, ForegroundColor(), LegendColor(),
+      boxed, ForegroundColor(), LegendColor(),
       legend_g->AddNewGroup(), nx
     );
     Object* legend = legend_g->Last();
@@ -553,10 +553,10 @@ void Ensemble::BuildLegends( void )
       uint32_t nx;
       bool fits =
         avail_w > 0 && avail_h > 0 &&
-        legend_obj->GetBestFit( legend_dims, nx, framed, avail_w, avail_h );
+        legend_obj->GetBestFit( legend_dims, nx, boxed, avail_w, avail_h );
       if ( fits ) {
         legend_obj->BuildLegends(
-          framed, ForegroundColor(), LegendColor(),
+          boxed, ForegroundColor(), LegendColor(),
           legend_g->AddNewGroup(), nx
         );
         Object* legend = legend_g->Last();
@@ -577,7 +577,7 @@ void Ensemble::BuildLegends( void )
 
     if ( legend_obj->pos == Pos::Left || legend_obj->pos == Pos::Right ) {
 
-      U mx = legend_obj->MarginX( framed );
+      U mx = legend_obj->MarginX( boxed );
       U x = all_bb.min.x - mx;
       U y = all_bb.max.y;
       AnchorX anchor_x = AnchorX::Max;
@@ -587,9 +587,9 @@ void Ensemble::BuildLegends( void )
       }
       U avail_h = all_bb.max.y - all_bb.min.y;
       uint32_t nx;
-      legend_obj->GetBestFit( legend_dims, nx, framed, 0, avail_h );
+      legend_obj->GetBestFit( legend_dims, nx, boxed, 0, avail_h );
       legend_obj->BuildLegends(
-        framed, ForegroundColor(), LegendColor(),
+        boxed, ForegroundColor(), LegendColor(),
         legend_g->AddNewGroup(), nx
       );
       Object* legend = legend_g->Last();
@@ -599,7 +599,7 @@ void Ensemble::BuildLegends( void )
 
     } else {
 
-      U my = legend_obj->MarginY( framed );
+      U my = legend_obj->MarginY( boxed );
       U x = (all_bb.min.x + all_bb.max.x) / 2;
       U y = all_bb.min.y - my;
       AnchorY anchor_y = AnchorY::Max;
@@ -609,9 +609,9 @@ void Ensemble::BuildLegends( void )
       }
       U avail_w = all_bb.max.x - all_bb.min.x;
       uint32_t nx;
-      legend_obj->GetBestFit( legend_dims, nx, framed, avail_w, 0 );
+      legend_obj->GetBestFit( legend_dims, nx, boxed, avail_w, 0 );
       legend_obj->BuildLegends(
-        framed, ForegroundColor(), LegendColor(),
+        boxed, ForegroundColor(), LegendColor(),
         legend_g->AddNewGroup(), nx
       );
       Object* legend = legend_g->Last();

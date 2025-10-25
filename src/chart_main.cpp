@@ -31,15 +31,15 @@ Main::Main( Ensemble* ensemble, SVG::Group* svg_g )
   this->ensemble = ensemble;
   this->svg_g = svg_g;
   chart_area_color.Clear();
-  frame_color.Undef();
+  box_color.Undef();
   title_pos_x  = Pos::Center;
   title_pos_y  = Pos::Top;
   title_inside = false;
   title_size   = 1.0;
-  title_frame            = false;
-  title_frame_specified  = false;
-  legend_frame           = false;
-  legend_frame_specified = false;
+  title_box            = false;
+  title_box_specified  = false;
+  legend_box           = false;
+  legend_box_specified = false;
 
   annotate = new Annotate( ensemble->source );
   annotate->AddChart( this );
@@ -115,10 +115,10 @@ void Main::SetTitleInside( bool inside )
   this->title_inside = inside;
 }
 
-void Main::SetTitleFrame( bool enable )
+void Main::SetTitleBox( bool enable )
 {
-  title_frame = enable;
-  title_frame_specified = true;
+  title_box = enable;
+  title_box_specified = true;
 }
 
 void Main::SetLegendHeading( const std::string& txt )
@@ -126,10 +126,10 @@ void Main::SetLegendHeading( const std::string& txt )
   legend_obj->heading = txt;
 }
 
-void Main::SetLegendFrame( bool enable )
+void Main::SetLegendBox( bool enable )
 {
-  legend_frame = enable;
-  legend_frame_specified = true;
+  legend_box = enable;
+  legend_box_specified = true;
 }
 
 void Main::SetLegendPos( Pos pos )
@@ -263,7 +263,7 @@ void Main::CalcLegendBoxes(
   legend_obj->CalcLegendDims( g, legend_dims );
   uint32_t lc = legend_obj->Cnt();
 
-  bool framed = legend_frame_specified ? legend_frame : true;
+  bool boxed = legend_box_specified ? legend_box : true;
 
   auto add_lbs = [&](
     AnchorX anchor_x, AnchorY anchor_y, bool can_move = true
@@ -275,7 +275,7 @@ void Main::CalcLegendBoxes(
       {
         U w;
         U h;
-        legend_obj->GetDims( w, h, legend_dims, framed, nx );
+        legend_obj->GetDims( w, h, legend_dims, boxed, nx );
         w += 2 * box_spacing;
         h += 2 * box_spacing;
         g->Add( new Rect( 0, 0, w, h ) );
@@ -460,8 +460,8 @@ void Main::PlaceLegends(
     }
     if ( best_lb_defined ) {
       legend_obj->BuildLegends(
-        legend_frame_specified ? legend_frame : true,
-        AxisColor(), FrameColor(),
+        legend_box_specified ? legend_box : true,
+        AxisColor(), BoxColor(),
         legend_g->AddNewGroup(), best_lb.nx
       );
       build_bb = legend_g->Last()->GetBB();
@@ -482,21 +482,21 @@ void Main::PlaceLegends(
     }
   }
 
-  bool framed =
-    legend_frame_specified ? legend_frame : !legend_obj->heading.empty();
+  bool boxed =
+    legend_box_specified ? legend_box : !legend_obj->heading.empty();
 
   Legend::LegendDims legend_dims;
   legend_obj->CalcLegendDims( legend_g, legend_dims );
 
   if ( legend_obj->pos == Pos::Left || legend_obj->pos == Pos::Right ) {
 
-    U mx = legend_obj->MarginX( framed );
-    U my = legend_obj->MarginY( framed );
+    U mx = legend_obj->MarginX( boxed );
+    U my = legend_obj->MarginY( boxed );
 
     uint32_t nx;
-    legend_obj->GetBestFit( legend_dims, nx, framed, 0, chart_h );
+    legend_obj->GetBestFit( legend_dims, nx, boxed, 0, chart_h );
     legend_obj->BuildLegends(
-      framed, AxisColor(), FrameColor(),
+      boxed, AxisColor(), BoxColor(),
       legend_g->AddNewGroup(), nx
     );
     Object* legend = legend_g->Last();
@@ -547,12 +547,12 @@ void Main::PlaceLegends(
   } else {
 
     U mx = 40;
-    U my = legend_obj->MarginY( framed );
+    U my = legend_obj->MarginY( boxed );
 
     uint32_t nx;
-    legend_obj->GetBestFit( legend_dims, nx, framed, chart_w, 0 );
+    legend_obj->GetBestFit( legend_dims, nx, boxed, chart_w, 0 );
     legend_obj->BuildLegends(
-      framed, AxisColor(), FrameColor(),
+      boxed, AxisColor(), BoxColor(),
       legend_g->AddNewGroup(), nx
     );
     Object* legend = legend_g->Last();
@@ -1373,7 +1373,7 @@ void Main::BuildTitle(
 
   U spacing = 4 * title_size;
 
-  bool framed = title_frame_specified ? title_frame : title_inside;
+  bool boxed = title_box_specified ? title_box : title_inside;
 
   U space_x = 5 * box_spacing;
   U space_y = 1 * box_spacing;
@@ -1415,7 +1415,7 @@ void Main::BuildTitle(
   }
   MoveObjs( Dir::Up, title_objs, avoid_objects, space_x, space_y );
 
-  if ( framed ) {
+  if ( boxed ) {
     bb = text_g->GetBB();
     text_g->Add(
       new Rect(
@@ -1426,8 +1426,8 @@ void Main::BuildTitle(
     );
     text_g->Last()->Attr()->LineColor()->Set( AxisColor() );
     text_g->Last()->Attr()->SetLineWidth( 1 );
-    if ( FrameColor()->IsDefined() ) {
-      text_g->Last()->Attr()->FillColor()->Set( FrameColor() );
+    if ( BoxColor()->IsDefined() ) {
+      text_g->Last()->Attr()->FillColor()->Set( BoxColor() );
     }
     text_g->FrontToBack();
     y = chart_h + space_y;

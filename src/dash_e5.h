@@ -3,7 +3,7 @@ Footnote: https://github.com/soren-kragh/chartus
 FootnotePos: Right
 
 Title: StackedBar and Lollipop
-TitleFrame: On
+TitleBox: On
 
 LegendPos: Above
 

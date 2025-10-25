@@ -5,7 +5,7 @@ Title: Chartus
 SubSubTitle: A command line charting tool
 TitleInside: On
 TitleSize: 2
-FrameColor: darkcyan
+BoxColor: darkcyan
 TextColor: cyan
 
 ChartBox: Off

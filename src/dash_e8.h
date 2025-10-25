@@ -109,7 +109,7 @@ Axis.Y.GridStyle: Solid
 Axis.X.TickSpacing: 999
 TitleSize: 1.2
 TitleInside: On
-TitleFrame: Off
+TitleBox: Off
 TitlePos: Right Bottom
 MacroEnd: SidePanel
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#

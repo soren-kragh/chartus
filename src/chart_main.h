@@ -52,8 +52,8 @@ public:
   SVG::Color* AxisColor( void ) { return &axis_color; }
   SVG::Color* TextColor( void ) { return &text_color; }
 
-  // Specify alternative background color of framed title and legend frames.
-  SVG::Color* FrameColor( void ) { return &frame_color; }
+  // Specify alternative background color of title box and legend box.
+  SVG::Color* BoxColor( void ) { return &box_color; }
 
   void SetTitle( const std::string& txt );
   void SetSubTitle( const std::string& txt );
@@ -62,15 +62,13 @@ public:
   void SetTitleInside( bool inside = true );
   void SetTitleSize( float size ) { title_size = size; }
 
-  // Force the title frame to be drawn or not instead of it being determined
-  // automatically.
-  void SetTitleFrame( bool enable = true );
+  // Force the title box or not instead of it being determined automatically.
+  void SetTitleBox( bool enable = true );
 
   void SetLegendHeading( const std::string& txt );
 
-  // Force the legend frame to be drawn or not instead of it being determined
-  // automatically.
-  void SetLegendFrame( bool enable = true );
+  // Force the legend box or not instead of it being determined automatically.
+  void SetLegendBox( bool enable = true );
 
   // Normally it will strive to place the series legends somewhere inside the
   // chart area, but if the legends obscure too much of the charts you may
@@ -166,7 +164,7 @@ public:
   SVG::Color chart_area_color;
   SVG::Color axis_color;
   SVG::Color text_color;
-  SVG::Color frame_color;
+  SVG::Color box_color;
 
   std::string title;
   std::string sub_title;
@@ -175,15 +173,15 @@ public:
   Pos         title_pos_y;
   bool        title_inside;
   float       title_size;
-  bool        title_frame;
-  bool        title_frame_specified;
+  bool        title_box;
+  bool        title_box_specified;
 
   uint32_t bar_tot = 0;
   uint32_t lol_tot = 0;
 
   Legend* legend_obj;
-  bool    legend_frame;
-  bool    legend_frame_specified;
+  bool    legend_box;
+  bool    legend_box_specified;
 
   float bar_one_width     = 1.00;
   float bar_all_width     = 0.85;

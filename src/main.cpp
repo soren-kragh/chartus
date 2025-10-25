@@ -622,12 +622,12 @@ void do_GlobalLegendHeading( void )
   ensemble.SetLegendHeading( txt );
 }
 
-void do_GlobalLegendFrame( void )
+void do_GlobalLegendBox( void )
 {
-  bool frame;
-  source.GetSwitch( frame );
+  bool boxed;
+  source.GetSwitch( boxed );
   source.ExpectEOL();
-  ensemble.SetLegendFrame( frame );
+  ensemble.SetLegendBox( boxed );
 }
 
 void do_GlobalLegendPos( void )
@@ -775,9 +775,9 @@ void do_TextColor( void )
   source.GetColor( CurChart()->TextColor() );
 }
 
-void do_FrameColor( void )
+void do_BoxColor( void )
 {
-  source.GetColor( CurChart()->FrameColor() );
+  source.GetColor( CurChart()->BoxColor() );
 }
 
 //------------------------------------------------------------------------------
@@ -863,12 +863,12 @@ void do_SubSubTitle( void )
   CurChart()->SetSubSubTitle( txt );
 }
 
-void do_TitleFrame( void )
+void do_TitleBox( void )
 {
-  bool frame;
-  source.GetSwitch( frame );
+  bool boxed;
+  source.GetSwitch( boxed );
   source.ExpectEOL();
-  CurChart()->SetTitleFrame( frame );
+  CurChart()->SetTitleBox( boxed );
 }
 
 void do_TitlePos( void )
@@ -1288,12 +1288,12 @@ void do_LegendHeading( void )
   CurChart()->SetLegendHeading( txt );
 }
 
-void do_LegendFrame( void )
+void do_LegendBox( void )
 {
-  bool frame;
-  source.GetSwitch( frame );
+  bool boxed;
+  source.GetSwitch( boxed );
   source.ExpectEOL();
-  CurChart()->SetLegendFrame( frame );
+  CurChart()->SetLegendBox( boxed );
 }
 
 void do_LegendPos( void )
@@ -1926,7 +1926,7 @@ std::unordered_map< std::string_view, ChartAction > chart_actions = {
   { "Padding"                , do_Padding                 },
   { "GridPadding"            , do_GridPadding             },
   { "GlobalLegendHeading"    , do_GlobalLegendHeading     },
-  { "GlobalLegendFrame"      , do_GlobalLegendFrame       },
+  { "GlobalLegendBox"        , do_GlobalLegendBox         },
   { "GlobalLegendPos"        , do_GlobalLegendPos         },
   { "GlobalLegendSize"       , do_GlobalLegendSize        },
   { "GlobalLegendColor"      , do_GlobalLegendColor       },
@@ -1942,7 +1942,7 @@ std::unordered_map< std::string_view, ChartAction > chart_actions = {
   { "AxisColor"              , do_AxisColor               },
   { "GridColor"              , do_GridColor               },
   { "TextColor"              , do_TextColor               },
-  { "FrameColor"             , do_FrameColor              },
+  { "BoxColor"               , do_BoxColor                },
   { "TitleHTML"              , do_TitleHTML               },
   { "GlobalTitle"            , do_GlobalTitle             },
   { "GlobalSubTitle"         , do_GlobalSubTitle          },
@@ -1953,7 +1953,7 @@ std::unordered_map< std::string_view, ChartAction > chart_actions = {
   { "Title"                  , do_Title                   },
   { "SubTitle"               , do_SubTitle                },
   { "SubSubTitle"            , do_SubSubTitle             },
-  { "TitleFrame"             , do_TitleFrame              },
+  { "TitleBox"               , do_TitleBox                },
   { "TitlePos"               , do_TitlePos                },
   { "TitleInside"            , do_TitleInside             },
   { "TitleSize"              , do_TitleSize               },
@@ -1962,7 +1962,7 @@ std::unordered_map< std::string_view, ChartAction > chart_actions = {
   { "FootnoteSize"           , do_FootnoteSize            },
   { "FootnoteLine"           , do_FootnoteLine            },
   { "LegendHeading"          , do_LegendHeading           },
-  { "LegendFrame"            , do_LegendFrame             },
+  { "LegendBox"              , do_LegendBox               },
   { "LegendPos"              , do_LegendPos               },
   { "LegendSize"             , do_LegendSize              },
   { "BarWidth"               , do_BarWidth                },

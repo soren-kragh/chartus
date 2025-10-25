@@ -50,14 +50,14 @@ uint32_t Legend::Cnt( void )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-SVG::U Legend::MarginX( bool framed )
+SVG::U Legend::MarginX( bool boxed )
 {
-  return (framed ? 1 : 2) * box_spacing;
+  return (boxed ? 1 : 2) * box_spacing;
 }
 
-SVG::U Legend::MarginY( bool framed )
+SVG::U Legend::MarginY( bool boxed )
 {
-  (void)framed;
+  (void)boxed;
   return box_spacing;
 }
 
@@ -289,7 +289,7 @@ void Legend::CalcLegendDims(
 
 void Legend::GetDims(
   SVG::U& w, SVG::U& h,
-  Legend::LegendDims& legend_dims, bool framed, uint32_t nx
+  Legend::LegendDims& legend_dims, bool boxed, uint32_t nx
 )
 {
   uint32_t ny = (Cnt() + nx - 1) / nx;
@@ -298,7 +298,7 @@ void Legend::GetDims(
   w += legend_dims.lx + legend_dims.rx;
   h += legend_dims.hy;
   w = std::max( w, legend_dims.hx );
-  if ( framed ) {
+  if ( boxed ) {
     w += 2 * box_spacing;
     h += 2 * box_spacing;
   }
@@ -307,7 +307,7 @@ void Legend::GetDims(
 //------------------------------------------------------------------------------
 
 bool Legend::GetBestFit(
-  Legend::LegendDims& legend_dims, uint32_t& nx, bool framed,
+  Legend::LegendDims& legend_dims, uint32_t& nx, bool boxed,
   SVG::U avail_x, SVG::U avail_y,
   SVG::U soft_x, SVG::U soft_y
 )
@@ -347,7 +347,7 @@ bool Legend::GetBestFit(
   double best_aspect = num_hi;
 
   for ( uint32_t nx = 1; nx <= Cnt(); ++nx ) {
-    GetDims( need_x, need_y, legend_dims, framed, nx );
+    GetDims( need_x, need_y, legend_dims, boxed, nx );
     uint32_t rem = Cnt() % nx;
     if ( rem > 0 ) rem = nx - rem;
     bool fits =
@@ -387,9 +387,9 @@ bool Legend::GetBestFit(
 ////////////////////////////////////////////////////////////////////////////////
 
 void Legend::BuildLegends(
-  bool framed,
-  SVG::Color* frame_line_color,
-  SVG::Color* frame_fill_color,
+  bool boxed,
+  SVG::Color* box_line_color,
+  SVG::Color* box_fill_color,
   Group* g, int nx
 )
 {
@@ -399,8 +399,8 @@ void Legend::BuildLegends(
   int ny = (Cnt() + nx - 1) / nx;
 
   {
-    U mx = framed ? box_spacing : U( 0 );
-    U my = framed ? box_spacing : U( 0 );
+    U mx = boxed ? box_spacing : U( 0 );
+    U my = boxed ? box_spacing : U( 0 );
     U w = nx * legend_dims.sx + (nx - 1) * legend_dims.dx;
     U h = ny * legend_dims.sy + (ny - 1) * legend_dims.dy;
     w += legend_dims.lx + legend_dims.rx;
@@ -414,12 +414,12 @@ void Legend::BuildLegends(
       r1.x + w + ex + 2 * mx,
       r1.y - h - ey - 2 * my
     };
-    g->Add( new Rect( r1, r2, framed ? box_spacing : U( 0 ) ) );
-    if ( framed ) {
-      g->Last()->Attr()->LineColor()->Set( frame_line_color );
+    g->Add( new Rect( r1, r2, boxed ? box_spacing : U( 0 ) ) );
+    if ( boxed ) {
+      g->Last()->Attr()->LineColor()->Set( box_line_color );
       g->Last()->Attr()->SetLineWidth( 1 );
-      if ( frame_fill_color->IsDefined() ) {
-        g->Last()->Attr()->FillColor()->Set( frame_fill_color );
+      if ( box_fill_color->IsDefined() ) {
+        g->Last()->Attr()->FillColor()->Set( box_fill_color );
       }
     } else {
       g->Last()->Attr()->FillColor()->Clear();
