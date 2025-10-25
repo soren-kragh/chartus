@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Reduce memory usage
 - Support huge files
+- GlobalLegendFrame renamed to GlobalLegendBox
+- FrameColor renamed BoxColor
+- TitleFrame renamed TitleBox
+- LegendFrame renamed LegendBox
 
 ### Deprecated
 

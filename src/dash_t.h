@@ -36,7 +36,7 @@ Series.Data :
 # GlobalTitleSize: 1.0
 # GlobalTitleLine: On
 # GlobalLegendHeading: Metals
-# GlobalLegendFrame: On
+# GlobalLegendBox: On
 # GlobalLegendPos: Bottom
 # GlobalLegendSize: 1.0
 # GlobalLegendColor: lavender
@@ -55,11 +55,11 @@ Series.Data :
 # AxisColor: white
 # GridColor: green
 # TextColor: lightyellow
-# FrameColor: aqua 0 0.5
+# BoxColor: aqua 0 0.5
 # Title:
 # SubTitle:
 # SubSubTitle:
-# TitleFrame: On
+# TitleBox: On
 # TitlePos: Left
 # TitleInside: On
 # TitleSize: 1.0
@@ -86,7 +86,7 @@ Series.Data :
 # Axis.*.NumberPos: Auto
 # Axis.*.NumberSize: 1.0
 # LegendHeading: Countries
-# LegendFrame: On
+# LegendBox: On
 # LegendPos: Below
 # LegendSize: 1.0
 # BarWidth: 0.8 0.7

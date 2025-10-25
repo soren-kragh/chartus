@@ -100,8 +100,8 @@ std::cout << R"EOF(
 # An optional heading for the global legends (see Series.GlobalLegend).
 #GlobalLegendHeading: Metals
 
-# Draw a frame around global legends; may be On or Off; default is Auto.
-#GlobalLegendFrame: On
+# Draw global legends in a box; may be On or Off; default is Auto.
+#GlobalLegendBox: On
 
 # Specify the position of global series legends. If Auto (the default), the
 # global legends will be placed in a free chart grid location if possible, or
@@ -238,9 +238,8 @@ FootnotePos: Right
 #GridColor: green
 #TextColor: lightyellow
 
-# The background color of framed legend box and framed title box (when these are
-# shown).
-#FrameColor: aqua 0 0.5
+# The background color of legend box and title box (when these are shown).
+#BoxColor: aqua 0 0.5
 
 # Titles are normally placed at the top of the chart.
 Title: This is the title of the chart
@@ -251,10 +250,9 @@ SubTitle:
 SubSubTitle:
   An extra even smaller title
 
-# Normally it is determined automatically whether a frame should be drawn around
-# the titles; specifying TitleFrame forces the frame to be shown or not; may
-# be On or Off.
-#TitleFrame: On
+# Normally it is determined automatically whether titles should be drawn in a
+# box; specifying TitleBox forces the box to be drawn or not; may be On or Off.
+#TitleBox: On
 
 # May be Left, Right, or Center; default is Center. The optional second argument
 # may be Top or Bottom and sets the vertical alignment when inside the chart
@@ -264,7 +262,7 @@ SubSubTitle:
 # Specifies if the title(s) should be placed inside the chart area; may be On or
 # Off (default). Caution is advised when doing this as it may block out other
 # chart elements, but for relatively small titles it can make sense. Specifying
-# a semi-transparent FrameColor can also help in this case.
+# a semi-transparent BoxColor can also help in this case.
 #TitleInside: On
 
 # Set the relative size of titles.
@@ -416,10 +414,9 @@ SubSubTitle:
 # An optional legend heading.
 #LegendHeading: Types of Food
 
-# Normally it is determined automatically whether a frame should be drawn around
-# the legends; specifying LegendFrame forces the frame to be shown or not; may
-# be On or Off.
-#LegendFrame: On
+# Normally it is determined automatically whether legends should be drawn in a
+# box; specifying LegendBox forces the box to be drawn or not; may be On or Off.
+#LegendBox: On
 
 # Legend position may be Auto, Left, Right, Top, or Bottom. Legends for the
 # series are normally (Auto) placed somewhere inside the core chart area, but if

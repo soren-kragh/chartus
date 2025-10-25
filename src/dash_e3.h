@@ -13,7 +13,7 @@ TitleInside: On
 
 # The title obscures the graph (due to TitleInside), so make the title box a
 # little transparent so the graphs can be glimpsed behind the title box.
-FrameColor: white 0.0 0.3
+BoxColor: white 0.0 0.3
 
 # All legends are the same, so make them global instead of
 # repeating them for each chart (which is too small anyway).

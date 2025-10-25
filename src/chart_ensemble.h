@@ -76,7 +76,7 @@ public:
   }
 
   void SetLegendHeading( const std::string& txt );
-  void SetLegendFrame( bool enable = true );
+  void SetLegendBox( bool enable = true );
   void SetLegendPos( Pos pos );
   bool SetLegendPos(
     uint32_t grid_row1, uint32_t grid_col1,
@@ -142,8 +142,8 @@ public:
   float       title_size = 1.0;
 
   Legend*    legend_obj;
-  bool       legend_frame;
-  bool       legend_frame_specified;
+  bool       legend_box;
+  bool       legend_box_specified;
   SVG::Color legend_color;
 
   struct footnote_t {

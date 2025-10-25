@@ -59,8 +59,8 @@ public:
     SVG::U hy;  // Heading Y width.
   };
 
-  SVG::U MarginX( bool framed );
-  SVG::U MarginY( bool framed );
+  SVG::U MarginX( bool boxed );
+  SVG::U MarginY( bool boxed );
 
   void CalcLegendDims(
     SVG::Group* g, Legend::LegendDims& legend_dims
@@ -69,22 +69,22 @@ public:
   // Get dimensions of legends when nx legends in the X direction.
   void GetDims(
     SVG::U& w, SVG::U& h,
-    Legend::LegendDims& legend_dims, bool framed, uint32_t nx
+    Legend::LegendDims& legend_dims, bool boxed, uint32_t nx
   );
 
   // Compute the number (nx) of legends in the X direction that best fits
   // the available area.
   // Return value indicates if legends fit within the given available area.
   bool GetBestFit(
-    Legend::LegendDims& legend_dims, uint32_t& nx, bool framed,
+    Legend::LegendDims& legend_dims, uint32_t& nx, bool boxed,
     SVG::U avail_x, SVG::U avail_y,
     SVG::U soft_x = 0.0, SVG::U soft_y = 0.0
   );
 
   void BuildLegends(
-    bool framed,
-    SVG::Color* frame_line_color,
-    SVG::Color* frame_fill_color,
+    bool boxed,
+    SVG::Color* box_line_color,
+    SVG::Color* box_fill_color,
     SVG::Group* g, int nx
   );
 
