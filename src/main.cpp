@@ -917,21 +917,16 @@ void do_TitleBox( void )
 
 void do_TitlePos( void )
 {
-  Chart::Pos pos_x;
-  Chart::Pos pos_y = Chart::Pos::Top;
+  Chart::Pos pos1 = Chart::Pos::Undef;
+  Chart::Pos pos2 = Chart::Pos::Undef;
 
   source.SkipWS();
-  do_Pos( pos_x );
-
-  if ( !source.AtEOL() ) {
-    source.ExpectWS();
-    if ( !source.AtEOL() ) {
-      do_Pos( pos_y );
-    }
-  }
-
+  do_Pos( pos1 );
+  source.SkipWS();
+  if ( !source.AtEOL() ) do_Pos( pos2 );
   source.ExpectEOL();
-  CurChart()->SetTitlePos( pos_x, pos_y );
+
+  CurChart()->SetTitlePos( pos1, pos2 );
 }
 
 void do_TitleInside( void )

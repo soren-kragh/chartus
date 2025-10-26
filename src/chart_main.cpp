@@ -111,12 +111,20 @@ void Main::SetSubSubTitle( const std::string& txt )
   sub_sub_title = txt;
 }
 
-void Main::SetTitlePos( Pos pos_x, Pos pos_y )
+void Main::SetTitlePos( Pos pos1, Pos pos2 )
 {
-  if ( pos_x != Pos::Left && pos_x != Pos::Right ) pos_x = Pos::Center;
-  if ( pos_y != Pos::Bottom ) pos_y = Pos::Top;
-  this->title_pos_x = pos_x;
-  this->title_pos_y = pos_y;
+  this->title_pos_x = Pos::Center;
+  this->title_pos_y = Pos::Top;
+
+  if ( pos1 == Pos::Left   ) this->title_pos_x = pos1;
+  if ( pos1 == Pos::Right  ) this->title_pos_x = pos1;
+  if ( pos1 == Pos::Bottom ) this->title_pos_y = pos1;
+  if ( pos1 == Pos::Top    ) this->title_pos_y = pos1;
+
+  if ( pos2 == Pos::Left   ) this->title_pos_x = pos2;
+  if ( pos2 == Pos::Right  ) this->title_pos_x = pos2;
+  if ( pos2 == Pos::Bottom ) this->title_pos_y = pos2;
+  if ( pos2 == Pos::Top    ) this->title_pos_y = pos2;
 }
 
 void Main::SetTitleInside( bool inside )

@@ -62,7 +62,7 @@ public:
   void SetTitle( const std::string& txt );
   void SetSubTitle( const std::string& txt );
   void SetSubSubTitle( const std::string& txt );
-  void SetTitlePos( Pos pos_x, Pos pos_y = Pos::Top );
+  void SetTitlePos( Pos pos1 = Pos::Undef, Pos pos2 = Pos::Undef );
   void SetTitleInside( bool inside = true );
   void SetTitleSize( float size ) { title_size = size; }
 
