@@ -1679,7 +1679,8 @@ void Series::BuildLine(
     if ( !clipped ) {
       if ( marker_show ) PrunePointsAdd( mark_ps, p );
       if ( html_db ) {
-        cat_idx_t cat_idx = static_cast< cat_idx_t >( x );
+        cat_idx_t cat_idx = 0;
+        if ( is_cat ) cat_idx = static_cast< cat_idx_t >( x );
         html_db->RecordSnapPoint( this, p, cat_idx, tag_x, tag_y );
       }
     }
