@@ -433,8 +433,18 @@ SubSubTitle:
 # Legend position may be Auto, Left, Right, Top, or Bottom. Legends for the
 # series are normally (Auto) placed somewhere inside the core chart area, but if
 # this gets too cluttered you may place the series legends outside the core
-# chart area.
+# chart area; this is achieved by supplying one single position. If two
+# positions are given, the legends are however still placed inside the core
+# chart area but constrained to the given position. In this case an optional
+# additional number may be given constraining the number of legends per row to
+# that number. Note that the position may be ignored if it cannot be realized.
+# Place below core chart area:
 #LegendPos: Bottom
+# Constrain to the right side inside the core chart area:
+#LegendPos: Right Auto
+# Constrain to two legends per row, but otherwise place automatically somewhere
+# inside the core chart area:
+#LegendPos: Auto Auto 2
 
 # Set the relative size of legend box texts.
 #LegendSize: 1.0

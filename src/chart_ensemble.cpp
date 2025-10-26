@@ -29,6 +29,7 @@ Ensemble::Ensemble( Source* source )
   top_g = canvas->TopGroup()->AddNewGroup();
   html_db = new HTML( this );
   legend_obj = new Legend( this );
+  legend_obj->pos1 = Pos::Auto;
 
   foreground_color.Set( ColorName::black );
   background_color.Set( ColorName::white );
@@ -205,7 +206,7 @@ void Ensemble::SetLegendPos( Pos pos )
     grid.element_list.end()
   );
 
-  legend_obj->pos = pos;
+  legend_obj->pos1 = pos;
   legend_obj->grid_coor_specified = false;
 }
 
@@ -492,7 +493,7 @@ void Ensemble::BuildLegends( void )
     moved_bb = legend->GetBB();
   }
 
-  if ( !build_bb.Defined() && legend_obj->pos == Pos::Auto ) {
+  if ( !build_bb.Defined() && legend_obj->pos1 == Pos::Auto ) {
     std::vector< Grid::hole_t > holes;
 
     grid.GetHoles( holes );
@@ -575,13 +576,13 @@ void Ensemble::BuildLegends( void )
   if ( !build_bb.Defined() ) {
     BoundaryBox all_bb = top_g->GetBB();
 
-    if ( legend_obj->pos == Pos::Left || legend_obj->pos == Pos::Right ) {
+    if ( legend_obj->pos1 == Pos::Left || legend_obj->pos1 == Pos::Right ) {
 
       U mx = legend_obj->MarginX( boxed );
       U x = all_bb.min.x - mx;
       U y = all_bb.max.y;
       AnchorX anchor_x = AnchorX::Max;
-      if ( legend_obj->pos == Pos::Right ) {
+      if ( legend_obj->pos1 == Pos::Right ) {
         x = all_bb.max.x + mx;
         anchor_x = AnchorX::Min;
       }
@@ -603,7 +604,7 @@ void Ensemble::BuildLegends( void )
       U x = (all_bb.min.x + all_bb.max.x) / 2;
       U y = all_bb.min.y - my;
       AnchorY anchor_y = AnchorY::Max;
-      if ( legend_obj->pos == Pos::Top ) {
+      if ( legend_obj->pos1 == Pos::Top ) {
         y = all_bb.max.y + my;
         anchor_y = AnchorY::Min;
       }

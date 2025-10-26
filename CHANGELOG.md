@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Add ChartFrame
 - Add ChartFrameColor
 - Add ChartCanvasColor
+- Extend flexibility of LegendPos
 
 ### Changed
 - Reduce memory usage

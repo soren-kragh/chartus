@@ -76,8 +76,11 @@ public:
 
   // Normally it will strive to place the series legends somewhere inside the
   // chart area, but if the legends obscure too much of the charts you may
-  // specify a location outside the chart area.
-  void SetLegendPos( Pos pos );
+  // specify a location outside the chart area (if only pos1 is given). If both
+  // pos1 and pos2 are give, the legends will be placed inside the chart area at
+  // the given position. If force_nx > 0 the number of legends in the horizontal
+  // direction is forced to that value.
+  void SetLegendPos( Pos pos1, Pos pos2 = Pos::Undef, uint32_t force_nx = 0 );
 
   // Legend text size scaling factor.
   void SetLegendSize( float size );

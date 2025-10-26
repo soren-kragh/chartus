@@ -33,7 +33,9 @@ public:
 
   std::vector< Series* > series_list;
   std::string heading;
-  Pos pos = Pos::Auto;
+  Pos pos1 = Pos::Auto;
+  Pos pos2 = Pos::Undef;
+  uint32_t force_nx = 0;
   bool grid_coor_specified = false;
   float size = 1.0;
 

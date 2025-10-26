@@ -149,9 +149,11 @@ void Main::SetLegendBox( bool enable )
   legend_box_specified = true;
 }
 
-void Main::SetLegendPos( Pos pos )
+void Main::SetLegendPos( Pos pos1, Pos pos2, uint32_t force_nx )
 {
-  legend_obj->pos = pos;
+  legend_obj->pos1 = pos1;
+  legend_obj->pos2 = pos2;
+  legend_obj->force_nx = force_nx;
 }
 
 void Main::SetLegendSize( float size )
@@ -282,10 +284,74 @@ void Main::CalcLegendBoxes(
 
   bool boxed = legend_box_specified ? legend_box : true;
 
+  AnchorX force_anchor_x;
+  bool force_x = false;
+  AnchorY force_anchor_y;
+  bool force_y = false;
+
+  if ( legend_obj->pos2 != Pos::Undef ) {
+    if ( legend_obj->pos1 == Pos::Center ) {
+      if ( legend_obj->pos2 == Pos::Left || legend_obj->pos2 == Pos::Right ) {
+        force_anchor_y = AnchorY::Mid;
+        force_y = true;
+      } else {
+        force_anchor_x = AnchorX::Mid;
+        force_x = true;
+      }
+    }
+    if ( legend_obj->pos1 == Pos::Left ) {
+      force_anchor_x = AnchorX::Min;
+      force_x = true;
+    }
+    if ( legend_obj->pos1 == Pos::Right ) {
+      force_anchor_x = AnchorX::Max;
+      force_x = true;
+    }
+    if ( legend_obj->pos1 == Pos::Bottom ) {
+      force_anchor_y = AnchorY::Min;
+      force_y = true;
+    }
+    if ( legend_obj->pos1 == Pos::Top ) {
+      force_anchor_y = AnchorY::Max;
+      force_y = true;
+    }
+    if ( legend_obj->pos2 == Pos::Center ) {
+      if ( legend_obj->pos1 == Pos::Bottom || legend_obj->pos1 == Pos::Top ) {
+        force_anchor_x = AnchorX::Mid;
+        force_x = true;
+      } else {
+        force_anchor_y = AnchorY::Mid;
+        force_y = true;
+      }
+    }
+    if ( legend_obj->pos2 == Pos::Left ) {
+      force_anchor_x = AnchorX::Min;
+      force_x = true;
+    }
+    if ( legend_obj->pos2 == Pos::Right ) {
+      force_anchor_x = AnchorX::Max;
+      force_x = true;
+    }
+    if ( legend_obj->pos2 == Pos::Bottom ) {
+      force_anchor_y = AnchorY::Min;
+      force_y = true;
+    }
+    if ( legend_obj->pos2 == Pos::Top ) {
+      force_anchor_y = AnchorY::Max;
+      force_y = true;
+    }
+  }
+
+  if ( legend_obj->force_nx > 0 && legend_obj->force_nx > lc ) {
+    legend_obj->force_nx = lc;
+  }
+
   auto add_lbs = [&](
     AnchorX anchor_x, AnchorY anchor_y, bool can_move = true
   )
   {
+    if ( force_x && force_anchor_x != anchor_x ) return;
+    if ( force_y && force_anchor_y != anchor_y ) return;
     uint32_t nx = (anchor_x == AnchorX::Mid) ? lc :  1;
     uint32_t ny = (anchor_x == AnchorX::Mid) ?  1 : lc;
     while ( nx > 0 && ny > 0 ) {
@@ -346,7 +412,8 @@ void Main::CalcLegendBoxes(
             (lb.bb.max.x - lb.bb.min.x) > (lb.bb.max.y - lb.bb.min.y)
           ) &&
           lb.bb.min.x > -epsilon && lb.bb.max.x < chart_w + epsilon &&
-          lb.bb.min.y > -epsilon && lb.bb.max.y < chart_h + epsilon
+          lb.bb.min.y > -epsilon && lb.bb.max.y < chart_h + epsilon &&
+          (legend_obj->force_nx == 0 || legend_obj->force_nx == nx)
         ) {
           lb.nx = nx;
           lb.sp = nx * ny - lc;
@@ -444,7 +511,10 @@ void Main::PlaceLegends(
   BoundaryBox build_bb;
   BoundaryBox moved_bb;
 
-  if ( legend_obj->pos == Pos::Auto ) {
+  if (
+    (legend_obj->pos1 == Pos::Auto && legend_obj->pos2 == Pos::Undef) ||
+    legend_obj->pos2 != Pos::Undef
+  ) {
     AnchorX title_anchor_x = AnchorX::Mid;
     if ( title_pos_x == Pos::Left ) title_anchor_x = AnchorX::Min;
     if ( title_pos_x == Pos::Right ) title_anchor_x = AnchorX::Max;
@@ -495,7 +565,7 @@ void Main::PlaceLegends(
       );
       return;
     } else {
-      legend_obj->pos = Pos::Bottom;
+      legend_obj->pos1 = Pos::Bottom;
     }
   }
 
@@ -505,7 +575,7 @@ void Main::PlaceLegends(
   Legend::LegendDims legend_dims;
   legend_obj->CalcLegendDims( legend_g, legend_dims );
 
-  if ( legend_obj->pos == Pos::Left || legend_obj->pos == Pos::Right ) {
+  if ( legend_obj->pos1 == Pos::Left || legend_obj->pos1 == Pos::Right ) {
 
     U mx = legend_obj->MarginX( boxed );
     U my = legend_obj->MarginY( boxed );
@@ -522,7 +592,7 @@ void Main::PlaceLegends(
     U x = 0 - mx;
     Dir dir = Dir::Left;
     AnchorX anchor_x = AnchorX::Max;
-    if ( legend_obj->pos == Pos::Right ) {
+    if ( legend_obj->pos1 == Pos::Right ) {
       x = chart_w + mx;
       dir = Dir::Right;
       anchor_x = AnchorX::Min;
@@ -540,7 +610,7 @@ void Main::PlaceLegends(
       BoundaryBox bb = legend->GetBB();
       if (
         !best_found ||
-        ( (legend_obj->pos == Pos::Right)
+        ( (legend_obj->pos1 == Pos::Right)
           ? (bb.min.x + epsilon < best_x)
           : (bb.min.x - epsilon > best_x)
         )
@@ -578,7 +648,7 @@ void Main::PlaceLegends(
     U y = 0 - my;
     Dir dir = Dir::Down;
     AnchorY anchor_y = AnchorY::Max;
-    if ( legend_obj->pos == Pos::Top ) {
+    if ( legend_obj->pos1 == Pos::Top ) {
       y = chart_h + my;
       dir = Dir::Up;
       anchor_y = AnchorY::Min;
@@ -596,7 +666,7 @@ void Main::PlaceLegends(
       BoundaryBox bb = legend->GetBB();
       if (
         !best_found ||
-        ( (legend_obj->pos == Pos::Top)
+        ( (legend_obj->pos1 == Pos::Top)
           ? (bb.min.y + epsilon < best_y)
           : (bb.min.y - epsilon > best_y)
         )

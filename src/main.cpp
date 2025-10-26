@@ -1337,11 +1337,25 @@ void do_LegendBox( void )
 
 void do_LegendPos( void )
 {
-  Chart::Pos pos;
+  Chart::Pos pos1 = Chart::Pos::Undef;
+  Chart::Pos pos2 = Chart::Pos::Undef;
+  int64_t force_nx = 0;
   source.SkipWS();
-  do_Pos( pos );
+  do_Pos( pos1 );
+  source.SkipWS();
+  if ( !source.AtEOL() ) {
+    do_Pos( pos2 );
+    source.SkipWS();
+    if ( !source.AtEOL() ) {
+      if ( !source.GetInt64( force_nx ) ) {
+        source.ParseErr( "malformed number", true );
+      }
+      if ( force_nx < 0 ) force_nx = 0;
+      if ( force_nx > 1e6 ) force_nx = 1e6;
+    }
+  }
   source.ExpectEOL();
-  CurChart()->SetLegendPos( pos );
+  CurChart()->SetLegendPos( pos1, pos2, static_cast< uint32_t >( force_nx ) );
 }
 
 void do_LegendSize( void )
