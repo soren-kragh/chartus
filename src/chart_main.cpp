@@ -30,8 +30,6 @@ Main::Main( Ensemble* ensemble, SVG::Group* svg_g )
 
   this->ensemble = ensemble;
   this->svg_g = svg_g;
-  frame_color.Set( ColorName::black );
-  canvas_color.Set( ColorName::white );
   chart_area_color.Clear();
   box_color.Undef();
   title_pos_x  = Pos::Center;
@@ -1752,6 +1750,13 @@ void Main::PrepareHTML( void )
 
 void Main::Build( void )
 {
+  if ( !FrameColor()->IsDefined() ) {
+    FrameColor()->Set( ensemble->ForegroundColor() );
+  }
+  if ( !CanvasColor()->IsDefined() ) {
+    CanvasColor()->Set( ensemble->BackgroundColor() );
+  }
+
   if ( !AxisColor()->IsDefined() ) {
     AxisColor()->Set( ensemble->ForegroundColor() );
   }
