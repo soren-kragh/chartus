@@ -24,7 +24,7 @@ Series.Data :
 #
 # TitleHTML: Chartus
 # Margin: 5
-# BorderWidth: 5
+# BorderWidth: 5 25
 # BorderColor: navy
 # Padding: 10
 # ForegroundColor: skyblue

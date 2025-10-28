@@ -794,7 +794,7 @@ void Ensemble::BuildBackground( void )
     bb.min.y -= padding + border_width / 2;
     bb.max.y += padding + border_width / 2;
 
-    top_g->Add( new Rect( bb.min, bb.max ) );
+    top_g->Add( new Rect( bb.min, bb.max, border_radius ) );
     top_g->Last()->Attr()->SetLineWidth( border_width );
     if ( border_width > 0 ) {
       top_g->Last()->Attr()->LineColor()->Set( BorderColor() );

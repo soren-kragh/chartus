@@ -552,15 +552,15 @@ void do_NewChartInChart( void )
 
 void do_Margin( void )
 {
-  double m;
+  double margin;
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "margin expected" );
-  source.GetDouble( m );
-  if ( m < 0 || m > 1000 ) {
+  source.GetDouble( margin );
+  if ( margin < 0 || margin > 1000 ) {
     source.ParseErr( "margin out of range [0;1000]", true );
   }
   source.ExpectEOL();
-  ensemble.SetMargin( m );
+  ensemble.SetMargin( margin );
 }
 
 void do_BorderColor( void )
@@ -570,28 +570,36 @@ void do_BorderColor( void )
 
 void do_BorderWidth( void )
 {
-  double m;
+  double width = 0;
+  double radius = 0;
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "border width expected" );
-  source.GetDouble( m );
-  if ( m < 0 || m > 1000 ) {
+  source.GetDouble( width );
+  if ( width < 0 || width > 1000 ) {
     source.ParseErr( "border width out of range [0;1000]", true );
   }
+  source.SkipWS();
+  if ( !source.AtEOL() ) {
+    source.GetDouble( radius );
+    if ( radius < 0 || radius > 1000 ) {
+      source.ParseErr( "border radius out of range [0;1000]", true );
+    }
+  }
   source.ExpectEOL();
-  ensemble.SetBorderWidth( m );
+  ensemble.SetBorderWidth( width, radius );
 }
 
 void do_Padding( void )
 {
-  double m;
+  double padding;
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "padding expected" );
-  source.GetDouble( m );
-  if ( m < 0 || m > 1000 ) {
+  source.GetDouble( padding );
+  if ( padding < 0 || padding > 1000 ) {
     source.ParseErr( "padding out of range [0;1000]", true );
   }
   source.ExpectEOL();
-  ensemble.SetPadding( m );
+  ensemble.SetPadding( padding );
 }
 
 void do_GridPadding( void )
@@ -2203,6 +2211,7 @@ int main( int argc, char* argv[] )
     if ( !out_of_options ) {
       if ( a == "-H" ) {
         ensemble.EnableHTML( true );
+        ensemble.SetMargin( 10 );
         continue;
       }
       if ( a == "-v" || a == "--version" ) {

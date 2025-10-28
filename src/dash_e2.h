@@ -1,6 +1,6 @@
 std::cout << R"EOF(
 
-BorderWidth: 5
+BorderWidth: 5 20
 BorderColor: midnightblue 0.4
 ForegroundColor: white
 BackgroundColor: midnightblue -0.4

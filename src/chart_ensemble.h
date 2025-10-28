@@ -58,7 +58,10 @@ public:
   void SetTitleLine( bool line = true ) { title_line = line; }
 
   void SetMargin( SVG::U margin ) { this->margin = margin; }
-  void SetBorderWidth( SVG::U width ) { border_width = width; }
+  void SetBorderWidth( SVG::U width, SVG::U radius ) {
+    border_width = width;
+    border_radius = radius;
+  }
   SVG::Color* BorderColor( void ) { return &border_color; }
   SVG::Color* ForegroundColor( void ) { return &foreground_color; }
   SVG::Color* BackgroundColor( void ) { return &background_color; }
@@ -120,11 +123,12 @@ public:
   SVG::Color foreground_color;
   SVG::Color background_color;
   SVG::Color border_color;
-  SVG::U margin       = 0;
-  SVG::U border_width = -1;
-  SVG::U padding      = -1;
-  SVG::U grid_padding = 12;
-  SVG::U area_padding = 0;
+  SVG::U margin        = 0;
+  SVG::U border_width  = -1;
+  SVG::U border_radius = 0;
+  SVG::U padding       = -1;
+  SVG::U grid_padding  = 12;
+  SVG::U area_padding  = 0;
 
   SVG::U max_area_pad = 0;
 
