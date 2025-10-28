@@ -142,6 +142,12 @@ FootnotePos: Right
 # and the third optional number is the baseline adjustment factor.
 #LetterSpacing: 1.8 1.1 0.8
 
+# Chartus uses monospace font in order to make the SVG as platform independent
+# as possible, this often results in slashed zeros which does not look so good.
+# ZeroToO allows you to replace digit '0' with the letter capital 'O'; may be On
+# or Off. Default is On.
+#ZeroToO: true
+
 # Padding (in points) around individual charts in the grid; default is 12. This
 # setting only has any effect when having multiple charts. A negative value
 # means that only the core chart areas are considered when placing the charts in

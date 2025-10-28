@@ -45,6 +45,7 @@ Series.Data :
 # FootnoteLine: On
 # FootnoteSize: 1.0
 # LetterSpacing: 1.8 1.1 0.8
+# ZeroToO: false
 # GridPadding: 0 12
 # NewChartInGrid: 0 0 3 0 Center Bottom
 # NewChartInChart: 0 0 Bottom Right

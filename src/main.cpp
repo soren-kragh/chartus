@@ -700,6 +700,14 @@ void do_LetterSpacing( void )
   ensemble.SetLetterSpacing( width_adj, height_adj, baseline_adj );
 }
 
+void do_ZeroToO( void )
+{
+  bool zero_to_o;
+  source.GetSwitch( zero_to_o );
+  source.ExpectEOL();
+  ensemble.SetZeroToO( zero_to_o );
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 void do_ChartPadding( void )
@@ -1997,6 +2005,7 @@ std::unordered_map< std::string_view, ChartAction > chart_actions = {
   { "GlobalLegendSize"       , do_GlobalLegendSize        },
   { "GlobalLegendColor"      , do_GlobalLegendColor       },
   { "LetterSpacing"          , do_LetterSpacing           },
+  { "ZeroToO"                , do_ZeroToO                 },
   { "NewChartInGrid"         , do_NewChartInGrid          },
   { "NewChartInChart"        , do_NewChartInChart         },
   { "ChartPadding"           , do_ChartPadding            },

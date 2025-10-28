@@ -43,6 +43,7 @@ public:
   void SetLetterSpacing(
     float width_adj, float height_adj = 1.0, float baseline_adj = 1.0
   );
+  void SetZeroToO( bool zero_to_o ) { this->zero_to_o = zero_to_o; }
 
   void EnableHTML( bool enable = true ) { enable_html = enable; }
 
@@ -119,6 +120,7 @@ public:
   float width_adj    = 1.0;
   float height_adj   = 1.0;
   float baseline_adj = 1.0;
+  bool zero_to_o     = true;
 
   SVG::Color foreground_color;
   SVG::Color background_color;
