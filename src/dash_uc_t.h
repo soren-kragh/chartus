@@ -203,8 +203,10 @@ FootnotePos: Right
 
 # NewChartInChart has the same syntax as NewChartInGrid but with grid collision
 # check disabled. A typical (if not only) use case for this is to embed a
-# smaller chart within and on top of another chart. Note that when starting a
-# new chart with NewChartInChart, the ChartPadding (see below) defaults to 12 0.
+# smaller chart within and on top of another chart. When starting a new chart
+# with NewChartInChart, the ChartPadding (see below) defaults to 12 0. Please
+# note that the new chart is just placed on top of whatever previous charts were
+# drawn before, so more manual adjustments than usual might be needed.
 #NewChartInChart: 0 0 Left Top
 
 # Defines the padding for the current chart, it works somewhat like GridPadding
@@ -227,6 +229,8 @@ FootnotePos: Right
 # the frame. When organizing framed charts in a grid you probably want to align
 # relative to the frames rather than the core chart areas, use ChartPadding
 # for this (e.g. ChartPadding: 0).
+# Trick: You can also use an invisible annotation to manually control where the
+# frame is drawn relative to the core chart area.
 #ChartFrame: 5 8 0
 
 # Specifies the color of the chart frame and the color of the canvas within the

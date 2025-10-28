@@ -28,12 +28,14 @@ $(BUILD_DIR)/%.o: %.cpp $(INCS)
 
 examples: $(TARGET)
 	@mkdir -p ${BUILD_DIR}
-	@for i in 1 2 3 4 5 6 7 8 9; do \
+	@for i in 1 2 3 4 5 6 7 8 9 10; do \
 	  echo "Generating example $${i}..."; \
 	  ${TARGET} -e$${i} >${BUILD_DIR}/e$${i}.txt; \
 	  ${TARGET} ${BUILD_DIR}/e$${i}.txt >e$${i}.svg; \
 	done
-	@cat `ls -1 e?.svg` | cksum
+	@for i in 1 2 3 4 5 6 7 8 9 10; do \
+	  cat e$${i}.svg; \
+	done | cksum
 
 install: $(TARGET) $(SCRIPT)
 	install -d $(BINDIR)
@@ -48,6 +50,6 @@ uninstall:
 
 clean:
 	rm -rf $(BUILD_DIR) $(TARGET)
-	rm -f e?.svg
+	rm -f *.svg *.png *.html
 
 .PHONY: all examples install uninstall clean

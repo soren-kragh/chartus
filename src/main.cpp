@@ -381,6 +381,11 @@ void gen_example( int N )
 
       break;
     }
+    case 10:
+    {
+      #include <dash_e10.h>
+      break;
+    }
   }
   return;
 }
@@ -2254,6 +2259,10 @@ int main( int argc, char* argv[] )
       }
       if ( a == "-e9" ) {
         gen_example( 9 );
+        return 0;
+      }
+      if ( a == "-e10" ) {
+        gen_example( 10 );
         return 0;
       }
       if ( a != "-" && a[ 0 ] == '-' ) {

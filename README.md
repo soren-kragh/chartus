@@ -69,7 +69,7 @@ make uninstall PREFIX=$HOME/.local
 # Built-In Examples
 
 The built-in examples are generated with `chartus -eN` where `N` is a number
-from 1 to 9. Use the simple template (`chartus -t`) as a starting point, then
+from 1 to 10. Use the simple template (`chartus -t`) as a starting point, then
 study the inspirational examples for more fancy layout and styling, if needed.
 
 ## Example 1
