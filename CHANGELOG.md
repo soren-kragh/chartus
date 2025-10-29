@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Add ChartCanvasColor
 - Extend flexibility of LegendPos
 - Add ZeroToO
+- Add Series.Staircase
 
 ### Changed
 - Reduce memory usage

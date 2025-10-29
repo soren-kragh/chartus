@@ -39,6 +39,7 @@ struct state_t {
   bool defining_series = false;
   bool series_type_defined = false;
   Chart::SeriesType series_type = Chart::SeriesType::Line;
+  bool staircase = false;
   bool snap = true;
   double prune_dist = 0.3;
   Chart::cat_idx_t category_idx = 0;
@@ -1480,6 +1481,7 @@ void AddSeries( std::string name = "" )
   state.series_list.push_back( CurChart()->AddSeries( state.series_type ) );
   auto series = state.series_list.back();
   series->SetName( name );
+  series->SetStaircase( state.staircase );
   series->SetSnap( state.snap );
   series->SetPruneDist( state.prune_dist );
   series->SetGlobalLegend( state.global_legend );
@@ -1536,6 +1538,15 @@ void do_Series_New( void )
   std::string txt;
   source.GetText( txt, true );
   AddSeries( txt );
+}
+
+void do_Series_Staircase( void )
+{
+  source.GetSwitch( state.staircase );
+  source.ExpectEOL();
+  if ( state.defining_series ) {
+    state.series_list.back()->SetStaircase( state.staircase );
+  }
 }
 
 void do_Series_Snap( void )
@@ -2048,6 +2059,7 @@ std::unordered_map< std::string_view, ChartAction > chart_actions = {
   { "BarMargin"              , do_BarMargin               },
   { "Series.Type"            , do_Series_Type             },
   { "Series.New"             , do_Series_New              },
+  { "Series.Staircase"       , do_Series_Staircase        },
   { "Series.Snap"            , do_Series_Snap             },
   { "Series.Prune"           , do_Series_Prune            },
   { "Series.GlobalLegend"    , do_Series_GlobalLegend     },

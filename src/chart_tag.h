@@ -33,8 +33,9 @@ public:
   bool Collision( const SVG::BoundaryBox& bb );
 
   // Used for line and point type series. The connected argument indicates if
-  // this point is connected to the previous point. A tag will only be added
-  // for valid datum.
+  // this point is connected to the previous point. A tag will only be added for
+  // valid datum. The direction indicates the preferred direction in which to
+  // place the tag.
   void LineTag(
     Series* series, SVG::Group* tag_g,
     SVG::Point p,
@@ -85,9 +86,9 @@ public:
   // takes up.
   SVG::U GetBeyond( Series* series, SVG::Group* tag_g );
 
-  // The direction indicates the preferred direction in which to place the tag.
   SVG::Group* AddLineTag( void );
 
+  // The direction indicates the preferred direction in which to place the tag.
   SVG::Group* AddBarTag(
     Series* series, SVG::Group* tag_g,
     SVG::Point p1, SVG::Point p2, std::string_view tag_y,

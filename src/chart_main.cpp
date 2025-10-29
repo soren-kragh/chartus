@@ -731,19 +731,20 @@ void Main::AxisPrepare( SVG::Group* tag_g )
   }
 
   if ( category_axis ) {
-    bool no_bar = true;
+    bool no_bar_or_stair = true;
     for ( auto series : series_list ) {
       if (
         series->type == SeriesType::Bar ||
         series->type == SeriesType::StackedBar ||
         series->type == SeriesType::LayeredBar ||
-        series->type == SeriesType::Lollipop
+        series->type == SeriesType::Lollipop ||
+        series->staircase
       )
-        no_bar = false;
+        no_bar_or_stair = false;
     }
     axis_x->category_axis = true;
     axis_x->log_scale = false;
-    axis_x->min = (no_bar && category_num > 0) ? 0.0 : -0.5;
+    axis_x->min = (no_bar_or_stair && category_num > 0) ? 0.0 : -0.5;
     axis_x->max =
       axis_x->min
       + std::max( category_num, cat_idx_t( 1 ) )
@@ -1215,7 +1216,6 @@ void Main::SeriesPrepare(
     series->axis_x = axis_x;
     series->axis_y = axis_y[ series->axis_y_n ];
     series->lb_list = lb_list;
-    series->tag_db = tag_db;
     if ( ensemble->enable_html ) {
       if ( series->snap_enable ) {
         series->html_db = ensemble->html_db;

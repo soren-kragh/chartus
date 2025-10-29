@@ -35,7 +35,6 @@ Series::Series( Main* main, SeriesType type )
   axis_y = nullptr;
   axis_y_n = 0;
   base = 0;
-  tag_db = nullptr;
   tag_enable = false;
   tag_pos = Pos::Auto;
   tag_size = 1.0;
@@ -1212,7 +1211,7 @@ void Series::BuildArea(
       }
     }
     if ( tag_enable ) {
-      tag_db->LineTag(
+      main->tag_db->LineTag(
         this, tag_g, p, tag_x, tag_y, is_datum,
         has_line && on_line && ap_line_cnt > 0, tag_direction
       );
@@ -1512,7 +1511,7 @@ void Series::BuildBar(
       if ( p2.x < p1.x ) direction = Pos::Left;
       if ( p2.y > p1.y ) direction = Pos::Top;
       if ( p2.y < p1.y ) direction = Pos::Bottom;
-      tag_db->BarTag( this, tag_g, p1, p2, svy, direction );
+      main->tag_db->BarTag( this, tag_g, p1, p2, svy, direction );
     }
 
     if ( type == SeriesType::Lollipop ) {
@@ -1652,6 +1651,7 @@ void Series::BuildLine(
   line_ps.html_enable = html_db != nullptr && has_line;
   mark_ps.html_enable = html_db != nullptr && !has_line;
 
+  bool at_staircase_corner = false;
   bool adding_segments = false;
 
   Pos tag_direction;
@@ -1659,6 +1659,18 @@ void Series::BuildLine(
     tag_direction = axis_y->reverse ? Pos::Bottom : Pos::Top;
   } else {
     tag_direction = axis_y->reverse ? Pos::Left : Pos::Right;
+  }
+  if ( staircase ) {
+    if ( axis_x->angle == 0 ) {
+      if ( tag_pos == Pos::Bottom || tag_pos == Pos::Top ) {
+        tag_direction = tag_pos;
+      }
+    } else {
+      if ( tag_pos == Pos::Left || tag_pos == Pos::Right ) {
+        tag_direction = tag_pos;
+      }
+    }
+    if ( tag_pos == Pos::Center ) tag_direction = tag_pos;
   }
 
   Point prv;
@@ -1676,22 +1688,28 @@ void Series::BuildLine(
     } else {
       UpdateLegendBoxes( p, p, true, false );
     }
-    if ( !clipped ) {
-      if ( marker_show ) PrunePointsAdd( mark_ps, p );
-      if ( html_db ) {
-        cat_idx_t cat_idx = 0;
-        if ( is_cat ) cat_idx = static_cast< cat_idx_t >( x );
-        html_db->RecordSnapPoint( this, p, cat_idx, tag_x, tag_y );
+    if ( !at_staircase_corner ) {
+      if ( !clipped ) {
+        if ( marker_show ) PrunePointsAdd( mark_ps, p );
+        if ( html_db ) {
+          cat_idx_t cat_idx = 0;
+          if ( is_cat ) cat_idx = static_cast< cat_idx_t >( x );
+          html_db->RecordSnapPoint( this, p, cat_idx, tag_x, tag_y );
+        }
       }
-    }
-    if ( !has_line && !marker_show && html_db ) {
-      html_db->CommitSnapPoints( this, true );
-    }
-    if ( tag_enable ) {
-      tag_db->LineTag(
-        this, tag_g, p, tag_x, tag_y, !clipped,
-        adding_segments && has_line, tag_direction
-      );
+      if ( !has_line && !marker_show && html_db ) {
+        html_db->CommitSnapPoints( this, true );
+      }
+      if ( tag_enable ) {
+        if ( staircase ) {
+          main->tag_db->BarTag( this, tag_g, p, p, tag_y, tag_direction );
+        } else {
+          main->tag_db->LineTag(
+            this, tag_g, p, tag_x, tag_y, !clipped,
+            adding_segments && has_line, tag_direction
+          );
+        }
+      }
     }
     prv = p;
     adding_segments = true;
@@ -1720,7 +1738,7 @@ void Series::BuildLine(
       if ( marker_show_int ) BuildMarker( hole_g, marker_int, p );
     }
     adding_segments = false;
-    tag_db->EndLineTag();
+    main->tag_db->EndLineTag();
   };
 
   bool first = true;
@@ -1732,66 +1750,70 @@ void Series::BuildLine(
     std::string_view svx;
     std::string_view svy;
     source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
-    double x = datum_cat_ofs + i;
+    double x = datum_cat_ofs + i - (staircase ? 0.5 : 0.0);
     double y = ToDouble( svy );
     if ( !is_cat ) x = ToDouble( svx );
 
-    old = cur;
-    if ( axis_x->angle == 0 ) {
-      cur.x = axis_x->Coor( x );
-      cur.y = axis_y->Coor( y );
-    } else {
-      cur.y = axis_x->Coor( x );
-      cur.x = axis_y->Coor( y );
-    }
-    bool valid = axis_x->Valid( x ) && axis_y->Valid( y );
-    bool inside = Inside( cur );
-    if ( !valid ) {
-      if ( axis_x->Skip( x ) || (axis_x->Valid( x ) && axis_y->Skip( y )) ) {
-        cur = old;
+    for ( int sc = (staircase ? -1 : 0); sc <= (staircase ? 1 : 0); sc++ ) {
+      at_staircase_corner = sc != 0;
+      old = cur;
+      if ( axis_x->angle == 0 ) {
+        cur.x = axis_x->Coor( x );
+        cur.y = axis_y->Coor( y );
       } else {
-        end_point();
-        first = true;
+        cur.y = axis_x->Coor( x );
+        cur.x = axis_y->Coor( y );
       }
-    } else
-    if ( first ) {
-      if ( inside ) {
-        add_point( cur, x, svx, svy );
-      }
-      first = false;
-    } else {
-      if ( adding_segments && inside ) {
-        // Common case when we stay inside the chart area.
-        add_point( cur, x, svx, svy );
+      bool valid = axis_x->Valid( x ) && axis_y->Valid( y );
+      bool inside = Inside( cur );
+      if ( !valid ) {
+        if ( axis_x->Skip( x ) || (axis_x->Valid( x ) && axis_y->Skip( y )) ) {
+          cur = old;
+        } else {
+          end_point();
+          first = true;
+        }
+      } else
+      if ( first ) {
+        if ( inside ) {
+          add_point( cur, x, svx, svy );
+        }
+        first = false;
       } else {
-        // Handle clipping in and out of the chart area.
-        Point c1, c2;
-        int n = ClipLine( c1, c2, old, cur );
-        if ( !adding_segments ) {
-          // We were outside.
-          if ( inside ) {
-            // We went from outside to now inside.
+        if ( adding_segments && inside ) {
+          // Common case when we stay inside the chart area.
+          add_point( cur, x, svx, svy );
+        } else {
+          // Handle clipping in and out of the chart area.
+          Point c1, c2;
+          int n = ClipLine( c1, c2, old, cur );
+          if ( !adding_segments ) {
+            // We were outside.
+            if ( inside ) {
+              // We went from outside to now inside.
+              if ( n == 1 ) {
+                add_point( c1, x, svx, svy, true );
+              }
+              add_point( cur, x, svx, svy );
+            } else {
+              if ( n == 2 ) {
+                // We are still outside, but the line segment passes through the
+                // chart area.
+                add_point( c1, x, svx, svy, true );
+                add_point( c2, x, svx, svy, true );
+                end_point();
+              }
+            }
+          } else {
+            // We went from inside to now outside.
             if ( n == 1 ) {
               add_point( c1, x, svx, svy, true );
             }
-            add_point( cur, x, svx, svy );
-          } else {
-            if ( n == 2 ) {
-              // We are still outside, but the line segment passes through the
-              // chart area.
-              add_point( c1, x, svx, svy, true );
-              add_point( c2, x, svx, svy, true );
-              end_point();
-            }
+            end_point();
           }
-        } else {
-          // We went from inside to now outside.
-          if ( n == 1 ) {
-            add_point( c1, x, svx, svy, true );
-          }
-          end_point();
         }
       }
+      x += 0.5;
     }
   }
   end_point();

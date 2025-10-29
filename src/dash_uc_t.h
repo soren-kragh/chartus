@@ -545,6 +545,9 @@ SubSubTitle:
 
 # The following Series specifiers associate to the above newly created series.
 
+# Staircase modifier for Line plot; may be On or Off.
+#Series.Staircase: Off
+
 # Defines if snapping to data points is enabled in HTML; may be On or Off,
 # default is On. This attribute applies to the current series and all subsequent
 # series, or until it is redefined.

@@ -509,61 +509,104 @@ void Axis::LegalizeMinMax(
               ( series->type != SeriesType::Bar &&
                 series->type != SeriesType::StackedBar &&
                 series->type != SeriesType::LayeredBar &&
-                series->type != SeriesType::Lollipop
+                series->type != SeriesType::Lollipop &&
+                !series->staircase
               ) ||
               !series->datum_def_y
             )
               continue;
-            U tag_extent = series->tag_db->GetExtent( series, tag_g );
-            U tag_beyond = series->tag_db->GetBeyond( series, tag_g );
-            if ( series->datum_min_y < series->base ) {
-              U coor = 0;
-              if ( tag_beyond > 0 ) {
-                coor =
-                  Coor( series->datum_min_y ) +
-                  (reverse ? +tag_beyond : -tag_beyond);
+            U tag_extent = series->main->tag_db->GetExtent( series, tag_g );
+            U tag_beyond = series->main->tag_db->GetBeyond( series, tag_g );
+            U coor = 0;
+            bool extend_min = false;
+            bool extend_max = false;
+            if ( series->staircase ) {
+              bool tag_side = !reverse;
+              if ( angle == 0 ) {
+                if ( series->tag_pos == Pos::Left   ) tag_side = false;
+                if ( series->tag_pos == Pos::Right  ) tag_side = true;
               } else {
-                coor =
-                  Coor( series->base ) +
-                  (reverse ? +tag_extent : -tag_extent);
+                if ( series->tag_pos == Pos::Bottom ) tag_side = false;
+                if ( series->tag_pos == Pos::Top    ) tag_side = true;
               }
-              if ( coor < 0 || coor > length ) {
-                if ( log_scale ) {
-                  min = min / major;
+              bool use_min = reverse ^ tag_side ^ 1;
+              bool use_max = reverse ^ tag_side ^ 0;
+              U d1 = 0;
+              U d2 = 0;
+              if ( series->tag_pos == Pos::Center ) {
+                use_min = true;
+                use_max = true;
+                d1 = +tag_extent / 2;
+                d2 = -tag_extent / 2;
+              } else {
+                d1 = tag_side ? +tag_beyond : -tag_beyond;
+              }
+              if ( use_min ) {
+                coor = Coor( series->datum_min_y ) + d1;
+                if ( coor < 0 || coor > length ) extend_min = true;
+                coor = Coor( series->datum_min_y ) + d2;
+                if ( coor < 0 || coor > length ) extend_min = true;
+              }
+              if ( use_max ) {
+                coor = Coor( series->datum_max_y ) + d1;
+                if ( coor < 0 || coor > length ) extend_max = true;
+                coor = Coor( series->datum_max_y ) + d2;
+                if ( coor < 0 || coor > length ) extend_max = true;
+              }
+            } else {
+              if ( series->datum_min_y < series->base ) {
+                if ( tag_beyond > 0 ) {
+                  coor =
+                    Coor( series->datum_min_y )
+                    + (reverse ? +tag_beyond : -tag_beyond);
                 } else {
-                  min = min - major;
+                  coor =
+                    Coor( series->base )
+                    + (reverse ? +tag_extent : -tag_extent);
                 }
-                ok = false;
+                if ( coor < 0 || coor > length ) {
+                  extend_min = true;
+                }
+              }
+              if (
+                series->datum_max_y > series->base ||
+                ( series->datum_max_y == series->base &&
+                  series->datum_min_y == series->base
+                )
+              ) {
+                if ( tag_beyond > 0 ) {
+                  coor =
+                    Coor( series->datum_max_y )
+                    + (reverse ? -tag_beyond : +tag_beyond);
+                } else {
+                  coor =
+                    Coor( series->base )
+                    + (reverse ? -tag_extent : +tag_extent);
+                }
+                if ( coor < 0 || coor > length ) {
+                  extend_max = true;
+                }
               }
             }
-            if (
-              series->datum_max_y > series->base ||
-              ( series->datum_max_y == series->base &&
-                series->datum_min_y == series->base
-              )
-            ) {
-              U coor = 0;
-              if ( tag_beyond > 0 ) {
-                coor =
-                  Coor( series->datum_max_y ) +
-                  (reverse ? -tag_beyond : +tag_beyond);
+            if ( extend_min ) {
+              if ( log_scale ) {
+                min = min / major;
               } else {
-                coor =
-                  Coor( series->base ) +
-                  (reverse ? -tag_extent : +tag_extent);
+                min = min - major;
               }
-              if ( coor < 0 || coor > length ) {
-                if ( log_scale ) {
-                  max = max * major;
-                } else {
-                  max = max + major;
-                }
-                ok = false;
+              ok = false;
+            }
+            if ( extend_max ) {
+              if ( log_scale ) {
+                max = max * major;
+              } else {
+                max = max + major;
               }
+              ok = false;
             }
           }
           if ( ok ) break;
-          if ( trial == 3 ) {
+          if ( trial > 3 ) {
             // No success, restore.
             min = saved_min;
             max = saved_max;

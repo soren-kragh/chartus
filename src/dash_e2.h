@@ -18,6 +18,7 @@ GridColor: skyblue
 #Axis.X.Orientation: Vertical
 #Axis.X.Reverse: On
 #BarMargin: 0.5
+#Series.Staircase: On
 
 Axis.Y.LogScale: On
 Axis.Y.NumberFormat: Fixed

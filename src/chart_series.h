@@ -35,6 +35,12 @@ public:
 
   void SetName( const std::string& name );
 
+  // Enable staircase for Line, Area, and StackedArea plots.
+  void SetStaircase( bool staircase = true )
+  {
+    this->staircase = staircase && type == SeriesType::Line;
+  }
+
   // Defines if HTML should snap to the series; default is enabled.
   void SetSnap( bool snap_enable = true )
   {
@@ -267,12 +273,12 @@ public:
   SeriesType type;
   bool is_cat;
   std::string name;
+  bool staircase = false;
   bool snap_enable = true;
   double base;
 
   std::vector< LegendBox >* lb_list;
 
-  Tag* tag_db;
   bool tag_enable;
   Pos tag_pos;
   float tag_size;

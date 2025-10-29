@@ -122,22 +122,24 @@ SVG::U Tag::GetExtent( Series* series, SVG::Group* tag_g )
 
 SVG::U Tag::GetBeyond( Series* series, SVG::Group* tag_g )
 {
-  bool bar_type =
+  bool bar_or_stair_type =
     series->type == SeriesType::Bar ||
     series->type == SeriesType::StackedBar ||
     series->type == SeriesType::LayeredBar ||
-    series->type == SeriesType::Lollipop;
+    series->type == SeriesType::Lollipop ||
+    series->staircase;
 
   Pos tag_pos = series->tag_pos;
   if ( tag_pos != Pos::Base && tag_pos != Pos::End && tag_pos != Pos::Center ) {
     tag_pos = Pos::Beyond;
   }
+  if ( series->staircase ) tag_pos = Pos::Beyond;
 
-  if ( !bar_type || tag_pos != Pos::Beyond ) return 0;
+  if ( !bar_or_stair_type || tag_pos != Pos::Beyond ) return 0;
 
   U beyond = GetExtent( series, tag_g );
 
-  if ( series->type == SeriesType::Lollipop ) {
+  if ( series->type == SeriesType::Lollipop || series->staircase ) {
     beyond +=
       (series->axis_x->angle == 0)
       ? series->tag_dist_y
@@ -390,7 +392,7 @@ SVG::Group* Tag::AddBarTag(
   U base_dist = std::max( 2 * tag_dist, +min_base_dist );
   U end_dist = 2 * tag_dist;
   U beyond_dist = 0;
-  if ( series->type == SeriesType::Lollipop ) {
+  if ( series->type == SeriesType::Lollipop || series->staircase ) {
     base_dist = min_base_dist;
     end_dist = tag_dist;
     beyond_dist = tag_dist;
@@ -471,6 +473,11 @@ SVG::Group* Tag::AddBarTag(
   Pos tag_pos = series->tag_pos;
   if ( tag_pos != Pos::Base && tag_pos != Pos::End && tag_pos != Pos::Center ) {
     tag_pos = Pos::Beyond;
+  }
+
+  if ( series->staircase ) {
+    place( (direction == Pos::Center) ? Pos::Center : Pos::Beyond );
+    goto Placed;
   }
 
   if ( place( tag_pos ) ) goto Placed;
