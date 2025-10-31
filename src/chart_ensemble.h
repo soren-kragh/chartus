@@ -127,7 +127,7 @@ public:
   SVG::Color border_color;
   SVG::U margin        = 0;
   SVG::U border_width  = -1;
-  SVG::U border_radius = 0;
+  SVG::U border_radius = 12;
   SVG::U padding       = -1;
   SVG::U grid_padding  = 12;
   SVG::U area_padding  = 0;

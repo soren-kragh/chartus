@@ -75,9 +75,8 @@ std::cout << R"EOF(
 #Margin: 0
 
 # Border in points optionally followed by border corner radius; default is no
-# border (0) and radius zero. Note that zero border width with non-zero corner
-# radius makes perfect sense.
-#BorderWidth: 5 10
+# border (0) and radius 12.
+#BorderWidth: 5 12
 #BorderColor: maroon
 
 # Padding around everything in points; default is 8.
