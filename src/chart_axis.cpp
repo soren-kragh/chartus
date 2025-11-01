@@ -1275,7 +1275,7 @@ void Axis::BuildCategories(
   SVG::Group* minor_g, SVG::Group* major_g, SVG::Group* cat_g
 )
 {
-  if ( main->cat_normal_width ) {
+  if ( main->parse_cat.normal_width ) {
     cat_g->Attr()->TextFont()
       ->SetWidthFactor( 1.0 )
       ->SetHeightFactor( 1.0 )
@@ -1313,7 +1313,7 @@ void Axis::BuildCategories(
     if (
       std::abs( x2 - x1 ) <
       ( main->category_num * cat_char_h * 1.5
-        / std::max( 0.0 + cat_stride, 0.0 + main->cat_empty_stride )
+        / std::max( 0.0 + cat_stride, 0.0 + main->parse_cat.empty_stride )
       )
     ) {
       text_angle = 90;

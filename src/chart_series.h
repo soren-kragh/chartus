@@ -107,7 +107,9 @@ public:
   double x_of_lst_valid = 0.0;
   bool x_of_valid_defined = false;
 
-  double ToDouble( const std::string_view sv );
+  // The sv is assumed to come from Source::GetDatum() called immediately
+  // before DatumToDouble() is called.
+  double DatumToDouble( const std::string_view sv, bool is_x = false );
 
   // Anchor the series at the current position in the source. The no_x indicates
   // that no X-value is present and y_idx indicates the Y-value associated with
@@ -116,6 +118,7 @@ public:
     size_t num, cat_idx_t cat_ofs, bool no_x, uint32_t y_idx
   );
 
+  bool datum_defined = false;
   Source::position_t datum_pos;
   size_t datum_num = 0;
   cat_idx_t datum_cat_ofs = 0;
@@ -125,8 +128,10 @@ public:
   // Used to iterate through the datums directly in the source.
   void DatumBegin()
   {
-    source->cur_pos = datum_pos;
-    source->LoadLine();
+    if ( datum_defined ) {
+      source->cur_pos = datum_pos;
+      source->LoadLine();
+    }
   }
   void DatumNext()
   {

@@ -424,8 +424,10 @@ void Source::LoadCurSegment()
 }
 
 void Source::LoadLine() {
-  LoadCurSegment();
-  NextLine( true );
+  if ( !AtEOF() ) {
+    LoadCurSegment();
+    NextLine( true );
+  }
 }
 
 void Source::NextLine( bool stay )
@@ -568,9 +570,12 @@ void Source::ExpectWS( const std::string& err_msg_if_eol )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-std::string_view Source::GetKey()
+std::string_view Source::GetKey( bool try_only )
 {
-  if ( !AtSOL() ) ParseErr( "KEY must be unindented" );
+  if ( !AtSOL() ) {
+    if ( try_only ) return "";
+    ParseErr( "KEY must be unindented" );
+  }
   ref_idx = cur_pos.loc.char_idx;
   const char* cur = cur_pos.loc.buf.data() + cur_pos.loc.char_idx;
   const char* ptr = cur;
@@ -588,9 +593,21 @@ std::string_view Source::GetKey()
     }
   }
   cur_pos.loc.char_idx += ptr - cur;
-  if ( ptr == cur ) ParseErr( "KEY expected", true );
+  if ( ptr == cur ) {
+    if ( try_only ) {
+      cur_pos.loc.char_idx = ref_idx;
+      return "";
+    }
+    ParseErr( "KEY expected", true );
+  }
   SkipWS();
-  if ( CurChar() != ':' ) ParseErr( "':' expected" );
+  if ( CurChar() != ':' ) {
+    if ( try_only ) {
+      cur_pos.loc.char_idx = ref_idx;
+      return "";
+    }
+    ParseErr( "':' expected" );
+  }
   cur_pos.loc.char_idx++;
   return std::string_view( cur, ptr - cur );
 }
@@ -698,7 +715,7 @@ void Source::GetCategory( std::string_view& cat, bool& quoted )
     if ( len == 1 && *beg == '-' ) len = 0;
   }
   if ( !IsSep( *ptr ) ) {
-    ParseErr( "malformed category", true );
+    ParseErr( "syntax error", true );
   }
   cat = std::string_view( beg, len );
   cur_pos.loc.char_idx += ptr - cur;
@@ -757,6 +774,9 @@ void Source::GetDatum(
   const char* q;
 
   while ( IsWS( *p ) ) ++p;
+
+  ref_idx = cur_pos.loc.char_idx;
+
   if ( no_x ) {
     x = std::string_view{};
   } else {

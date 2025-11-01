@@ -198,15 +198,15 @@ void Main::SetCategoryAnchor( cat_idx_t num, bool empty )
 
 void Main::ParsedCat( cat_idx_t cat_idx, std::string_view cat )
 {
-  if ( !parse_cat.stride_found ) cat_empty_stride = cat_idx + 1;
+  if ( !parse_cat.stride_found ) parse_cat.empty_stride = cat_idx + 1;
   if ( cat.empty() ) return;
-  cat_normal_width = cat_normal_width && NormalWidthUTF8( cat );
+  parse_cat.normal_width = parse_cat.normal_width && NormalWidthUTF8( cat );
   if ( parse_cat.non_empty_seen ) {
     cat_idx_t stride = cat_idx - parse_cat.idx;
     if ( parse_cat.stride_found ) {
-      cat_empty_stride = std::min( stride, cat_empty_stride );
+      parse_cat.empty_stride = std::min( stride, parse_cat.empty_stride );
     } else {
-      cat_empty_stride = stride;
+      parse_cat.empty_stride = stride;
     }
     parse_cat.stride_found = true;
   }

@@ -92,7 +92,7 @@ public:
   void ExpectEOL();
   void ExpectWS( const std::string& err_msg_if_eol = "" );
 
-  std::string_view GetKey();
+  std::string_view GetKey( bool try_only = false );
   std::string_view GetIdentifier();
   bool GetInt64( int64_t& i, bool sep_after = true );
 
@@ -213,7 +213,7 @@ public:
   size_t ref_idx;
   position_t cur_pos;
 
-  position_t saved_pos[ 2 ];
+  std::unordered_map< uint32_t, position_t > saved_pos;
 };
 
 }

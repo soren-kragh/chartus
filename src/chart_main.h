@@ -224,18 +224,18 @@ public:
   // Number of categories across all series.
   cat_idx_t category_num = 0;
 
-  // State used by ParsedCat().
-  struct {
+  // State maintained by ParsedCat().
+  struct parse_cat_t {
     bool      non_empty_seen = false;
     bool      stride_found = false;
     cat_idx_t idx = 0;
+
+    // Defines if all categories have normal character width.
+    bool normal_width = true;
+
+    // Minimum distance between non-empty categories.
+    cat_idx_t empty_stride = 1;
   } parse_cat;
-
-  // Defines if all categories have normal character width.
-  bool cat_normal_width = true;
-
-  // Minimum distance between non-empty categories.
-  cat_idx_t cat_empty_stride = 1;
 
   Axis* axis_x;
   Axis* axis_y[ 2 ];

@@ -483,7 +483,7 @@ void Series::PrunePointsEnd( prune_state_t& ps )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-double Series::ToDouble( const std::string_view sv )
+double Series::DatumToDouble( const std::string_view sv, bool is_x )
 {
   if ( sv.empty() ) return Chart::num_skip;
 
@@ -498,7 +498,17 @@ double Series::ToDouble( const std::string_view sv )
   const char* p1 = sv.data() + ((sv[ 0 ] == '+') ? 1 : 0);
   const char* p2 = sv.data() + sv.size();
   double d = Chart::num_skip;
-  std::from_chars( p1, p2, d );
+  auto [ptr, ec] = std::from_chars( p1, p2, d );
+
+  if ( ec != std::errc() || !Source::IsSep( *ptr ) ) {
+    if ( !is_x ) source->ref_idx = source->cur_pos.loc.char_idx - sv.length();
+    source->ParseErr( "invalid number", true );
+  }
+  if ( std::abs( d ) > Chart::num_hi ) {
+    if ( !is_x ) source->ref_idx = source->cur_pos.loc.char_idx - sv.length();
+    source->ParseErr( "number too big", true );
+  }
+
   return d;
 }
 
@@ -506,6 +516,7 @@ void Series::SetDatumAnchor(
   size_t num, cat_idx_t cat_ofs, bool no_x, uint32_t y_idx
 )
 {
+  datum_defined = true;
   datum_pos = source->cur_pos;
   datum_cat_ofs = cat_ofs;
   datum_num = num;
@@ -1008,7 +1019,7 @@ void Series::ComputeStackDir()
     std::string_view svx;
     std::string_view svy;
     source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
-    double y = ToDouble( svy ) - base;
+    double y = DatumToDouble( svy ) - base;
     if ( y < 0 ) {
       stack_dir = -1;
       return;
@@ -1077,8 +1088,8 @@ void Series::DetermineMinMax(
     std::string_view svy;
     source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
     double x = datum_cat_ofs + i;
-    double y = ToDouble( svy );
-    if ( !is_cat ) x = ToDouble( svx );
+    double y = DatumToDouble( svy );
+    if ( !is_cat ) x = DatumToDouble( svx, true );
     if ( !axis_x->Valid( x ) ) continue;
     if ( !axis_y->Valid( y ) ) continue;
     {
@@ -1317,7 +1328,7 @@ void Series::BuildArea(
       if ( x_of_valid_defined ) {
         if ( cat_idx >= x_of_fst_valid && cat_idx <= x_of_lst_valid ) {
           source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
-          y = ToDouble( svy );
+          y = DatumToDouble( svy );
         }
       }
       if ( axis_y->Skip( y ) ) {
@@ -1399,7 +1410,7 @@ void Series::BuildBar(
       std::string_view svx;
       std::string_view svy;
       source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
-      double y = ToDouble( svy );
+      double y = DatumToDouble( svy );
       if ( axis_y->Valid( y ) ) {
         if ( y - base > 0 ) has_pos_bar = true;
         if ( y - base < 0 ) has_neg_bar = true;
@@ -1449,7 +1460,7 @@ void Series::BuildBar(
     std::string_view svx;
     std::string_view svy;
     source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
-    double y = ToDouble( svy );
+    double y = DatumToDouble( svy );
     if ( !axis_y->Valid( y ) ) continue;
 
     U q = axis_x->Coor( x );
@@ -1751,8 +1762,8 @@ void Series::BuildLine(
     std::string_view svy;
     source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
     double x = datum_cat_ofs + i - (staircase ? 0.5 : 0.0);
-    double y = ToDouble( svy );
-    if ( !is_cat ) x = ToDouble( svx );
+    double y = DatumToDouble( svy );
+    if ( !is_cat ) x = DatumToDouble( svx, true );
 
     for ( int sc = (staircase ? -1 : 0); sc <= (staircase ? 1 : 0); sc++ ) {
       at_staircase_corner = sc != 0;

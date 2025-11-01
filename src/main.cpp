@@ -1854,80 +1854,90 @@ void do_Series_TagLineColor( void )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void parse_series_data( void )
+void parse_series_data( bool implicit = false )
 {
   state.defining_series = false;
 
-  uint32_t y_values = 0;
+  bool column0_is_txt = false;
   size_t rows = 0;
-  bool no_x_value = false;
+  uint32_t max_columns = 1;
 
-  // Do a pre-scan of all the data.
-  {
-    source.SavePos();
-    bool x_is_text = false;
-    while ( !source.AtEOF() ) {
-      source.SkipWS( true );
-      if ( source.AtEOF() ) break;
-      bool at_sol = source.AtSOL();
+  constexpr uint32_t data_beg_pos = 100;
+  constexpr uint32_t data_end_pos = 101;
+
+  Chart::Main::parse_cat_t saved_parse_cat;
+  bool spc_defined = false;
+
+  source.SavePos( data_beg_pos );
+
+  while ( !source.AtEOF() ) {
+    source.SkipWS( true );
+    if ( source.AtEOF() ) break;
+    if ( source.AtSOL() ) {
+      if ( !source.GetKey( true ).empty() ) {
+        source.ToSOL();
+        break;
+      }
+    }
+    size_t idx1 = source.cur_pos.loc.char_idx;
+    std::string_view cat;
+    bool quoted;
+    source.GetCategory( cat, quoted );
+    if ( !spc_defined ) {
+      saved_parse_cat = CurChart()->parse_cat;
+      spc_defined = true;
+    }
+    CurChart()->ParsedCat( state.category_idx + rows, cat );
+    size_t idx2 = source.cur_pos.loc.char_idx;
+    if ( !column0_is_txt ) {
+      source.cur_pos.loc.char_idx = idx1;
       double d;
-      bool got_number = false;
-      if ( !x_is_text ) {
-        got_number = source.TryGetDoubleOrNone( d );
-      }
-      if ( !got_number ) {
-        std::string_view t;
-        bool quoted;
-        source.GetCategory( t, quoted );
-        if ( !quoted && !t.empty() && at_sol ) {
-          if ( t.find( ':' ) != std::string_view::npos ) break;
-          auto idx = source.cur_pos.loc.char_idx;
-          source.SkipWS();
-          if ( source.CurChar() == ':' ) break;
-          source.cur_pos.loc.char_idx = idx;
-        }
-        x_is_text = true;
-      }
-      ++rows;
-      uint32_t n = 0;
-      while ( source.AtWS() ) {
-        source.SkipWS();
-        if ( source.AtEOL() ) break;
-        while ( !source.AtSep() ) source.GetChar();
-        ++n;
-      }
-      y_values = std::max( y_values, n );
-      source.ExpectEOL();
+      column0_is_txt = !source.TryGetDoubleOrNone( d );
+      source.cur_pos.loc.char_idx = idx2;
     }
-    if ( rows == 0 ) {
-      if ( !source.AtEOF() ) source.ToSOL();
-      return;
+    rows++;
+    uint32_t columns = 1;
+    while ( source.AtWS() ) {
+      source.SkipWS();
+      if ( source.AtEOL() ) break;
+      while ( !source.AtSep() ) source.GetChar();
+      columns++;
     }
-    if ( state.series_type_defined ) {
-      if (
-        !x_is_text && y_values == 0 &&
-        state.series_type != Chart::SeriesType::XY &&
-        state.series_type != Chart::SeriesType::Scatter
-      ) {
-        no_x_value = true;
-      }
-    } else {
-      if ( !x_is_text ) {
-        no_x_value = true;
-        ++y_values;
-      }
-      state.series_type = Chart::SeriesType::Line;
-      state.series_type_defined = true;
-    }
-    if ( y_values == 0 ) y_values = 1;
-    source.RestorePos();
+    max_columns = std::max( max_columns, columns );
+    source.ExpectEOL();
   }
+
+  source.SavePos( data_end_pos );
+  source.RestorePos( data_beg_pos );
+
+  if ( implicit && rows == 0 ) return;
+
+  bool no_x_value = false;
+  if ( state.series_type_defined ) {
+    auto type = state.series_type;
+    if ( !state.series_list.empty() ) {
+      if ( !state.series_list.back()->datum_defined ) {
+        type = state.series_list.back()->type;
+      }
+    }
+    no_x_value =
+      !column0_is_txt && max_columns == 1 &&
+      type != Chart::SeriesType::XY &&
+      type != Chart::SeriesType::Scatter;
+  } else {
+    no_x_value = !column0_is_txt;
+    state.series_type = Chart::SeriesType::Line;
+    state.series_type_defined = true;
+  }
+
+  uint32_t y_values = max_columns - (no_x_value ? 0 : 1);
+  if ( y_values == 0 ) y_values = 1;
 
   // Auto-add new series if needed.
   for ( uint32_t i = 0; i < y_values; i++ ) {
     if (
       state.series_list.size() == i ||
-      state.series_list[ state.series_list.size() - i - 1 ]->datum_num > 0
+      state.series_list[ state.series_list.size() - i - 1 ]->datum_defined
     )
       AddSeries();
   }
@@ -1955,43 +1965,31 @@ void parse_series_data( void )
     source.SkipWS( true );
     source.ToSOL();
   }
-  if ( x_is_txt ) {
-    CurChart()->SetCategoryAnchor( rows, no_x_value );
-  }
   for ( uint32_t i = 0; i < y_values; i++ ) {
     auto series = state.series_list[ state.series_list.size() + i - y_values ];
     series->SetDatumAnchor( rows, state.category_idx, no_x_value, i );
   }
-
-  while ( rows-- ) {
-    source.SkipWS( true );
-    if ( x_is_txt ) {
-      if ( !no_x_value ) {
-        std::string_view cat;
-        bool quoted;
-        source.GetCategory( cat, quoted );
-        CurChart()->ParsedCat( state.category_idx, cat );
-      } else {
-        CurChart()->ParsedCat( state.category_idx, "" );
-      }
-      state.category_idx++;
-    } else {
-      double x;
-      source.GetDoubleOrNone( x );
-    }
-    for ( uint32_t n = 0; n < y_values; ++n ) {
-      source.SkipWS();
-      if ( !source.AtEOL() ) {
-        double y;
-        source.GetDoubleOrNone( y );
-      }
-    }
-    source.ExpectEOL();
+  if ( x_is_txt ) {
+    CurChart()->SetCategoryAnchor( rows, no_x_value );
+    state.category_idx += rows;
   }
+
+  if ( x_is_num || no_x_value ) {
+    if ( spc_defined ) {
+      CurChart()->parse_cat = saved_parse_cat;
+    }
+    if ( x_is_txt && rows > 0 ) {
+      CurChart()->ParsedCat( state.category_idx - 1, "" );
+    }
+  }
+
+  source.RestorePos( data_end_pos );
 
   state.defining_series = false;
   return;
 }
+
+//------------------------------------------------------------------------------
 
 void do_Series_Data( void )
 {
@@ -2186,7 +2184,7 @@ void parse_lines( void )
   source.LoadLine();
 
   // Support delivering nothing but data (implicit Series.Data).
-  parse_series_data();
+  parse_series_data( true );
 
   while ( parse_spec() ) {}
 }
