@@ -1854,6 +1854,20 @@ void do_Series_TagLineColor( void )
 
 ////////////////////////////////////////////////////////////////////////////////
 
+/*
+void parse_series_data2( void )
+{
+  bool column0_is_txt = false;
+  uint32_t columns = 0;
+
+  source.SavePos();
+
+
+}
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+
 void parse_series_data( void )
 {
   state.defining_series = false;
