@@ -572,7 +572,7 @@ void do_BorderColor( void )
 void do_BorderWidth( void )
 {
   double width = 0;
-  double radius = 0;
+  double radius = 12;
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "border width expected" );
   source.GetDouble( width );

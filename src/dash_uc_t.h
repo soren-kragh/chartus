@@ -222,9 +222,9 @@ FootnotePos: Right
 # ChartPadding you can adjust that behavior. The first number specifies that the
 # alignment shall be relative to all chart elements instead of just the core
 # chart area, the given number is the additional extra margin. If the first
-# number is negative only the core chart area is used for alignment. The second
-# optional number specifies the additional extra margin when aligning relative
-# the core chart area.
+# number is negative the core chart area is used for alignment (default
+# behavior). The second optional number specifies the additional extra margin
+# when aligning relative the core chart area.
 # You typically use ChartPadding to adjust placement of embedded charts (see
 # NewChartInChart).
 # The NewChartInGrid and NewChartInChart defaults respectively are shown below.
