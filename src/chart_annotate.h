@@ -79,7 +79,7 @@ public:
   void do_Context();
 
   using Doer = void ( Annotate::* )();
-  inline static const std::unordered_map< std::string_view, Doer > doers = {
+  static inline const std::unordered_map< std::string_view, Doer > doers = {
     { "PointCoor"       , &Annotate::do_PointCoor               },
     { "Axis"            , &Annotate::do_Axis                    },
     { "Layer"           , &Annotate::do_Layer                   },
