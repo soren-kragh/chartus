@@ -1344,6 +1344,7 @@ void Axis::BuildCategories(
       bool collision = false;
       bool plc_vld = false;
       cat_idx_t plc_idx = 0;
+      bool displace = false;
       main->CategoryBegin();
       for (
         cat_idx_t cat_idx = 0; cat_idx < main->category_num;
@@ -1362,7 +1363,8 @@ void Axis::BuildCategories(
           obj->MoveTo( ax, ay, x + dx, y + dy );
         }
         if ( trial == 1 ) {
-          U sy = (cat_idx % 2) ? (cat_char_h + num_space_y) : 0;
+          U sy = displace ? (cat_char_h + num_space_y) : 0;
+          displace = !displace;
           if ( dy < 0 ) sy = -sy;
           obj->MoveTo( ax, ay, x + dx, y + dy + sy );
         }
