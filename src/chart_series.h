@@ -103,13 +103,13 @@ public:
     }
   }
 
-  double x_of_fst_valid = 0.0;
-  double x_of_lst_valid = 0.0;
-  bool x_of_valid_defined = false;
+  cat_idx_t idx_of_fst_valid = 0;
+  cat_idx_t idx_of_lst_valid = 0;
+  bool idx_of_valid_defined = false;
 
-  // The sv is assumed to come from Source::GetDatum() called immediately
-  // before DatumToDouble() is called.
-  double DatumToDouble( const std::string_view sv, bool is_x = false );
+  // The given sv is assumed to have already been pre-parsed and thus will
+  // always represent a valid number (or -/!).
+  double DatumToDouble( const std::string_view sv );
 
   // Anchor the series at the current position in the source. The no_x indicates
   // that no X-value is present and y_idx indicates the Y-value associated with
@@ -124,6 +124,15 @@ public:
   cat_idx_t datum_cat_ofs = 0;
   bool datum_no_x = false;
   uint32_t datum_y_idx = 0;
+
+  void RecordMinMax( const min_max_t& mm_x, const min_max_t& mm_y )
+  {
+    recorded_min_max_x = mm_x;
+    recorded_min_max_y = mm_y;
+  }
+
+  min_max_t recorded_min_max_x;
+  min_max_t recorded_min_max_y;
 
   // Used to iterate through the datums directly in the source.
   void DatumBegin()
@@ -380,18 +389,20 @@ public:
   );
 
   bool   def_x = false;
-  double min_x;
-  double max_x;
+  double min_x = num_invalid;
+  double max_x = num_invalid;
 
+  // Includes both the data values and the base value.
   bool   def_y = false;
-  double min_y;
-  double max_y;
+  double min_y = num_invalid;
+  double max_y = num_invalid;
   bool   min_y_is_base = false;
   bool   max_y_is_base = false;
 
+  // Only includes the data values.
   bool   datum_def_y = false;
-  double datum_min_y;
-  double datum_max_y;
+  double datum_min_y = num_invalid;
+  double datum_max_y = num_invalid;
 
   size_t max_tag_x_size = 0;
   size_t max_tag_y_size = 0;

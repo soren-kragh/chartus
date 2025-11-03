@@ -483,7 +483,7 @@ void Series::PrunePointsEnd( prune_state_t& ps )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-double Series::DatumToDouble( const std::string_view sv, bool is_x )
+double Series::DatumToDouble( const std::string_view sv )
 {
   if ( sv.empty() ) return Chart::num_skip;
 
@@ -501,11 +501,9 @@ double Series::DatumToDouble( const std::string_view sv, bool is_x )
   auto [ptr, ec] = std::from_chars( p1, p2, d );
 
   if ( ec != std::errc() || !Source::IsSep( *ptr ) ) {
-    if ( !is_x ) source->ref_idx = source->cur_pos.loc.char_idx - sv.length();
     source->ParseErr( "invalid number", true );
   }
   if ( std::abs( d ) > Chart::num_hi ) {
-    if ( !is_x ) source->ref_idx = source->cur_pos.loc.char_idx - sv.length();
     source->ParseErr( "number too big", true );
   }
 
@@ -1044,6 +1042,11 @@ void Series::DetermineMinMax(
     type == SeriesType::Bar ||
     type == SeriesType::StackedBar ||
     type == SeriesType::StackedArea;
+  bool has_base =
+    stackable ||
+    type == SeriesType::LayeredBar ||
+    type == SeriesType::Lollipop ||
+    type == SeriesType::Area;
 
   def_x = false;
   min_x = axis_x->log_scale ? 10 : 0;
@@ -1062,12 +1065,102 @@ void Series::DetermineMinMax(
   max_tag_x_size = 0;
   max_tag_y_size = 0;
 
-  if (
-    stackable ||
-    type == SeriesType::LayeredBar ||
-    type == SeriesType::Lollipop ||
-    type == SeriesType::Area
-  ) {
+  if ( stackable || tag_enable ) {
+
+    DatumBegin();
+    for ( size_t i = 0; i < datum_num; ++i, DatumNext() ) {
+      std::string_view svx;
+      std::string_view svy;
+      source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
+      double x;
+      double y = DatumToDouble( svy );
+      if ( !axis_y->Valid( y ) ) continue;
+      if ( is_cat ) {
+        x = datum_cat_ofs + i;
+        if ( !idx_of_valid_defined ) idx_of_fst_valid = x;
+        idx_of_lst_valid = x;
+        idx_of_valid_defined = true;
+      } else {
+        x = DatumToDouble( svx );
+        if ( !axis_x->Valid( x ) ) continue;
+      }
+      if ( stackable ) {
+        size_t i = x;
+        y -= base;
+        if ( stack_dir < 0 || (stack_dir == 0 && y < 0) ) {
+          y += ofs_neg.at( i );
+          ofs_neg[ i ] = y;
+        } else {
+          y += ofs_pos.at( i );
+          ofs_pos[ i ] = y;
+        }
+        if ( !axis_y->Valid( y ) ) continue;
+      }
+      max_tag_x_size = std::max( max_tag_x_size, svx.size() );
+      max_tag_y_size = std::max( max_tag_y_size, svy.size() );
+      if ( !def_x || min_x > x ) min_x = x;
+      if ( !def_x || max_x < x ) max_x = x;
+      if ( !def_y || min_y > y ) min_y = y;
+      if ( !def_y || max_y < y ) max_y = y;
+      def_x = true;
+      def_y = true;
+    }
+
+  } else {
+
+    if ( datum_num > 0 ) {
+      if ( is_cat ) {
+        def_x = true;
+        min_x = datum_cat_ofs;
+        max_x = datum_cat_ofs + datum_num - 1;
+      } else {
+        if ( axis_x->log_scale ) {
+          if ( recorded_min_max_x.def_pos ) {
+            def_x = true;
+            min_x = recorded_min_max_x.min_pos;
+          }
+        } else {
+          if ( recorded_min_max_x.def ) {
+            def_x = true;
+            min_x = recorded_min_max_x.min;
+          }
+        }
+        if ( recorded_min_max_x.def ) {
+          def_x = true;
+          max_x = recorded_min_max_x.max;
+        }
+      }
+      {
+        if ( axis_y->log_scale ) {
+          if ( recorded_min_max_y.def_pos ) {
+            def_y = true;
+            min_y = recorded_min_max_y.min_pos;
+          }
+        } else {
+          if ( recorded_min_max_y.def ) {
+            def_y = true;
+            min_y = recorded_min_max_y.min;
+          }
+        }
+        if ( recorded_min_max_y.def ) {
+          def_y = true;
+          max_y = recorded_min_max_y.max;
+        }
+      }
+    }
+    idx_of_fst_valid     = recorded_min_max_y.idx_of_fst_valid;
+    idx_of_lst_valid     = recorded_min_max_y.idx_of_lst_valid;
+    idx_of_valid_defined = recorded_min_max_y.idx_of_valid_defined;
+
+  }
+
+  if ( def_y ) {
+    datum_def_y = true;
+    datum_min_y = min_y;
+    datum_max_y = max_y;
+  }
+
+  if ( has_base ) {
     double y = base;
     if ( axis_y->Valid( y ) ) {
       if ( !def_y || min_y > y ) {
@@ -1080,52 +1173,6 @@ void Series::DetermineMinMax(
       }
       def_y = true;
     }
-  }
-
-  DatumBegin();
-  for ( size_t i = 0; i < datum_num; ++i, DatumNext() ) {
-    std::string_view svx;
-    std::string_view svy;
-    source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
-    double x = datum_cat_ofs + i;
-    double y = DatumToDouble( svy );
-    if ( !is_cat ) x = DatumToDouble( svx, true );
-    if ( !axis_x->Valid( x ) ) continue;
-    if ( !axis_y->Valid( y ) ) continue;
-    {
-      if ( !x_of_valid_defined ) x_of_fst_valid = x;
-      x_of_lst_valid = x;
-      x_of_valid_defined = true;
-    }
-    if ( stackable ) {
-      size_t i = x;
-      y -= base;
-      if ( stack_dir < 0 || (stack_dir == 0 && y < 0) ) {
-        y += ofs_neg.at( i );
-        ofs_neg[ i ] = y;
-      } else {
-        y += ofs_pos.at( i );
-        ofs_pos[ i ] = y;
-      }
-      if ( !axis_y->Valid( y ) ) continue;
-    }
-    max_tag_x_size = std::max( max_tag_x_size, svx.size() );
-    max_tag_y_size = std::max( max_tag_y_size, svy.size() );
-    if ( !def_x || min_x > x ) min_x = x;
-    if ( !def_x || max_x < x ) max_x = x;
-    if ( !def_y || min_y > y ) {
-      min_y = y;
-      min_y_is_base = false;
-    }
-    if ( !def_y || max_y < y ) {
-      max_y = y;
-      max_y_is_base = false;
-    }
-    def_x = true;
-    def_y = true;
-    if ( !datum_def_y || datum_min_y > y ) datum_min_y = y;
-    if ( !datum_def_y || datum_max_y < y ) datum_max_y = y;
-    datum_def_y = true;
   }
 
   return;
@@ -1325,8 +1372,8 @@ void Series::BuildArea(
       if ( cat_idx > datum_cat_ofs && cat_idx < datum_cat_ofs + datum_num ) {
         DatumNext();
       }
-      if ( x_of_valid_defined ) {
-        if ( cat_idx >= x_of_fst_valid && cat_idx <= x_of_lst_valid ) {
+      if ( idx_of_valid_defined ) {
+        if ( cat_idx >= idx_of_fst_valid && cat_idx <= idx_of_lst_valid ) {
           source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
           y = DatumToDouble( svy );
         }
@@ -1763,7 +1810,7 @@ void Series::BuildLine(
     source->GetDatum( svx, svy, datum_no_x, datum_y_idx );
     double x = datum_cat_ofs + i - (staircase ? 0.5 : 0.0);
     double y = DatumToDouble( svy );
-    if ( !is_cat ) x = DatumToDouble( svx, true );
+    if ( !is_cat ) x = DatumToDouble( svx );
 
     for ( int sc = (staircase ? -1 : 0); sc <= (staircase ? 1 : 0); sc++ ) {
       at_staircase_corner = sc != 0;

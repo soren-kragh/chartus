@@ -1865,6 +1865,8 @@ void parse_series_data( bool implicit = false )
   constexpr uint32_t data_beg_pos = 100;
   constexpr uint32_t data_end_pos = 101;
 
+  std::vector< Chart::min_max_t > column_min_max( 1 );
+
   Chart::Main::parse_cat_t saved_parse_cat;
   bool spc_defined = false;
 
@@ -1891,20 +1893,26 @@ void parse_series_data( bool implicit = false )
     size_t idx2 = source.cur_pos.loc.char_idx;
     if ( !column0_is_txt ) {
       source.cur_pos.loc.char_idx = idx1;
-      double d;
+      double d = 0.0;
       column0_is_txt = !source.TryGetDoubleOrNone( d );
+      column_min_max[ 0 ].Update( d );
       source.cur_pos.loc.char_idx = idx2;
     }
-    rows++;
     uint32_t columns = 1;
     while ( source.AtWS() ) {
       source.SkipWS();
       if ( source.AtEOL() ) break;
-      while ( !source.AtSep() ) source.GetChar();
+      double d;
+      source.GetDoubleOrNone( d );
+      if ( columns >= column_min_max.size() ) {
+        column_min_max.emplace_back();
+      }
+      column_min_max[ columns ].Update( d, state.category_idx + rows );
       columns++;
     }
     max_columns = std::max( max_columns, columns );
     source.ExpectEOL();
+    rows++;
   }
 
   source.SavePos( data_end_pos );
@@ -1968,6 +1976,9 @@ void parse_series_data( bool implicit = false )
   for ( uint32_t i = 0; i < y_values; i++ ) {
     auto series = state.series_list[ state.series_list.size() + i - y_values ];
     series->SetDatumAnchor( rows, state.category_idx, no_x_value, i );
+    series->RecordMinMax(
+      column_min_max[ 0 ], column_min_max[ (no_x_value ? 0 : 1) + i ]
+    );
   }
   if ( x_is_txt ) {
     CurChart()->SetCategoryAnchor( rows, no_x_value );

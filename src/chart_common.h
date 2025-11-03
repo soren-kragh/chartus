@@ -47,20 +47,20 @@ namespace Chart {
 
   using cat_idx_t = size_t;
 
-  const double num_lo      = 1e-300;
-  const double num_hi      = 1e+300;
-  const double num_invalid = 0.56598313e+301;   // Magic reserved value.
-  const double num_skip    = 0.90870847e+301;   // Magic reserved value.
-  const double coor_hi     = 1e24;
+  constexpr double num_lo      = 1e-300;
+  constexpr double num_hi      = 1e+300;
+  constexpr double num_invalid = 0.56598313e+301;   // Magic reserved value.
+  constexpr double num_skip    = 0.90870847e+301;   // Magic reserved value.
+  constexpr double coor_hi     = 1e24;
 
   // Correction factor for floating point precision issues in comparisons etc.
-  const double epsilon = 1e-6;
+  constexpr double epsilon = 1e-6;
 
   // Spacing around various boxes.
-  const SVG::U box_spacing = 8;
+  constexpr SVG::U box_spacing = 8;
 
   // Spacing from series to tag.
-  const SVG::U tag_spacing = box_spacing / 2;
+  constexpr SVG::U tag_spacing = box_spacing / 2;
 
   enum class Pos {
     Undef, Auto, Center, Right, Left, Top, Bottom, Base, End, Beyond
@@ -82,6 +82,37 @@ namespace Chart {
 
   enum class MarkerShape {
     Circle, Square, Triangle, InvTriangle, Diamond, Cross, Star, LineX, LineY
+  };
+
+  struct min_max_t {
+    bool   def_pos = false;
+    bool   def     = false;
+    double min_pos = num_invalid;
+    double min     = num_invalid;
+    double max     = num_invalid;
+
+    cat_idx_t idx_of_fst_valid = 0;
+    cat_idx_t idx_of_lst_valid = 0;
+    bool idx_of_valid_defined = false;
+
+    bool Update( double d ) {
+      if ( std::abs( d ) > num_hi ) return false;
+      if ( !def || d < min ) min = d;
+      if ( !def || d > max ) max = d;
+      if ( d >= num_lo ) {
+        if ( !def_pos || d < min_pos ) min_pos = d;
+        def_pos = true;
+      }
+      def = true;
+      return true;
+    }
+    void Update( double d, cat_idx_t idx ) {
+      if ( Update( d ) ) {
+        if ( !idx_of_valid_defined ) idx_of_fst_valid = idx;
+        idx_of_lst_valid = idx;
+        idx_of_valid_defined = true;
+      }
+    }
   };
 
   // Determines if coordinates are so near as to be considered the same.
