@@ -1257,6 +1257,11 @@ void Main::SeriesPrepare(
       series->bar_layer_num = bar_layer_cur;
     }
 
+    if ( series->datum_num > 10000 ) {
+      // Disable tagging if number of tags is insane.
+      series->tag_enable = false;
+    }
+
     if ( !series->tag_text_color.IsDefined() ) {
       series->tag_text_color.Set( TextColor() );
     }
