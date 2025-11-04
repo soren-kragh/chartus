@@ -140,8 +140,6 @@ namespace Chart {
     SVG::U margin_x = 0, SVG::U margin_y = 0
   );
 
-  void ShowObjBB( SVG::Object* obj );
-
   void MakeColorVisible(
     SVG::Color* color, SVG::Color* bg_color, float min_visibility = 0.3
   );

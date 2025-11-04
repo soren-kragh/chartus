@@ -79,6 +79,7 @@ public:
 
   void GetHoles( std::vector< Grid::hole_t >& holes );
 
+  // Debug:
   void DisplayCoor( std::vector< cell_t >& cell_list );
   void DisplayAdj( std::vector< cell_t >& cell_list );
   void DisplaySlack( std::vector< cell_t >& cell_list );

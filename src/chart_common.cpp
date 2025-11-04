@@ -82,22 +82,6 @@ void Chart::MoveObj(
 
 ///////////////////////////////////////////////////////////////////////////////
 
-/*
-// To be used for debug.
-void Chart::ShowObjBB( SVG::Object* obj )
-{
-  SVG::BoundaryBox bb = obj->GetBB();
-  SVG_DBG(
-    std::fixed << std::setprecision( 3 ) <<
-    "            " << std::setw( 12 ) << bb.min.x << std::setw( 12 ) << bb.max.x << '\n' <<
-     std::setw( 12 ) << bb.max.y << "        +----------+" << '\n' <<
-     std::setw( 12 ) << bb.min.y << "        +----------+"
-  );
-}
-*/
-
-///////////////////////////////////////////////////////////////////////////////
-
 void Chart::MakeColorVisible(
   Color* color, Color* bg_color, float min_visibility
 )

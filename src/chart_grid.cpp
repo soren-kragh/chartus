@@ -481,6 +481,9 @@ void Grid::GetHoles( std::vector< Grid::hole_t >& holes )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// Debug:
+
+/*
 
 void Grid::DisplayCoor( std::vector< cell_t >& cell_list )
 {
@@ -579,30 +582,15 @@ void Grid::Test( void )
     SVG_DBG( x1 << ":" << x2 );
   };
 
-/*
-  for ( int i = 0; i < 100; i++ ) {
-    AddElem( 10, i, i );
-    if ( i > 0 ) AddElem( 30, i - 1, i );
-    if ( i > 1 ) AddElem( 60, i - 2, i );
-    if ( i > 2 ) AddElem( 300, i - 3, i );
-  }
-  AddElem( 20*100 - 10, 0, 100 - 1 );
-*/
-/*
-  {
-    uint32_t seed = std::time( 0 ) * getpid();
-    SVG_DBG( "grid seed = " << seed );
-    std::srand( seed );
-    uint32_t gw = 6;
-    for ( uint32_t i = 0; i < 6; i++ ) {
-      AddElem(
-        10 * (1 + std::abs( rand() ) % 10),
-        std::abs( rand() ) % gw,
-        std::abs( rand() ) % gw
-      );
+  if ( 0 ) {
+    for ( int i = 0; i < 100; i++ ) {
+      AddElem( 10, i, i );
+      if ( i > 0 ) AddElem( 30, i - 1, i );
+      if ( i > 1 ) AddElem( 60, i - 2, i );
+      if ( i > 2 ) AddElem( 300, i - 3, i );
     }
+    AddElem( 20*100 - 10, 0, 100 - 1 );
   }
-*/
 
   AddElem( 100, 0, 0, 20, 20 );
   AddElem( 100, 1, 1, 20, 20 );
@@ -622,5 +610,7 @@ void Grid::Test( void )
 
   return;
 }
+
+*/
 
 ////////////////////////////////////////////////////////////////////////////////

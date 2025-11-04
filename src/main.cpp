@@ -2311,15 +2311,6 @@ int main( int argc, char* argv[] )
     source.AddFile( a );
   }
 
-/*
-// TBD
-  if ( 1 ) {
-    Chart::Grid grid;
-    grid.Test();
-    return 0;
-  }
-*/
-
   SVG::settings.indent = false;
 
   source.ReadFiles();
