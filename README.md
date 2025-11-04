@@ -20,7 +20,7 @@ which is often preferred for e-mails, messages, or if the SVG gets very large.
 
 See [examples](#built-in-examples) below.
 
-## Build
+# Build
 
 ```sh
 git clone --recurse-submodules https://github.com/soren-kragh/chartus.git
