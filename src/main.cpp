@@ -2320,6 +2320,8 @@ int main( int argc, char* argv[] )
   }
 */
 
+  SVG::settings.indent = false;
+
   source.ReadFiles();
 
   parse_lines();
