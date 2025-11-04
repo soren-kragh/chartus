@@ -37,6 +37,13 @@ examples: $(TARGET)
 	  cat e$${i}.svg; \
 	done | cksum
 
+doc: $(TARGET)
+	@for i in 0 1 2 3 4 5 6 7 8 9 10; do \
+	  ${TARGET} -e$${i} | ${TARGET} | ./bin/svg2png >./assets/e$${i}.png; \
+	done
+	@perl assets/update_readme.pl README.md >README.md.new
+	@mv README.md.new README.md
+
 install: $(TARGET) $(SCRIPT)
 	install -d $(BINDIR)
 	install -m755 $(TARGET) $(BINDIR)/$(notdir $(TARGET))
@@ -52,4 +59,4 @@ clean:
 	rm -rf $(BUILD_DIR) $(TARGET)
 	rm -f *.svg *.png *.html
 
-.PHONY: all examples install uninstall clean
+.PHONY: all examples doc install uninstall clean
