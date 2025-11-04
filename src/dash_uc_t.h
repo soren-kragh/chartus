@@ -145,7 +145,7 @@ FootnotePos: Right
 # as possible, this often results in slashed zeros which does not look so good.
 # ZeroToO allows you to replace digit '0' with the letter capital 'O'; may be On
 # or Off. Default is On.
-#ZeroToO: true
+#ZeroToO: On
 
 # Padding (in points) around individual charts in the grid; default is 12. This
 # setting only has any effect when having multiple charts. A negative value

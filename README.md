@@ -208,7 +208,7 @@ Series.Data :
 # FootnoteLine: On
 # FootnoteSize: 1.0
 # LetterSpacing: 1.8 1.1 0.8
-# ZeroToO: false
+# ZeroToO: Off
 # GridPadding: 0 12
 # NewChartInGrid: 0 0 3 0 Center Bottom
 # NewChartInChart: 0 0 Bottom Right
@@ -467,7 +467,7 @@ FootnotePos: Right
 # as possible, this often results in slashed zeros which does not look so good.
 # ZeroToO allows you to replace digit '0' with the letter capital 'O'; may be On
 # or Off. Default is On.
-#ZeroToO: true
+#ZeroToO: On
 
 # Padding (in points) around individual charts in the grid; default is 12. This
 # setting only has any effect when having multiple charts. A negative value
