@@ -1939,7 +1939,7 @@ void Series::Build(
   } else {
     line_g = line_g->AddNewGroup();
     if ( type == SeriesType::Bar || type == SeriesType::StackedBar ) {
-      line_g->ParrentGroup()->FrontToBack();
+      line_g->ParentGroup()->FrontToBack();
     }
   }
   ApplyLineStyle( line_g );
