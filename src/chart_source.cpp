@@ -663,6 +663,13 @@ bool Source::GetDoubleFull(
 {
   ref_idx = cur_pos.loc.char_idx;
 
+  if ( AtEOF() || AtEOL() ) {
+    if ( fail_on_error ) {
+      ParseErr( "number expected" );
+    }
+    return false;
+  }
+
   const char* cur = cur_pos.loc.buf.data() + cur_pos.loc.char_idx;
   const char* end = cur_pos.loc.buf.data() + cur_pos.loc.buf.size();
 
@@ -900,8 +907,19 @@ void Source::GetColorOrGradient( SVG::Color* color )
       SkipWS();
       if ( !AtSOL() ) {
         GetDouble( stop1 );
+        if ( stop1 < 0.0 || stop1 > 1.0 ) {
+          ParseErr( "gradient position out of range [0.0;1.0]", true );
+        }
         ExpectWS();
         GetDouble( stop2 );
+        if ( stop2 < 0.0 || stop2 > 1.0 ) {
+          ParseErr( "gradient position out of range [0.0;1.0]", true );
+        }
+        if ( stop2 < stop1 ) {
+          ParseErr(
+            "end gradient position cannot be smaller than start gradient position", true
+          );
+        }
         ExpectEOL();
         NextLine();
         if ( !AtEOF() ) {
@@ -920,7 +938,7 @@ void Source::GetColorOrGradient( SVG::Color* color )
         }
       }
     }
-    color->SetGradient( &c1, &c2, x1, y1, x2, y2, stop1, stop2 );
+    color->SetGroupGradient( &c1, &c2, x1, y1, x2, y2, stop1, stop2 );
   } else {
     GetColor( color );
   }

@@ -74,13 +74,14 @@ std::cout << R"EOF(
 #BoxColor skyblue 0 0.3
 #BoxColor yellow -0.4 0.7
 #
-# Some colors can also be a gradient, which is specified as two colors on two
-# separate lines, optionally followed by an extra line with the start gradient
-# position (0.0 to 1.0) and the end gradient position (0.0 to 1.0). The final
-# optional line consists of four numbers defining a vector direction along which
-# the gradient is applied; vector coordinates 0.0 to 1.0 refer to the boundary
-# of the object. If no vector direction is given, a default context dependent
-# direction is used.
+# Some colors can also be a gradient (mentioned clearly if so), which is
+# specified as two colors on two separate lines, optionally followed by an extra
+# line with the start gradient position (0.0 to 1.0) and the end gradient
+# position (0.0 to 1.0). The final optional line consists of four numbers
+# defining a vector direction along which the gradient is applied; vector
+# coordinates 0.0 to 1.0 refer to the boundary of the object. Alternatively, a
+# direction can also be given as e.g. "Left to Right". If no vector direction is
+# given, a default context dependent direction is used.
 #
 # Example (invisible 50% light blue transitioning to fully opaque):
 #BoxColor:
@@ -92,11 +93,17 @@ std::cout << R"EOF(
 #   yellow
 #   red
 #   0.5 1
+# With direction:
+#BoxColor:
+#   yellow
+#   red
+#   0.5 1
+#   Top to Bottom
 #
 # Example (red transitioning to less and less transparent along a bottom-left to
 # top-center direction):
 #BoxColor:
-#   reg 0 0.8
+#   red 0 0.8
 #   red 0 0.2
 #   0 1
 #   0.0 0.0 0.5 1.2
@@ -684,6 +691,7 @@ SubSubTitle:
 # This specifies the fill color used for bars, areas, marker interiors, etc.; it
 # acts as a one-time modifier to the current Style. The FillColor attribute
 # applies to the current series only.
+# Gradient allowed.
 #Series.FillColor: None
 
 # Enable tagging of data points, that is, showing the data values near the data

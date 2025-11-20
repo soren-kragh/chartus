@@ -1777,7 +1777,7 @@ void do_Series_FillColor( void )
     source.ParseErr( "FillColor outside defining series" );
   }
   auto series = state.series_list.back();
-  source.GetColor( series->FillColor() );
+  source.GetColorOrGradient( series->FillColor() );
   series->FillColor()->Lighten( state.lighten );
   if ( state.fill_transparency >= 0 ) {
     series->FillColor()->SetTransparency( state.fill_transparency );
