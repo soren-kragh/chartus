@@ -154,23 +154,23 @@ void Main::SetLegendPos( Pos pos1, Pos pos2, uint32_t force_nx )
   legend_obj->force_nx = force_nx;
 }
 
-void Main::SetLegendSize( float size )
+void Main::SetLegendSize( double size )
 {
   legend_obj->size = size;
 }
 
-void Main::SetBarWidth( float one_width, float all_width )
+void Main::SetBarWidth( double one_width, double all_width )
 {
   bar_one_width = one_width;
   bar_all_width = all_width;
 }
 
-void Main::SetLayeredBarWidth( float width )
+void Main::SetLayeredBarWidth( double width )
 {
   bar_layered_width = width;
 }
 
-void Main::SetBarMargin( float margin )
+void Main::SetBarMargin( double margin )
 {
   bar_margin = margin;
 }
@@ -1194,6 +1194,7 @@ void Main::SeriesPrepare(
     }
   }
   if ( tag_bg_color.IsClear() ) tag_bg_color.Set( ColorName::white );
+  tag_bg_color.RemoveGradient( 0 );
 
   bool bar_next_can_stack = false;
   bool bar_next_can_layer = false;
@@ -1262,34 +1263,64 @@ void Main::SeriesPrepare(
       series->tag_enable = false;
     }
 
-    if ( !series->tag_text_color.IsDefined() ) {
-      series->tag_text_color.Set( TextColor() );
-    }
-
-    if ( !series->tag_fill_color.IsDefined() ) {
-      Color c{ &series->line_color };
-      if ( c.IsClear() ) {
-        c.Set( &series->fill_color );
-      }
-      if ( c.IsClear() ) {
-        series->tag_fill_color.Set( &tag_bg_color );
-      } else {
-        c.SetTransparency( 0.0 );
-        series->tag_fill_color.Set( &tag_bg_color, &c, 0.2 );
-      }
-    }
-
-    if ( !series->tag_line_color.IsDefined() ) {
-      if ( series->line_color.IsClear() ) {
-        if ( series->fill_color.IsClear() ) {
-          series->tag_line_color.Clear();
+    {
+      double x1, y1, x2, y2;
+      x1 = y1 = x2 = y2 = 0.5;
+      if ( axis_x->angle == 0 ) {
+        if ( series->axis_y->reverse ) {
+          y1 = 1; y2 = 0;
         } else {
-          series->tag_line_color.Set( &series->fill_color );
+          y1 = 0; y2 = 1;
         }
       } else {
-        series->tag_line_color.Set( &series->line_color );
+        if ( series->axis_y->reverse ) {
+          x1 = 1; x2 = 0;
+        } else {
+          x1 = 0; x2 = 1;
+        }
       }
-      series->tag_line_color.SetTransparency( 0.0 );
+      if ( series->FillColor()->IsGradient() ) {
+        if ( !series->fill_color_grad_dir_defined ) {
+          series->FillColor()->SetGradientDir( x1, y1, x2, y2 );
+        }
+      }
+      if ( series->LineColor()->IsGradient() ) {
+        if ( !series->line_color_grad_dir_defined ) {
+          series->LineColor()->SetGradientDir( x1, y1, x2, y2 );
+        }
+      }
+    }
+
+    if ( !series->TagTextColor()->IsDefined() ) {
+      series->TagTextColor()->Set( TextColor() );
+    }
+
+    if ( !series->TagFillColor()->IsDefined() ) {
+      Color c{ series->LineColor() };
+      if ( c.IsClear() ) {
+        c.Set( series->FillColor() );
+      }
+      if ( c.IsClear() ) {
+        series->TagFillColor()->Set( &tag_bg_color );
+      } else {
+        c.SetTransparency( 0.0 );
+        series->TagFillColor()->Set( &tag_bg_color, &c, 0.2 );
+      }
+      series->TagFillColor()->RemoveGradient( 0 );
+    }
+
+    if ( !series->TagLineColor()->IsDefined() ) {
+      if ( series->LineColor()->IsClear() ) {
+        if ( series->FillColor()->IsClear() ) {
+          series->TagLineColor()->Clear();
+        } else {
+          series->TagLineColor()->Set( series->FillColor() );
+        }
+      } else {
+        series->TagLineColor()->Set( series->LineColor() );
+      }
+      series->TagLineColor()->SetTransparency( 0.0 );
+      series->TagLineColor()->RemoveGradient( 0 );
     }
 
     series->DetermineVisualProperties();

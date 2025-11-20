@@ -197,6 +197,7 @@ void HTML::GenChartData( Main* main, std::ostringstream& oss )
     bg_color.Set( main->ensemble->BackgroundColor() );
   }
   if ( bg_color.IsClear() ) bg_color.Set( ColorName::white );
+  bg_color.RemoveGradient( 0 );
 
   oss << "{\n";
 
@@ -356,14 +357,14 @@ void HTML::GenChartData( Main* main, std::ostringstream& oss )
     {
       Color fg;
       {
-        Color c1{ series->line_color };
-        Color c2{ series->fill_color };
+        Color c1{ series->LineColor() };
+        Color c2{ series->FillColor() };
         if ( !series->line_color_shown ) c1.Set( &bg_color );
         if ( !series->fill_color_shown ) c2.Set( &bg_color );
-        c1.SetTransparency( 0.0 );
-        c2.SetTransparency( 0.0 );
-        float d1 = Color::Diff( &c1, &bg_color );
-        float d2 = Color::Diff( &c2, &bg_color );
+        c1.RemoveGradient( 0 )->SetTransparency( 0.0 );
+        c2.RemoveGradient( 0 )->SetTransparency( 0.0 );
+        double d1 = Color::Diff( &c1, &bg_color );
+        double d2 = Color::Diff( &c2, &bg_color );
         fg.Set( &c1 );
         if ( series->fill_color_shown ) {
           if (

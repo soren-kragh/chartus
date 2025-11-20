@@ -54,7 +54,7 @@ struct state_t {
   double line_dash = -1;
   double line_hole = -1;
   double lighten = 0.0;
-  double fill_transparency = -1;
+  double fill_transparify = 0.0;
   bool tag_enable = false;
   Chart::Pos tag_pos = Chart::Pos::Auto;
   double tag_size = 1.0;
@@ -201,6 +201,7 @@ void gen_example( int N )
         }
       }
       #include <dash_e5.h>
+      std::cout << "MacroDef: BarLollipopData" << '\n';
       std::cout << std::scientific << std::setprecision( 1 );
       for ( int sample = 0; sample < 24; sample++ ) {
         double sum = 0;
@@ -223,6 +224,18 @@ void gen_example( int N )
         std::cout << ' ' << sum;
         std::cout << '\n';
       }
+      std::cout << "MacroEnd: BarLollipopData" << '\n';
+      std::cout << '\n';
+      std::cout << "MacroDef: WaveData" << '\n';
+      std::cout << std::fixed << std::setprecision( 3 );
+      for ( int i = 0; i <= 48; i++ ) {
+        double x = 3.0 * M_PI * i / 48;
+        std::cout << ' ' << x;
+        std::cout << ' ' << std::sin( x ) * 1.0;
+        std::cout << ' ' << std::cos( x ) * 1.6;
+        std::cout << '\n';
+      }
+      std::cout << "MacroEnd: WaveData" << '\n';
       break;
     }
     case 6:
@@ -475,11 +488,13 @@ bool do_GridPos(
 // Indicates if a chart has been started without a preceding New.
 bool non_newed_chart = false;
 
+uint32_t context_chart;
+
 Chart::Main* CurChart( void )
 {
   if ( ensemble.Empty() ) {
     non_newed_chart = true;
-    source.SavePos( 1 );
+    context_chart = source.SavePos();
     ensemble.NewChart( 0, 0, 0, 0 );
   }
   return ensemble.LastChart();
@@ -517,7 +532,7 @@ void do_NewChart( bool chart_in_chart )
   }
 
   if ( non_newed_chart ) {
-    source.RestorePos( 1 );
+    source.RestorePos( context_chart );
     source.ToSOL();
     source.ParseErr(
       "chart specifiers must be preceded by NewChartInGrid for multi chart plots"
@@ -689,7 +704,7 @@ void do_GlobalLegendSize( void )
 
 void do_GlobalLegendColor( void )
 {
-  source.GetColor( ensemble.LegendColor() );
+  source.GetColorOrGradient( ensemble.LegendColor() );
 }
 
 void do_LetterSpacing( void )
@@ -843,7 +858,7 @@ void do_TextColor( void )
 
 void do_BoxColor( void )
 {
-  source.GetColor( CurChart()->BoxColor() );
+  source.GetColorOrGradient( CurChart()->BoxColor() );
 }
 
 //------------------------------------------------------------------------------
@@ -1489,6 +1504,10 @@ void AddSeries( std::string name = "" )
   series->SetAxisY( state.axis_y_n );
   series->SetBase( state.series_base );
   series->SetStyle( state.style );
+  series->fill_color_grad_dir_defined =
+  series->line_color_grad_dir_defined = false;
+  series->FillColorBaseStopIdxClr();
+  series->LineColorBaseStopIdxClr();
   NextSeriesStyle();
   series->SetMarkerShape( state.marker_shape );
   ApplyMarkerSize( series );
@@ -1498,9 +1517,9 @@ void AddSeries( std::string name = "" )
   if ( state.line_dash >= 0 ) {
     series->SetLineDash( state.line_dash, state.line_hole );
   }
-  if ( state.fill_transparency >= 0 ) {
-    series->FillColor()->SetTransparency( state.fill_transparency );
-  }
+  series->FillColor()->Transparify(
+    state.fill_transparify, series->FillColor()->IsGradient()
+  );
   series->LineColor()->Lighten( state.lighten );
   series->FillColor()->Lighten( state.lighten );
   series->SetTagEnable( state.tag_enable );
@@ -1621,19 +1640,24 @@ void do_Series_Style( void )
   }
   source.ExpectEOL();
   if ( state.defining_series ) {
-    state.series_list.back()->SetStyle( state.style );
+    auto series = state.series_list.back();
+    series->SetStyle( state.style );
+    series->LineColor()->Lighten( state.lighten );
+    series->FillColor()->Lighten( state.lighten );
+    series->TagTextColor()->Undef();
+    series->TagFillColor()->Undef();
+    series->TagLineColor()->Undef();
+    series->fill_color_grad_dir_defined =
+    series->line_color_grad_dir_defined = false;
+    series->FillColorBaseStopIdxClr();
+    series->LineColorBaseStopIdxClr();
     NextSeriesStyle();
-    state.series_list.back()->LineColor()->Lighten( state.lighten );
-    state.series_list.back()->FillColor()->Lighten( state.lighten );
-    state.series_list.back()->TagTextColor()->Undef();
-    state.series_list.back()->TagFillColor()->Undef();
-    state.series_list.back()->TagLineColor()->Undef();
   }
   state.marker_size = -1;
   state.line_width = -1;
   state.line_dash = -1;
   state.line_hole = -1;
-  state.fill_transparency = -1;
+  state.fill_transparify = 0.0;
   state.tag_text_color.Undef();
   state.tag_fill_color.Undef();
   state.tag_line_color.Undef();
@@ -1732,14 +1756,16 @@ void do_Series_FillTransparency( void )
 {
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "transparency value expected" );
-  source.GetDouble( state.fill_transparency );
-  if ( state.fill_transparency < 0.0 || state.fill_transparency > 1.0 ) {
+  source.GetDouble( state.fill_transparify );
+  if ( state.fill_transparify < -1.0 || state.fill_transparify > 1.0 ) {
     source.ParseErr( "transparency value out of range [-1.0;1.0]", true );
   }
   source.ExpectEOL();
   if ( state.defining_series ) {
-    state.series_list.back()->
-      FillColor()->SetTransparency( state.fill_transparency );
+    state.series_list.back()->FillColor()->Transparify(
+      state.fill_transparify,
+      state.series_list.back()->FillColor()->IsGradient()
+    );
   }
 }
 
@@ -1749,16 +1775,31 @@ void do_Series_Color( void )
     source.ParseErr( "Color outside defining series" );
   }
   auto series = state.series_list.back();
-  double transparency = -1.0;
-  source.GetColor( series->LineColor(), transparency );
-  series->LineColor()->Lighten( state.lighten )->SetTransparency( 0.0 );
-  series->SetDefaultFillColor();
-  if ( transparency >= 0.0 ) {
-    series->FillColor()->SetTransparency( transparency );
-  } else
-  if ( state.fill_transparency >= 0 ) {
-    series->FillColor()->SetTransparency( state.fill_transparency );
+  std::vector< uint32_t > base_stop_idx_list;
+  series->fill_color_grad_dir_defined =
+  series->line_color_grad_dir_defined =
+    source.GetColorOrGradient( series->LineColor(), base_stop_idx_list );
+  series->FillColorBaseStopIdxClr();
+  series->LineColorBaseStopIdxClr();
+  for ( auto idx : base_stop_idx_list ) {
+    series->FillColorBaseStopIdxAdd( idx );
+    series->LineColorBaseStopIdxAdd( idx );
   }
+  series->LineColor()->Lighten( state.lighten );
+  if ( series->LineColor()->IsGradient() ) {
+    series->FillColor()->Set( series->LineColor() );
+    series->LineColor()->SetTransparency( 0.0, true );
+  } else {
+    auto transparency = series->LineColor()->GetTransparency();
+    series->LineColor()->SetTransparency( 0.0 );
+    series->SetDefaultFillColor();
+    if ( transparency > 0.0 ) {
+      series->FillColor()->SetTransparency( transparency );
+    }
+  }
+  series->FillColor()->Transparify(
+    state.fill_transparify, series->FillColor()->IsGradient()
+  );
 }
 
 void do_Series_LineColor( void )
@@ -1767,8 +1808,14 @@ void do_Series_LineColor( void )
     source.ParseErr( "LineColor outside defining series" );
   }
   auto series = state.series_list.back();
-  source.GetColor( series->LineColor() );
+  std::vector< uint32_t > base_stop_idx_list;
+  series->line_color_grad_dir_defined =
+    source.GetColorOrGradient( series->LineColor(), base_stop_idx_list );
   series->LineColor()->Lighten( state.lighten );
+  series->LineColorBaseStopIdxClr();
+  for ( auto idx : base_stop_idx_list ) {
+    series->LineColorBaseStopIdxAdd( idx );
+  }
 }
 
 void do_Series_FillColor( void )
@@ -1777,10 +1824,16 @@ void do_Series_FillColor( void )
     source.ParseErr( "FillColor outside defining series" );
   }
   auto series = state.series_list.back();
-  source.GetColor( series->FillColor() );
+  std::vector< uint32_t > base_stop_idx_list;
+  series->fill_color_grad_dir_defined =
+    source.GetColorOrGradient( series->FillColor(), base_stop_idx_list );
   series->FillColor()->Lighten( state.lighten );
-  if ( state.fill_transparency >= 0 ) {
-    series->FillColor()->SetTransparency( state.fill_transparency );
+  series->FillColor()->Transparify(
+    state.fill_transparify, series->FillColor()->IsGradient()
+  );
+  series->FillColorBaseStopIdxClr();
+  for ( auto idx : base_stop_idx_list ) {
+    series->FillColorBaseStopIdxAdd( idx );
   }
 }
 
@@ -1862,15 +1915,12 @@ void parse_series_data( bool implicit = false )
   size_t rows = 0;
   uint32_t max_columns = 1;
 
-  constexpr uint32_t data_beg_pos = 100;
-  constexpr uint32_t data_end_pos = 101;
-
   std::vector< Chart::min_max_t > column_min_max( 1 );
 
   Chart::Main::parse_cat_t saved_parse_cat;
   bool spc_defined = false;
 
-  source.SavePos( data_beg_pos );
+  auto data_beg_pos = source.SavePos();
 
   while ( !source.AtEOF() ) {
     source.SkipWS( true );
@@ -1915,7 +1965,7 @@ void parse_series_data( bool implicit = false )
     rows++;
   }
 
-  source.SavePos( data_end_pos );
+  auto data_end_pos = source.SavePos();
   source.RestorePos( data_beg_pos );
 
   if ( implicit && rows == 0 ) return;

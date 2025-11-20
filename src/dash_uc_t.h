@@ -7,9 +7,8 @@ std::cout << R"EOF(
 # The UTF-8 character encoding standard is used.
 #
 # The input file consists of a number of specifiers. Any line starting with a
-# '#' at column 0 is ignored, empty lines are also ignored. The simplest input
-# file consists only of data values, the Series.Data key is implicit in this
-# special case.
+# '#' at column 0 is ignored. The simplest input file consists only of data
+# values, the Series.Data key is implicit in this special case.
 #
 # A specifier takes the form:
 # KEY: VALUE(s)
@@ -20,8 +19,7 @@ std::cout << R"EOF(
 #   ...
 #
 # The KEY must be unindented and any VALUE(s) on the following lines must be
-# indented, preferably by the same amount (important for text VALUEs). Multiple
-# VALUEs on the same line must be whitespace separated.
+# indented. Multiple VALUEs on the same line must be whitespace separated.
 #
 # Text VALUEs such as titles and labels may span multiple lines, in which case
 # they should be uniformly indented. Please observe the LetterSpacing specifier
@@ -33,12 +31,6 @@ std::cout << R"EOF(
 # other hand, a textual X-axis has text strings as "values". If just one series
 # is defined which uses textual X-values (e.g. a Bar plot), then the X-axis as a
 # whole becomes textual. See Series.Type for more information.
-#
-# A color can be any of the 147 named SVG colors (google "svg colors") or a
-# hexadecimal RGB value of the form #rrggbb; None means no color. The optional
-# 2nd value (-1.0 to 1.0) specifies by how much to lighten the color (or darken
-# if negative). The third optional value specifies the transparency of the color
-# (0.0 to 1.0).
 #
 # Defining one or more charts generally follows this sequence:
 #
@@ -66,6 +58,67 @@ std::cout << R"EOF(
 # Everything has been commented out in this file, so it will not do anything if
 # used directly as input to Chartus. Please refer to the built-in inspirational
 # examples (chartus -eN) for actual working input files.
+#
+
+# Color specifiers are used throughout in the following and the syntax is
+# described here. A color can be any of the 147 named SVG colors (google "svg
+# colors") or a hexadecimal RGB value of the form #rrggbb; None means no color.
+# The optional 2nd value (-1.0 to 1.0) specifies by how much to lighten the
+# color (or darken if negative). The third optional value specifies the
+# transparency of the color (0.0 to 1.0).
+#
+# Examples:
+#BoxColor brown
+#BoxColor skyblue 0 0.3
+#BoxColor yellow -0.4 0.7
+#
+
+# Some colors can also be a gradient (mentioned explicitly if so), which is
+# specified as two or more colors each on separate lines; a gradient position
+# (0.0 to 1.0) may optionally be specified in front of each of these colors. An
+# optional extra line consists of four numbers defining a vector direction along
+# which the gradient is applied; vector coordinates 0.0 to 1.0 refer to the
+# boundary of the object. Alternatively, a direction can also be given as e.g.
+# "Left to Right". If no vector direction is given, a default context dependent
+# direction is used. The special gradient position Base may be used for
+# Series.Color, Series.FillColor, and Series.LineColor, which can be used to
+# e.g. color negative and positive bars or areas differently. See examples
+# below.
+#
+# Example (invisible 50% light blue transitioning to fully opaque):
+#Series.Color:
+#   blue 0.5 1
+#   blue 0.5
+#
+# Example (yellow to red, transition starting midway):
+#Series.Color:
+#   0.5 yellow
+#   1.0 red
+# With direction and transient part in a narrow band midway:
+#Series.Color:
+#   0.4 yellow
+#   0.6 red
+#   Top to Bottom
+#
+# Example (red transitioning to less and less transparent along a bottom-left to
+# top-center direction):
+#Series.Color:
+#   red 0 0.8
+#   red 0 0.2
+#   0.0 0.0 0.5 1.2
+# Simpler more readable (but less flexible) syntax:
+#Series.Color:
+#   red 0 0.8
+#   red 0 0.2
+#   Bottom Left to Top
+#
+# Show red gradient for negative numbers (or rather, numbers below the
+# Series.Base) and seagreen gradient for positive numbers:
+#Series.FillColor:
+#   red
+#   Base red 0 0.5
+#   Base seagreen 0 0.5
+#   seagreen
 #
 
 # The HTML tab title to show in the HTML browser. Cannot be multi-line.
@@ -115,6 +168,7 @@ std::cout << R"EOF(
 #GlobalLegendSize: 1.0
 
 # The background color of the global legend box.
+# Color gradient allowed.
 #GlobalLegendColor: darkseagreen
 
 # Adds a footnote. Footnotes are placed below everything. Multiple footnotes
@@ -262,6 +316,7 @@ FootnotePos: Right
 #TextColor: lightyellow
 
 # The background color of legend box and title box (when these are shown).
+# Color gradient allowed.
 #BoxColor: aqua 0 0.5
 
 # Titles are normally placed at the top of the chart.
@@ -633,23 +688,27 @@ SubSubTitle:
 # subsequent series, or until it is redefined.
 #Series.Lighten: 0
 
-# This value (0.0 to 1.0) specifies the transparency to be used for Bar and Area
-# fill color; it acts as a persistent override modifier to the current Style.
-# This attribute applies to the current series and all subsequent series, or
-# until it is redefined.
+# This value (-1.0 to 1.0) specifies extra transparency to be used for Bar and
+# Area fill color; it acts as a persistent modifier to the current Style. This
+# attribute applies to the current series and all subsequent series, or until it
+# is redefined. Setting a value of -1 removes any transparency entirely.
 #Series.FillTransparency: 0
 
 # This specifies the color; it acts as a one-time modifier to the current Style.
 # The Color attribute applies to the current series only.
+# Color gradient allowed.
 #Series.Color: lightsteelblue
 
 # This specifies the line color; it acts as a one-time modifier to the current
 # Style. The LineColor attribute applies to the current series only.
+# Color gradient allowed.
 #Series.LineColor: darkorange -0.2 0.7
 
 # This specifies the fill color used for bars, areas, marker interiors, etc.; it
 # acts as a one-time modifier to the current Style. The FillColor attribute
 # applies to the current series only.
+# Gradient allowed.
+# Color gradient allowed.
 #Series.FillColor: None
 
 # Enable tagging of data points, that is, showing the data values near the data
@@ -764,6 +823,7 @@ MacroDef: AnnotationDocumentation
 
 # See earlier description of color format. Applies to all subsequent
 # annotations.
+# Color gradient allowed.
 @LineColor: black
 @FillColor: None
 @TextColor: black

@@ -89,9 +89,11 @@ void Source::ParseErr( const std::string& msg, bool show_ref )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void Source::SavePos( uint32_t context )
+uint32_t Source::SavePos()
 {
-  saved_pos[ context ] = cur_pos;
+  static uint32_t context = 0;
+  saved_pos[ ++context ] = cur_pos;
+  return context;
 }
 
 void Source::RestorePos( uint32_t context )
@@ -619,12 +621,7 @@ std::string_view Source::GetIdentifier()
   const char* ptr = cur;
   while ( true ) {
     char c = *ptr;
-    if (
-      (c >= 'a' && c <= 'z') ||
-      (c >= 'A' && c <= 'Z') ||
-      (c >= '0' && c <= '9') ||
-      c == '_'
-    ) {
+    if ( IsLetter( c ) || IsDigit( c ) || c == '_' ) {
       ++ptr;
     } else {
       break;
@@ -662,6 +659,13 @@ bool Source::GetDoubleFull(
 )
 {
   ref_idx = cur_pos.loc.char_idx;
+
+  if ( AtEOF() || AtEOL() ) {
+    if ( fail_on_error ) {
+      ParseErr( "number expected" );
+    }
+    return false;
+  }
 
   const char* cur = cur_pos.loc.buf.data() + cur_pos.loc.char_idx;
   const char* end = cur_pos.loc.buf.data() + cur_pos.loc.buf.size();
@@ -730,7 +734,7 @@ void Source::GetText( std::string& txt, bool multi_line )
   if ( !txt.empty() || !multi_line ) return;
 
   NextLine();
-  SavePos();
+  auto context = SavePos();
   size_t min_indent = 0;
   while ( !AtEOF() ) {
     size_t i = 0;
@@ -744,7 +748,7 @@ void Source::GetText( std::string& txt, bool multi_line )
     }
     NextLine();
   }
-  RestorePos();
+  RestorePos( context );
 
   while ( !AtEOF() ) {
     if ( !txt.empty() ) txt += '\n';
@@ -807,7 +811,7 @@ void Source::GetDatum(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void Source::GetColor( SVG::Color* color, double& transparency )
+void Source::GetColor( SVG::Color* color )
 {
   SkipWS();
   std::string color_id{ GetIdentifier() };
@@ -851,19 +855,21 @@ void Source::GetColor( SVG::Color* color, double& transparency )
         if ( lighten < -1.0 || lighten > 1.0 ) {
           ParseErr( "lighten value out of range [-1.0;1.0]", true );
         }
-        if ( lighten < 0 )
-          color->Darken( -lighten );
-        else
-          color->Lighten( lighten );
+        color->Lighten( lighten );
       }
     }
     if ( !AtEOL() ) {
       ExpectWS();
       if ( !AtEOL() ) {
+        double transparency;
         GetDouble( transparency );
         if ( transparency < 0.0 || transparency > 1.0 ) {
           ParseErr( "transparency value out of range [0.0;1.0]", true );
         }
+        // Ensure minimum very small non-zero value to indicate that a
+        // transparency value was given (in the SVG the value becomes "0" due to
+        // rounding).
+        transparency = std::max( 1e-6, transparency );
         color->SetTransparency( transparency );
       }
     }
@@ -872,10 +878,154 @@ void Source::GetColor( SVG::Color* color, double& transparency )
   ExpectEOL();
 }
 
-void Source::GetColor( SVG::Color* color )
+void Source::ParseGradientDirection(
+  double& x1, double& y1, double& x2, double& y2
+)
 {
-  double transparency;
-  GetColor( color, transparency );
+  auto get_pos = [&]( Pos& pos, bool to_ok )
+    {
+      std::string_view id = GetIdentifier();
+      if ( id == "Center"      ) pos = Pos::Center; else
+      if ( id == "Left"        ) pos = Pos::Left  ; else
+      if ( id == "Right"       ) pos = Pos::Right ; else
+      if ( id == "Bottom"      ) pos = Pos::Bottom; else
+      if ( id == "Top"         ) pos = Pos::Top   ; else
+      if ( id == "to" && to_ok ) pos = Pos::Undef ; else
+      if ( id == "" ) ParseErr( "position expected" ); else
+      ParseErr( "unsupported position '" + std::string( id ) + "'", true );
+      if ( pos == Pos::Undef ) cur_pos.loc.char_idx = ref_idx;
+    };
+
+  auto get_xy = [&]( double& x, double& y, bool to_ok )
+    {
+      Pos pos1 = Pos::Undef;
+      Pos pos2 = Pos::Undef;
+      x = y = 0.5;
+      get_pos( pos1, false );
+      SkipWS();
+      if ( !AtEOL() ) {
+        get_pos( pos2, to_ok );
+      }
+      if ( pos1 == Pos::Bottom || pos2 == Pos::Bottom ) y = 0.0;
+      if ( pos1 == Pos::Top    || pos2 == Pos::Top    ) y = 1.0;
+      if ( pos1 == Pos::Left   || pos2 == Pos::Left   ) x = 0.0;
+      if ( pos1 == Pos::Right  || pos2 == Pos::Right  ) x = 1.0;
+    };
+
+  SkipWS();
+  get_xy( x1, y1, true );
+  SkipWS();
+  if ( GetIdentifier() != "to" ) ParseErr( "'to' expected", true );
+  SkipWS();
+  get_xy( x2, y2, false );
+  ExpectEOL();
+}
+
+bool Source::GetColorOrGradient(
+  SVG::Color* color, std::vector< uint32_t >& base_stop_idx_list
+)
+{
+  bool dir_given = false;
+
+  auto may_only_be_stop_color = [&]()
+    {
+      bool mobsc = true;
+      auto saved_pos = cur_pos.loc.char_idx;
+      SkipWS();
+      double d;
+      if ( GetDoubleFull( d, false, true, false ) ) {
+        SkipWS();
+        mobsc = !GetDoubleFull( d, false, true, false );
+      } else {
+        std::string id{ GetIdentifier() };
+        if ( !id.empty() ) {
+          mobsc =
+            id != "Center" &&
+            id != "Left" && id != "Right" &&
+            id != "Bottom" && id != "Top";
+        }
+      }
+      cur_pos.loc.char_idx = saved_pos;
+      return mobsc;
+    };
+
+  uint32_t stop_num = 0;
+  double min_stop_ofs = 0.0;
+
+  auto get_stop_color = [&]( double& stop_ofs, SVG::Color* color )
+    {
+      ToSOL();
+      ExpectWS();
+      stop_ofs = -1.0;
+      if ( GetDoubleFull( stop_ofs, false, true, false ) ) {
+        if ( stop_ofs < 0.0 || stop_ofs > 1.0 ) {
+          ParseErr( "gradient position out of range [0.0;1.0]", true );
+        }
+        if ( stop_ofs < min_stop_ofs ) {
+          ParseErr( "backwards gradient position", true );
+        }
+        min_stop_ofs = stop_ofs;
+      } else {
+        std::string id{ GetIdentifier() };
+        if ( id == "Base" && AtWS() ) {
+          base_stop_idx_list.push_back( stop_num );
+        } else {
+          cur_pos.loc.char_idx = ref_idx;
+        }
+      }
+      GetColor( color );
+      stop_num++;
+    };
+
+  color->Clear();
+  color->SetTransparency( 0.0 );
+  SkipWS();
+  if ( AtEOL() ) {
+    SkipWS( true );
+    double stop_ofs;
+    SVG::Color sc;
+    get_stop_color( stop_ofs, &sc );
+    color->AddGradientStop( &sc, stop_ofs );
+    SkipWS( true );
+    get_stop_color( stop_ofs, &sc );
+    color->AddGradientStop( &sc, stop_ofs );
+    SkipWS( true );
+    while ( !AtEOL() && !AtSOL() && may_only_be_stop_color() ) {
+      get_stop_color( stop_ofs, &sc );
+      color->AddGradientStop( &sc, stop_ofs );
+      SkipWS( true );
+    }
+    double x1 = 0.5;
+    double y1 = 0.0;
+    double x2 = 0.5;
+    double y2 = 1.0;
+    if ( !AtEOL() && !AtSOL() ) {
+      if ( GetDoubleFull( x1, false, true, false ) ) {
+        ExpectWS( "y1 vector coordinate expected" );
+        GetDouble( y1 );
+        ExpectWS( "x2 vector coordinate expected" );
+        GetDouble( x2 );
+        ExpectWS( "y2 vector coordinate expected" );
+        GetDouble( y2 );
+        ExpectEOL();
+        SkipWS( true );
+      } else {
+        ParseGradientDirection( x1, y1, x2, y2 );
+      }
+      dir_given = true;
+    }
+    color->SetGradientDir( x1, y1, x2, y2, true );
+  } else {
+    GetColor( color );
+  }
+
+  return dir_given;
+}
+
+bool Source::GetColorOrGradient( SVG::Color* color )
+{
+  std::vector< uint32_t > base_stop_idx_list;
+  return GetColorOrGradient( color, base_stop_idx_list );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

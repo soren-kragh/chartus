@@ -97,7 +97,7 @@ void Series::SetBase( double base )
 
 void Series::SetDefaultFillColor()
 {
-  fill_color.Set( &line_color );
+  FillColor()->Set( LineColor() );
   if (
     type == SeriesType::Bar ||
     type == SeriesType::StackedBar ||
@@ -106,20 +106,20 @@ void Series::SetDefaultFillColor()
     type == SeriesType::StackedArea
   ) {
     if ( type == SeriesType::Area || type == SeriesType::StackedArea ) {
-      fill_color.Lighten( 0.2 );
-      fill_color.SetTransparency( 0.5 );
+      FillColor()->Lighten( 0.2 );
+      FillColor()->SetTransparency( 0.5 );
     } else {
-      fill_color.Lighten( 0.5 );
-      fill_color.SetTransparency( 0.2 );
+      FillColor()->Lighten( 0.5 );
+      FillColor()->SetTransparency( 0.2 );
     }
   } else {
-    fill_color.Lighten( 0.5 );
+    FillColor()->Lighten( 0.5 );
   }
 }
 
 void Series::SetStyle( int style )
 {
-  line_color.Set( &color_list[ style % color_list.size() ] );
+  LineColor()->Set( &color_list[ style % color_list.size() ] );
   SetDefaultFillColor();
   style = style / color_list.size();
   style = style % 8;
@@ -215,10 +215,32 @@ void Series::SetMarkerShape( MarkerShape shape )
 
 //------------------------------------------------------------------------------
 
+void Series::FillColorBaseStopIdxClr()
+{
+  fill_color_base_stop_idx_list.clear();
+}
+
+void Series::FillColorBaseStopIdxAdd( uint32_t idx )
+{
+  fill_color_base_stop_idx_list.push_back( idx );
+}
+
+void Series::LineColorBaseStopIdxClr()
+{
+  line_color_base_stop_idx_list.clear();
+}
+
+void Series::LineColorBaseStopIdxAdd( uint32_t idx )
+{
+  line_color_base_stop_idx_list.push_back( idx );
+}
+
+//------------------------------------------------------------------------------
+
 void Series::ApplyFillStyle( SVG::Object* obj )
 {
   obj->Attr()->LineColor()->Clear();
-  obj->Attr()->FillColor()->Set( &fill_color );
+  obj->Attr()->FillColor()->Set( FillColor() );
 }
 
 void Series::ApplyLineStyle( SVG::Object* obj )
@@ -231,14 +253,14 @@ void Series::ApplyLineStyle( SVG::Object* obj )
     if ( marker_show ) {
       obj->Attr()->SetLineJoin( LineJoin::Round );
     }
-    obj->Attr()->LineColor()->Set( &line_color );
+    obj->Attr()->LineColor()->Set( LineColor() );
   } else {
     obj->Attr()->LineColor()->Clear();
   }
   obj->Attr()->FillColor()->Clear();
 }
 
-void Series::ApplyMarkStyle( SVG::Object* obj )
+void Series::ApplyMarkStyle( SVG::Object* obj, bool legend )
 {
   obj->Attr()->LineColor()->Clear();
   if (
@@ -250,9 +272,13 @@ void Series::ApplyMarkStyle( SVG::Object* obj )
     obj->Attr()->SetLineDash( 0 );
   } else {
     if ( line_width > 0 ) {
-      obj->Attr()->FillColor()->Set( &line_color );
+      obj->Attr()->FillColor()->Set( LineColor() );
+      if ( legend ) {
+        obj->Attr()->FillColor()->RemoveGradient( 1 );
+      }
       if ( type != SeriesType::Scatter && type != SeriesType::Point ) {
         obj->Attr()->FillColor()->SetOpacity( 1.0 );
+        obj->Attr()->FillColor()->SetOpacity( 1.0, true );
       }
     } else {
       obj->Attr()->FillColor()->Clear();
@@ -260,20 +286,24 @@ void Series::ApplyMarkStyle( SVG::Object* obj )
   }
 }
 
-void Series::ApplyHoleStyle( SVG::Object* obj )
+void Series::ApplyHoleStyle( SVG::Object* obj, bool legend )
 {
   obj->Attr()->LineColor()->Clear();
-  obj->Attr()->FillColor()->Set( &fill_color );
+  obj->Attr()->FillColor()->Set( FillColor() );
+  if ( legend ) {
+    obj->Attr()->FillColor()->RemoveGradient( 1 );
+  }
   if ( type != SeriesType::Scatter && type != SeriesType::Point ) {
     obj->Attr()->FillColor()->SetOpacity( 1.0 );
+    obj->Attr()->FillColor()->SetOpacity( 1.0, true );
   }
 }
 
 void Series::ApplyTagStyle( SVG::Object* obj )
 {
-  obj->Attr()->LineColor()->Set( &tag_line_color );
-  obj->Attr()->FillColor()->Set( &tag_fill_color );
-  obj->Attr()->TextColor()->Set( &tag_text_color );
+  obj->Attr()->LineColor()->Set( TagLineColor() );
+  obj->Attr()->FillColor()->Set( TagFillColor() );
+  obj->Attr()->TextColor()->Set( TagTextColor() );
   obj->Attr()->SetLineWidth( 1 );
   obj->Attr()->TextFont()->SetSize( 12 * tag_size );
   obj->Attr()->TextFont()->SetBold();
@@ -699,7 +729,7 @@ void Series::DetermineVisualProperties( void )
     type == SeriesType::Area ||
     type == SeriesType::StackedArea
   ) {
-    has_line = line_width > 0 && !line_color.IsClear();
+    has_line = line_width > 0 && !LineColor()->IsClear();
     line_color_shown = has_line;
   }
 
@@ -710,7 +740,7 @@ void Series::DetermineVisualProperties( void )
     type == SeriesType::Area ||
     type == SeriesType::StackedArea
   ) {
-    has_fill = !fill_color.IsClear();
+    has_fill = !FillColor()->IsClear();
     fill_color_shown = has_fill;
   }
 
@@ -790,8 +820,8 @@ void Series::DetermineVisualProperties( void )
   U lw = line_width;
 
   if ( radius > 0 ) {
-    marker_show_out = !line_color.IsClear() && line_width > 0;
-    marker_show_int = !fill_color.IsClear();
+    marker_show_out = !LineColor()->IsClear() && line_width > 0;
+    marker_show_int = !FillColor()->IsClear();
     if (
       marker_shape == MarkerShape::Cross ||
       marker_shape == MarkerShape::LineX ||
@@ -829,6 +859,49 @@ void Series::DetermineVisualProperties( void )
     );
 
   return;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void Series::UpdateBaseStopIdx(
+  SVG::Color* color, const std::vector< uint32_t >& base_stop_idx_list,
+  SVG::BoundaryBox& bb
+)
+{
+  if ( !datum_def_y || !axis_y->Valid( base ) ) return;
+
+  U min_coor       = 0;
+  U max_coor       = axis_y->length;
+  U datum_min_coor = axis_y->Coor( datum_min_y );
+  U datum_max_coor = axis_y->Coor( datum_max_y );
+  U base_coor      = axis_y->Coor( base );
+  U coor_beg       = min_coor;
+  U coor_end       = max_coor;
+
+  base_coor = std::min( std::max( base_coor, min_coor ), max_coor );
+
+  if ( bb.Defined() ) {
+    coor_beg = (axis_x->angle == 0) ? bb.min.y : bb.min.x;
+    coor_end = (axis_x->angle == 0) ? bb.max.y : bb.max.x;
+    if ( axis_y->reverse ) std::swap( coor_beg, coor_end );
+  } else {
+    if ( axis_y->reverse ) {
+      coor_beg = std::max( std::min( datum_min_coor, max_coor ), base_coor );
+      coor_end = std::min( std::max( datum_max_coor, min_coor ), base_coor );
+    } else {
+      coor_beg = std::min( std::max( datum_min_coor, min_coor ), base_coor );
+      coor_end = std::max( std::min( datum_max_coor, max_coor ), base_coor );
+    }
+  }
+
+  if ( std::abs( coor_beg - coor_end ) < epsilon ) return;
+
+  double base_stop_ofs = (coor_beg - base_coor) / (coor_beg - coor_end);
+  base_stop_ofs = std::min( std::max( base_stop_ofs, 0.0 ), 1.0 );
+
+  for ( auto idx : base_stop_idx_list ) {
+    color->SetStopOfs( idx, base_stop_ofs );
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -883,10 +956,10 @@ bool Series::SameLegend( Series* s1, Series* s2 )
     s1->fill_color_shown == s2->fill_color_shown;
 
   if ( same && s1->line_color_shown ) {
-    same = s1->line_color == s2->line_color;
+    same = *s1->LineColor() == *s2->LineColor();
   }
   if ( same && s1->fill_color_shown ) {
-    same = s1->fill_color == s2->fill_color;
+    same = *s1->FillColor() == *s2->FillColor();
   }
 
   if ( same && s1->has_line ) {
@@ -1922,16 +1995,12 @@ void Series::Build(
   } else {
     fill_g = main_g->AddNewGroup();
   }
-  ApplyFillStyle( fill_g );
 
   // Tiny bars.
   if ( has_line ) {
     tbar_g = line_g->AddNewGroup();
-    tbar_g->Attr()->LineColor()->Clear();
-    tbar_g->Attr()->FillColor()->Set( &line_color );
   } else {
     tbar_g = main_g->AddNewGroup();
-    ApplyFillStyle( tbar_g );
   }
 
   if ( bar_layer_tot > 1 ) {
@@ -1942,13 +2011,10 @@ void Series::Build(
       line_g->ParentGroup()->FrontToBack();
     }
   }
-  ApplyLineStyle( line_g );
 
   if ( marker_g != nullptr ) {
     mark_g = marker_g->AddNewGroup();
-    ApplyMarkStyle( mark_g );
     hole_g = marker_g->AddNewGroup();
-    ApplyHoleStyle( hole_g );
   }
 
   tag_g = tag_g->AddNewGroup();
@@ -1986,6 +2052,57 @@ void Series::Build(
     BuildLine(
       line_g, mark_g, hole_g, tag_g
     );
+  }
+
+  {
+    BoundaryBox agg_bb;
+    if ( fill_g && !fill_g->Empty() ) agg_bb.Update( fill_g->GetBB() );
+    if ( line_g && !line_g->Empty() ) agg_bb.Update( line_g->GetBB() );
+    if ( hole_g && !hole_g->Empty() ) agg_bb.Update( hole_g->GetBB() );
+    if ( mark_g && !mark_g->Empty() ) agg_bb.Update( mark_g->GetBB() );
+    if ( tbar_g && !tbar_g->Empty() ) agg_bb.Update( tbar_g->GetBB() );
+
+    auto create_demarcation = [&]( SVG::Group* g )
+      {
+        g->Add( new Rect( agg_bb.min, agg_bb.max ) );
+        g->Last()->Attr()->FillColor()->Clear();
+        g->Last()->Attr()->LineColor()->Clear();
+        g->FrontToBack();
+      };
+
+    if ( agg_bb.Defined() ) {
+      if ( !fill_color_grad_dir_defined ) {
+        UpdateBaseStopIdx( FillColor(), fill_color_base_stop_idx_list, agg_bb );
+      }
+      if ( !line_color_grad_dir_defined ) {
+        UpdateBaseStopIdx( LineColor(), line_color_base_stop_idx_list, agg_bb );
+      }
+      if ( fill_g && !fill_g->Empty() ) {
+        create_demarcation( fill_g );
+        ApplyFillStyle( fill_g );
+      }
+      if ( line_g && !line_g->Empty() ) {
+        create_demarcation( line_g );
+        ApplyLineStyle( line_g );
+      }
+      if ( hole_g && !hole_g->Empty() ) {
+        create_demarcation( hole_g );
+        ApplyHoleStyle( hole_g, false );
+      }
+      if ( mark_g && !mark_g->Empty() ) {
+        create_demarcation( mark_g );
+        ApplyMarkStyle( mark_g, false );
+      }
+      if ( tbar_g && !tbar_g->Empty() ) {
+        create_demarcation( tbar_g );
+        if ( has_line ) {
+          tbar_g->Attr()->LineColor()->Clear();
+          tbar_g->Attr()->FillColor()->Set( LineColor() );
+        } else {
+          ApplyFillStyle( tbar_g );
+        }
+      }
+    }
   }
 
   return;

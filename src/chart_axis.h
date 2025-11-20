@@ -46,7 +46,7 @@ public:
   void ShowMinorNumbers( bool show_minor_mumbers = true );
 
   // Number (and unit) size scaling factor.
-  void SetNumberSize( float size ) { number_size = size; }
+  void SetNumberSize( double size ) { number_size = size; }
 
   void SetRange( double min, double max, double orth_axis_cross );
   void SetRange( double min, double max );
@@ -71,7 +71,7 @@ public:
   void SetSubLabel( const std::string& txt );
 
   // Label size scaling factor.
-  void SetLabelSize( float size ) { label_size = size; }
+  void SetLabelSize( double size ) { label_size = size; }
 
   Main* main = nullptr;
 
@@ -92,10 +92,10 @@ public:
   bool orth_dual;
 
   // Maximum number of decimals to show.
-  const int precision = 10;
+  static constexpr int precision = 10;
 
   // NumberFormat::Fixed number lower limit.
-  const double lim = std::pow( double( 10 ), -precision ) * 0.65;
+  static constexpr double lim = std::pow( 10.0, -precision ) * 0.65;
 
   int32_t digits;   // Before decimal point (includes any sign).
   int32_t decimals; // After decimal point;
@@ -205,7 +205,7 @@ public:
   std::string  number_unit;
   bool         show_minor_mumbers;
   bool         show_minor_mumbers_auto;
-  float        number_size;
+  double       number_size;
 
   // Use to determine to min/max of the associated series data.
   bool   data_def;
@@ -230,7 +230,7 @@ public:
 
   std::string label;
   std::string sub_label;
-  float       label_size;
+  double      label_size;
 
   SVG::U    orth_length;
   AxisStyle orth_style[ 2 ];

@@ -13,17 +13,17 @@ SubSubTitle: (source: Rui Pereira et al., 2020)
 AxisColor: skyblue
 GridColor: skyblue
 
-# Try it.
+# Try it:
 #Axis.X.NumberSize: 0.9
 #Axis.X.Orientation: Vertical
 #Axis.X.Reverse: On
+#Axis.Y.Reverse: On
 #BarMargin: 0.5
 #Series.Staircase: On
+#Series.FillTransparency: 0.5
 
 Axis.Y.LogScale: On
 Axis.Y.NumberFormat: Fixed
-
-Series.FillTransparency: 0.6
 
 LegendHeading:
   Performance Metric
@@ -36,9 +36,15 @@ Series.New:
 # Change bar starting base as the default base
 # of zero does not map well to logarithmic Y-axis.
 Series.Base: 0.5
+# Use a gradient fill from invisible blue to darkened almost opaque red; make
+# the red more prominent by completing the transition at 0.9 instead of 1.0:
+Series.FillColor:
+  blue 0.0 1.0
+  0.9 red -0.2 0.3
 Series.Tag: On
 Series.TagBox: Off
 Series.TagSize: 0.9
+# Also try Beyond:
 Series.TagPos: Base
 Series.TagTextColor: white
 

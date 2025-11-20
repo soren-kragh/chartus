@@ -34,8 +34,8 @@ public:
   void Err( const std::string& msg );
   void ParseErr( const std::string& msg, bool show_ref = false );
 
-  void SavePos( uint32_t context = 0 );
-  void RestorePos( uint32_t context = 0 );
+  uint32_t SavePos();
+  void RestorePos( uint32_t context );
 
   void AddFile( std::string_view file_name );
   void ProcessSegment();
@@ -57,6 +57,14 @@ public:
   {
     return IsWS( c ) || IsLF( c );
   }
+  static bool IsLetter( char c )
+  {
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+  }
+  static bool IsDigit( char c )
+  {
+    return (c >= '0' && c <= '9');
+  }
 
   char CurChar( size_t ofs = 0 )
   {
@@ -69,6 +77,7 @@ public:
 
   bool AtWS() { return IsWS( CurChar() ); }
   bool AtSep() { return IsSep( CurChar() ); }
+  bool AtLetter() { return IsLetter( CurChar() ); }
 
   bool AtEOF()  // At end of the last file.
   {
@@ -82,7 +91,7 @@ public:
   }
   bool AtEOL()
   {
-    return IsLF( CurChar() );
+    return AtEOF() || IsLF( CurChar() );
   }
 
   void ToSOL();
@@ -124,8 +133,16 @@ public:
     bool no_x, uint32_t y_idx
   );
 
-  void GetColor( SVG::Color* color, double& transparency );
   void GetColor( SVG::Color* color );
+  void ParseGradientDirection(
+    double& x1, double& y1, double& x2, double& y2
+  );
+  // Returns true if a gradient direction was specified.
+  bool GetColorOrGradient(
+    SVG::Color* color, std::vector< uint32_t >& base_stop_idx_list
+  );
+  bool GetColorOrGradient( SVG::Color* color );
+
   void GetSwitch( bool& flag );
 
   void GetLetterSpacing(

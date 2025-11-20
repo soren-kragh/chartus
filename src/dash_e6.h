@@ -44,15 +44,19 @@ Series.Type: Line
 Series.New:
   BEST global land/ocean mean
   with 95% confidence interval
-Series.LineColor: crimson
-Series.LineWidth: 1
+# Scary gradient:
+Series.LineColor:
+  deepskyblue
+  crimson
+  Left to Right
+Series.LineWidth: 2
 # Enable HTML snapping again.
 Series.Snap: On
 
 Series.New:
   Mauna Loa atmospheric CO₂
-Series.LineColor: deepskyblue
-Series.LineWidth: 3
+Series.LineColor: brown
+Series.LineWidth: 4
 Series.Axis: Y2
 
 # Manually control what years are shown (every 5th, starting
@@ -277,7 +281,7 @@ FootnotePos: Right
 @Context: }
 
 @Context: {
-@Layer: Bottom
+@Layer: Top
 @RectCornerRadius: 5
 @TextSize: 12
 @LineWidth: 2
@@ -298,10 +302,22 @@ FootnotePos: Right
 @Axis: Y2
 @TextArrow: 30 15 5
 @TextAnchor: Bottom Right
-@FillColor: deepskyblue 0.5
+@FillColor: brown 0.5
+@TextColor: white
 @TextBox: 109 315.5
   CO₂ data collection starts
   at the Mauna Loa Observatory
+@Context: }
+
+@Context: {
+@Layer: Bottom
+@LineColor: None
+# Scary gradient:
+@FillColor:
+  0.6 white 0 1.0
+  1.0 red 0 0.8
+  Bottom to Top
+@Rect: L B R T
 @Context: }
 
 )EOF";

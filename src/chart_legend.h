@@ -37,7 +37,7 @@ public:
   Pos pos2 = Pos::Undef;
   uint32_t force_nx = 0;
   bool grid_coor_specified = false;
-  float size = 1.0;
+  double size = 1.0;
 
   void Add( Series* series );
 

@@ -66,11 +66,15 @@ public:
 
   // Line width also affects outline of hollow markers.
   SVG::Color* LineColor( void ) { return &line_color; }
+  void LineColorBaseStopIdxClr();
+  void LineColorBaseStopIdxAdd( uint32_t idx );
   void SetLineWidth( SVG::U width );
   void SetLineDash( SVG::U dash );
   void SetLineDash( SVG::U dash, SVG::U hole );
 
   SVG::Color* FillColor( void ) { return &fill_color; }
+  void FillColorBaseStopIdxClr();
+  void FillColorBaseStopIdxAdd( uint32_t idx );
 
   void SetMarkerSize( SVG::U size );
   void SetMarkerShape( MarkerShape shape );
@@ -83,7 +87,7 @@ public:
   void SetTagPos( Pos pos ) { tag_pos = pos; }
 
   // Tag size scaling factor.
-  void SetTagSize( float size ) { tag_size = size; }
+  void SetTagSize( double size ) { tag_size = size; }
 
   // Show the tag in a small box.
   void SetTagBox( bool enable = true ) { tag_box = enable; }
@@ -153,8 +157,8 @@ public:
 
   void ApplyFillStyle( SVG::Object* obj );
   void ApplyLineStyle( SVG::Object* obj );
-  void ApplyMarkStyle( SVG::Object* obj );
-  void ApplyHoleStyle( SVG::Object* obj );
+  void ApplyMarkStyle( SVG::Object* obj, bool legend );
+  void ApplyHoleStyle( SVG::Object* obj, bool legend );
   void ApplyTagStyle ( SVG::Object* obj );
 
   // Pruning removes data points that do not contribute significantly to the
@@ -295,7 +299,7 @@ public:
 
   bool tag_enable;
   Pos tag_pos;
-  float tag_size;
+  double tag_size;
   bool tag_box;
   SVG::Color tag_text_color;
   SVG::Color tag_fill_color;
@@ -329,11 +333,15 @@ public:
 
   std::vector< SVG::Color > color_list;
   SVG::Color line_color;
+  bool line_color_grad_dir_defined = false;
+  std::vector< uint32_t > line_color_base_stop_idx_list;
   SVG::U line_width;
   SVG::U line_dash;
   SVG::U line_hole;
 
   SVG::Color fill_color;
+  bool fill_color_grad_dir_defined = false;
+  std::vector< uint32_t > fill_color_base_stop_idx_list;
 
   // Used for floating point precision issues.
   double e1 = 0;
@@ -375,6 +383,12 @@ public:
 
   // Compute derived marker_* variables and other visual properties.
   void DetermineVisualProperties( void );
+
+  // Update gradient colors that use base as gradient position.
+  void UpdateBaseStopIdx(
+    SVG::Color* color, const std::vector< uint32_t >& base_stop_idx_list,
+    SVG::BoundaryBox& bb
+  );
 
   // Returns true if the two given series have the same legend.
   static bool SameLegend( Series* s1, Series* s2 );

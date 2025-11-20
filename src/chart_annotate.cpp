@@ -123,19 +123,19 @@ void Annotate::do_LineDash()
 
 void Annotate::do_LineColor()
 {
-  source->GetColor( &state.line_color );
+  source->GetColorOrGradient( &state.line_color );
   new_group = true;
 }
 
 void Annotate::do_FillColor()
 {
-  source->GetColor( &state.fill_color );
+  source->GetColorOrGradient( &state.fill_color );
   new_group = true;
 }
 
 void Annotate::do_TextColor( )
 {
-  source->GetColor( &state.text_color );
+  source->GetColorOrGradient( &state.text_color );
 }
 
 void Annotate::do_TextAnchor( )

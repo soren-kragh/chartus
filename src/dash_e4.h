@@ -23,11 +23,11 @@ NewChartInGrid: 1 1
 Title: LayeredBar
 SubTitle:
   LayeredBarWidth: 1.0
-  Series.FillTransparency: 0.7
+  Series.FillTransparency: 0.5
 Series.Type: LayeredBar
 Macro: Setup
 LayeredBarWidth: 1.0
-Series.FillTransparency: 0.7
+Series.FillTransparency: 0.5
 Macro: Series
 
 NewChartInGrid: 2 0
@@ -53,6 +53,11 @@ ChartArea: 500 160
 TitlePos: Left
 TitleSize: 0.7
 TitleInside: On
+# Subtle gradient effect:
+BoxColor:
+  yellow 0.7
+  yellow 0.9
+  Bottom to Top Right
 Series.GlobalLegend: On
 MacroEnd: Setup
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#

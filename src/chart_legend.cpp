@@ -505,11 +505,11 @@ void Legend::BuildLegends(
       marker_p.y -= (series->marker_out.y1 + series->marker_out.y2) / 2;
       if ( series->marker_show_out ) {
         series->BuildMarker( g, series->marker_out, marker_p );
-        series->ApplyMarkStyle( g->Last() );
+        series->ApplyMarkStyle( g->Last(), true );
       }
       if ( series->marker_show_int ) {
         series->BuildMarker( g, series->marker_int, marker_p );
-        series->ApplyHoleStyle( g->Last() );
+        series->ApplyHoleStyle( g->Last(), true );
       }
     }
 
