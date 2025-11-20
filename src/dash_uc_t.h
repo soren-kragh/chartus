@@ -34,12 +34,6 @@ std::cout << R"EOF(
 # is defined which uses textual X-values (e.g. a Bar plot), then the X-axis as a
 # whole becomes textual. See Series.Type for more information.
 #
-# A color can be any of the 147 named SVG colors (google "svg colors") or a
-# hexadecimal RGB value of the form #rrggbb; None means no color. The optional
-# 2nd value (-1.0 to 1.0) specifies by how much to lighten the color (or darken
-# if negative). The third optional value specifies the transparency of the color
-# (0.0 to 1.0).
-#
 # Defining one or more charts generally follows this sequence:
 #
 #   NewChartInGrid: <grid position of first chart>
@@ -66,6 +60,46 @@ std::cout << R"EOF(
 # Everything has been commented out in this file, so it will not do anything if
 # used directly as input to Chartus. Please refer to the built-in inspirational
 # examples (chartus -eN) for actual working input files.
+#
+
+# Color specifiers are used throughout in the following and the syntax is
+# described here. A color can be any of the 147 named SVG colors (google "svg
+# colors") or a hexadecimal RGB value of the form #rrggbb; None means no color.
+# The optional 2nd value (-1.0 to 1.0) specifies by how much to lighten the
+# color (or darken if negative). The third optional value specifies the
+# transparency of the color (0.0 to 1.0).
+#
+# Examples:
+#BoxColor brown
+#BoxColor skyblue 0 0.3
+#BoxColor yellow -0.4 0.7
+#
+# Some colors can also be a gradient, which is specified as two colors on two
+# separate lines, optionally followed by an extra line with the start gradient
+# position (0.0 to 1.0) and the end gradient position (0.0 to 1.0). The final
+# optional line consists of four numbers defining a vector direction along which
+# the gradient is applied; vector coordinates 0.0 to 1.0 refer to the boundary
+# of the object. If no vector direction is given, a default context dependent
+# direction is used.
+#
+# Example (invisible 50% light blue transitioning to fully opaque):
+#BoxColor:
+#   blue 0.5 1
+#   blue 0.5
+#
+# Example (yellow to red, transition starting midway):
+#BoxColor:
+#   yellow
+#   red
+#   0.5 1
+#
+# Example (red transitioning to less and less transparent along a bottom-left to
+# top-center direction):
+#BoxColor:
+#   reg 0 0.8
+#   red 0 0.2
+#   0 1
+#   0.0 0.0 0.5 1.2
 #
 
 # The HTML tab title to show in the HTML browser. Cannot be multi-line.

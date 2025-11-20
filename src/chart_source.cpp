@@ -851,10 +851,7 @@ void Source::GetColor( SVG::Color* color, double& transparency )
         if ( lighten < -1.0 || lighten > 1.0 ) {
           ParseErr( "lighten value out of range [-1.0;1.0]", true );
         }
-        if ( lighten < 0 )
-          color->Darken( -lighten );
-        else
-          color->Lighten( lighten );
+        color->Lighten( lighten );
       }
     }
     if ( !AtEOL() ) {
@@ -876,6 +873,57 @@ void Source::GetColor( SVG::Color* color )
 {
   double transparency;
   GetColor( color, transparency );
+}
+
+void Source::GetColorOrGradient( SVG::Color* color )
+{
+  color->Clear();
+  color->SetTransparency( 0.0 );
+  SkipWS();
+  if ( AtEOL() ) {
+    SVG::Color c1;
+    SVG::Color c2;
+    double stop1 = 0.0;
+    double stop2 = 1.0;
+    double x1 = 0.5;
+    double y1 = 0.0;
+    double x2 = 0.5;
+    double y2 = 1.0;
+    NextLine();
+    if ( AtEOF() ) ParseErr( "color expected" );
+    GetColor( &c1 );
+    NextLine();
+    if ( AtEOF() ) ParseErr( "color expected" );
+    GetColor( &c2 );
+    NextLine();
+    if ( !AtEOF() ) {
+      SkipWS();
+      if ( !AtSOL() ) {
+        GetDouble( stop1 );
+        ExpectWS();
+        GetDouble( stop2 );
+        ExpectEOL();
+        NextLine();
+        if ( !AtEOF() ) {
+          SkipWS();
+          if ( !AtSOL() ) {
+            GetDouble( x1 );
+            ExpectWS();
+            GetDouble( y1 );
+            ExpectWS();
+            GetDouble( x2 );
+            ExpectWS();
+            GetDouble( y2 );
+            ExpectEOL();
+            NextLine();
+          }
+        }
+      }
+    }
+    color->SetGradient( &c1, &c2, x1, y1, x2, y2, stop1, stop2 );
+  } else {
+    GetColor( color );
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
