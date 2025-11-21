@@ -920,8 +920,24 @@ void Source::ParseGradientDirection(
   ExpectEOL();
 }
 
-void Source::GetColorOrGradient( SVG::Color* color )
+bool Source::GetColorOrGradient( SVG::Color* color )
 {
+  bool dir_given = false;
+
+  auto get_color = [&]( double min_stop, double& stop, SVG::Color* color )
+    {
+      ExpectWS( "color or gradient position expected" );
+      if ( GetDoubleFull( stop, false, true, false ) ) {
+        if ( stop < 0.0 || stop > 1.0 ) {
+          ParseErr( "gradient position out of range [0.0;1.0]", true );
+        }
+        if ( stop < min_stop ) {
+          ParseErr( "backwards gradient position", true );
+        }
+      }
+      GetColor( color );
+    };
+
   color->Clear();
   color->SetTransparency( 0.0 );
   SkipWS();
@@ -935,57 +951,32 @@ void Source::GetColorOrGradient( SVG::Color* color )
     double x2 = 0.5;
     double y2 = 1.0;
     NextLine();
-    ExpectWS( "color expected" );
-    GetColor( &c1 );
+    get_color( 0.0, stop1, &c1 );
     NextLine();
-    ExpectWS( "color expected" );
-    GetColor( &c2 );
+    get_color( stop1, stop2, &c2 );
     NextLine();
-    if ( !AtEOF() ) {
-      SkipWS();
-      if ( !AtSOL() && !AtEOL() ) {
-        if ( AtLetter() ) goto DoDir;
-        GetDouble( stop1 );
-        if ( stop1 < 0.0 || stop1 > 1.0 ) {
-          ParseErr( "gradient position out of range [0.0;1.0]", true );
-        }
-        ExpectWS( "end gradient position expected" );
-        GetDouble( stop2 );
-        if ( stop2 < 0.0 || stop2 > 1.0 ) {
-          ParseErr( "gradient position out of range [0.0;1.0]", true );
-        }
-        if ( stop2 < stop1 ) {
-          ParseErr(
-            "end gradient position cannot be smaller than start gradient position", true
-          );
-        }
+    SkipWS();
+    if ( !AtEOL() && !AtSOL() ) {
+      if ( GetDoubleFull( x1, false, true, false ) ) {
+        ExpectWS( "y1 vector coordinate expected" );
+        GetDouble( y1 );
+        ExpectWS( "x2 vector coordinate expected" );
+        GetDouble( x2 );
+        ExpectWS( "y2 vector coordinate expected" );
+        GetDouble( y2 );
         ExpectEOL();
         NextLine();
-        if ( !AtEOF() ) {
-          SkipWS();
-          if ( !AtSOL() && !AtEOL() ) {
-            if ( AtLetter() ) goto DoDir;
-            GetDouble( x1 );
-            ExpectWS( "y1 vector coordinate expected" );
-            GetDouble( y1 );
-            ExpectWS( "x2 vector coordinate expected" );
-            GetDouble( x2 );
-            ExpectWS( "y2 vector coordinate expected" );
-            GetDouble( y2 );
-            ExpectEOL();
-            NextLine();
-          }
-        }
+      } else {
+        ParseGradientDirection( x1, y1, x2, y2 );
       }
+      dir_given = true;
     }
-    goto DefineColor;
-    DoDir:
-    ParseGradientDirection( x1, y1, x2, y2 );
-    DefineColor:
     color->SetGroupGradient( &c1, &c2, x1, y1, x2, y2, stop1, stop2 );
   } else {
     GetColor( color );
   }
+
+  return dir_given;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -138,7 +138,8 @@ public:
   void ParseGradientDirection(
     double& x1, double& y1, double& x2, double& y2
   );
-  void GetColorOrGradient( SVG::Color* color );
+  // Returns true if a gradient direction was specified.
+  bool GetColorOrGradient( SVG::Color* color );
 
   void GetSwitch( bool& flag );
 

@@ -7,9 +7,8 @@ std::cout << R"EOF(
 # The UTF-8 character encoding standard is used.
 #
 # The input file consists of a number of specifiers. Any line starting with a
-# '#' at column 0 is ignored, empty lines are also ignored. The simplest input
-# file consists only of data values, the Series.Data key is implicit in this
-# special case.
+# '#' at column 0 is ignored. The simplest input file consists only of data
+# values, the Series.Data key is implicit in this special case.
 #
 # A specifier takes the form:
 # KEY: VALUE(s)
@@ -20,8 +19,7 @@ std::cout << R"EOF(
 #   ...
 #
 # The KEY must be unindented and any VALUE(s) on the following lines must be
-# indented, preferably by the same amount (important for text VALUEs). Multiple
-# VALUEs on the same line must be whitespace separated.
+# indented. Multiple VALUEs on the same line must be whitespace separated.
 #
 # Text VALUEs such as titles and labels may span multiple lines, in which case
 # they should be uniformly indented. Please observe the LetterSpacing specifier
@@ -75,13 +73,13 @@ std::cout << R"EOF(
 #BoxColor yellow -0.4 0.7
 #
 # Some colors can also be a gradient (mentioned explicitly if so), which is
-# specified as two colors on two separate lines, optionally followed by an extra
-# line with the start gradient position (0.0 to 1.0) and the end gradient
-# position (0.0 to 1.0). The final optional line consists of four numbers
-# defining a vector direction along which the gradient is applied; vector
-# coordinates 0.0 to 1.0 refer to the boundary of the object. Alternatively, a
-# direction can also be given as e.g. "Left to Right". If no vector direction is
-# given, a default context dependent direction is used.
+# specified as two colors on two separate lines; a gradient position (0.0 to
+# 1.0) may optionally be specified before each of these colors. An optional
+# extra line consists of four numbers defining a vector direction along which
+# the gradient is applied; vector coordinates 0.0 to 1.0 refer to the boundary
+# of the object. Alternatively, a direction can also be given as e.g. "Left to
+# Right". If no vector direction is given, a default context dependent direction
+# is used.
 #
 # Example (invisible 50% light blue transitioning to fully opaque):
 #BoxColor:
@@ -90,14 +88,12 @@ std::cout << R"EOF(
 #
 # Example (yellow to red, transition starting midway):
 #BoxColor:
-#   yellow
-#   red
-#   0.5 1
-# With direction:
+#   0.5 yellow
+#   1.0 red
+# With direction and transient part in a narrow band midway:
 #BoxColor:
-#   yellow
-#   red
-#   0.5 1
+#   0.4 yellow
+#   0.6 red
 #   Top to Bottom
 #
 # Example (red transitioning to less and less transparent along a bottom-left to
@@ -105,7 +101,6 @@ std::cout << R"EOF(
 #BoxColor:
 #   red 0 0.8
 #   red 0 0.2
-#   0 1
 #   0.0 0.0 0.5 1.2
 # Simpler more readable (but less flexible) syntax:
 #BoxColor:
