@@ -334,6 +334,7 @@ public:
   SVG::U line_hole;
 
   SVG::Color fill_color;
+  bool fill_color_grad_dir_defined = false;
 
   // Used for floating point precision issues.
   double e1 = 0;
