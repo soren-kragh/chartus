@@ -74,7 +74,7 @@ std::cout << R"EOF(
 #BoxColor skyblue 0 0.3
 #BoxColor yellow -0.4 0.7
 #
-# Some colors can also be a gradient (mentioned clearly if so), which is
+# Some colors can also be a gradient (mentioned explicitly if so), which is
 # specified as two colors on two separate lines, optionally followed by an extra
 # line with the start gradient position (0.0 to 1.0) and the end gradient
 # position (0.0 to 1.0). The final optional line consists of four numbers
@@ -107,6 +107,11 @@ std::cout << R"EOF(
 #   red 0 0.2
 #   0 1
 #   0.0 0.0 0.5 1.2
+# Simpler more readable (but less flexible) syntax:
+#BoxColor:
+#   red 0 0.8
+#   red 0 0.2
+#   Bottom Left to Top
 #
 
 # The HTML tab title to show in the HTML browser. Cannot be multi-line.

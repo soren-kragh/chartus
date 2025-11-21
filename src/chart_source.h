@@ -57,6 +57,14 @@ public:
   {
     return IsWS( c ) || IsLF( c );
   }
+  static bool IsLetter( char c )
+  {
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+  }
+  static bool IsDigit( char c )
+  {
+    return (c >= '0' && c <= '9');
+  }
 
   char CurChar( size_t ofs = 0 )
   {
@@ -69,6 +77,7 @@ public:
 
   bool AtWS() { return IsWS( CurChar() ); }
   bool AtSep() { return IsSep( CurChar() ); }
+  bool AtLetter() { return IsLetter( CurChar() ); }
 
   bool AtEOF()  // At end of the last file.
   {
@@ -82,7 +91,7 @@ public:
   }
   bool AtEOL()
   {
-    return IsLF( CurChar() );
+    return AtEOF() || IsLF( CurChar() );
   }
 
   void ToSOL();
@@ -126,6 +135,9 @@ public:
 
   void GetColor( SVG::Color* color, double& transparency );
   void GetColor( SVG::Color* color );
+  void ParseGradientDirection(
+    double& x1, double& y1, double& x2, double& y2
+  );
   void GetColorOrGradient( SVG::Color* color );
 
   void GetSwitch( bool& flag );

@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - Extend flexibility of LegendPos
 - Add ZeroToO
 - Add Series.Staircase
+- Support color gradients
 
 ### Changed
 - Reduce memory usage

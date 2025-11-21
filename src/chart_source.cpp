@@ -619,12 +619,7 @@ std::string_view Source::GetIdentifier()
   const char* ptr = cur;
   while ( true ) {
     char c = *ptr;
-    if (
-      (c >= 'a' && c <= 'z') ||
-      (c >= 'A' && c <= 'Z') ||
-      (c >= '0' && c <= '9') ||
-      c == '_'
-    ) {
+    if ( IsLetter( c ) || IsDigit( c ) || c == '_' ) {
       ++ptr;
     } else {
       break;
@@ -882,6 +877,49 @@ void Source::GetColor( SVG::Color* color )
   GetColor( color, transparency );
 }
 
+void Source::ParseGradientDirection(
+  double& x1, double& y1, double& x2, double& y2
+)
+{
+  auto get_pos = [&]( Pos& pos, bool to_ok )
+    {
+      std::string_view id = GetIdentifier();
+      if ( id == "Center"      ) pos = Pos::Center; else
+      if ( id == "Left"        ) pos = Pos::Left  ; else
+      if ( id == "Right"       ) pos = Pos::Right ; else
+      if ( id == "Top"         ) pos = Pos::Top   ; else
+      if ( id == "Bottom"      ) pos = Pos::Bottom; else
+      if ( id == "to" && to_ok ) pos = Pos::Undef ; else
+      if ( id == "" ) ParseErr( "position expected" ); else
+      ParseErr( "unsupported position '" + std::string( id ) + "'", true );
+      if ( pos == Pos::Undef ) cur_pos.loc.char_idx = ref_idx;
+    };
+
+  auto get_xy = [&]( double& x, double& y, bool to_ok )
+    {
+      Pos pos1 = Pos::Undef;
+      Pos pos2 = Pos::Undef;
+      x = y = 0.5;
+      get_pos( pos1, false );
+      SkipWS();
+      if ( !AtEOL() ) {
+        get_pos( pos2, to_ok );
+      }
+      if ( pos1 == Pos::Bottom || pos2 == Pos::Bottom ) y = 0.0;
+      if ( pos1 == Pos::Top    || pos2 == Pos::Top    ) y = 1.0;
+      if ( pos1 == Pos::Left   || pos2 == Pos::Left   ) x = 0.0;
+      if ( pos1 == Pos::Right  || pos2 == Pos::Right  ) x = 1.0;
+    };
+
+  SkipWS();
+  get_xy( x1, y1, true );
+  SkipWS();
+  if ( GetIdentifier() != "to" ) ParseErr( "'to' expected", true );
+  SkipWS();
+  get_xy( x2, y2, false );
+  ExpectEOL();
+}
+
 void Source::GetColorOrGradient( SVG::Color* color )
 {
   color->Clear();
@@ -897,20 +935,21 @@ void Source::GetColorOrGradient( SVG::Color* color )
     double x2 = 0.5;
     double y2 = 1.0;
     NextLine();
-    if ( AtEOF() ) ParseErr( "color expected" );
+    ExpectWS( "color expected" );
     GetColor( &c1 );
     NextLine();
-    if ( AtEOF() ) ParseErr( "color expected" );
+    ExpectWS( "color expected" );
     GetColor( &c2 );
     NextLine();
     if ( !AtEOF() ) {
       SkipWS();
-      if ( !AtSOL() ) {
+      if ( !AtSOL() && !AtEOL() ) {
+        if ( AtLetter() ) goto DoDir;
         GetDouble( stop1 );
         if ( stop1 < 0.0 || stop1 > 1.0 ) {
           ParseErr( "gradient position out of range [0.0;1.0]", true );
         }
-        ExpectWS();
+        ExpectWS( "end gradient position expected" );
         GetDouble( stop2 );
         if ( stop2 < 0.0 || stop2 > 1.0 ) {
           ParseErr( "gradient position out of range [0.0;1.0]", true );
@@ -924,13 +963,14 @@ void Source::GetColorOrGradient( SVG::Color* color )
         NextLine();
         if ( !AtEOF() ) {
           SkipWS();
-          if ( !AtSOL() ) {
+          if ( !AtSOL() && !AtEOL() ) {
+            if ( AtLetter() ) goto DoDir;
             GetDouble( x1 );
-            ExpectWS();
+            ExpectWS( "y1 vector coordinate expected" );
             GetDouble( y1 );
-            ExpectWS();
+            ExpectWS( "x2 vector coordinate expected" );
             GetDouble( x2 );
-            ExpectWS();
+            ExpectWS( "y2 vector coordinate expected" );
             GetDouble( y2 );
             ExpectEOL();
             NextLine();
@@ -938,6 +978,10 @@ void Source::GetColorOrGradient( SVG::Color* color )
         }
       }
     }
+    goto DefineColor;
+    DoDir:
+    ParseGradientDirection( x1, y1, x2, y2 );
+    DefineColor:
     color->SetGroupGradient( &c1, &c2, x1, y1, x2, y2, stop1, stop2 );
   } else {
     GetColor( color );
