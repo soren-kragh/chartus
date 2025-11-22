@@ -971,7 +971,9 @@ bool Source::GetColorOrGradient( SVG::Color* color )
       }
       dir_given = true;
     }
-    color->SetGroupGradient( &c1, &c2, x1, y1, x2, y2, stop1, stop2 );
+    color->AddGradientStop( &c1, stop1 );
+    color->AddGradientStop( &c2, stop2 );
+    color->SetGradientDir( x1, y1, x2, y2, true );
   } else {
     GetColor( color );
   }
