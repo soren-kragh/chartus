@@ -475,11 +475,13 @@ bool do_GridPos(
 // Indicates if a chart has been started without a preceding New.
 bool non_newed_chart = false;
 
+uint32_t context_chart;
+
 Chart::Main* CurChart( void )
 {
   if ( ensemble.Empty() ) {
     non_newed_chart = true;
-    source.SavePos( 1 );
+    context_chart = source.SavePos();
     ensemble.NewChart( 0, 0, 0, 0 );
   }
   return ensemble.LastChart();
@@ -517,7 +519,7 @@ void do_NewChart( bool chart_in_chart )
   }
 
   if ( non_newed_chart ) {
-    source.RestorePos( 1 );
+    source.RestorePos( context_chart );
     source.ToSOL();
     source.ParseErr(
       "chart specifiers must be preceded by NewChartInGrid for multi chart plots"
@@ -1863,15 +1865,12 @@ void parse_series_data( bool implicit = false )
   size_t rows = 0;
   uint32_t max_columns = 1;
 
-  constexpr uint32_t data_beg_pos = 100;
-  constexpr uint32_t data_end_pos = 101;
-
   std::vector< Chart::min_max_t > column_min_max( 1 );
 
   Chart::Main::parse_cat_t saved_parse_cat;
   bool spc_defined = false;
 
-  source.SavePos( data_beg_pos );
+  auto data_beg_pos = source.SavePos();
 
   while ( !source.AtEOF() ) {
     source.SkipWS( true );
@@ -1916,7 +1915,7 @@ void parse_series_data( bool implicit = false )
     rows++;
   }
 
-  source.SavePos( data_end_pos );
+  auto data_end_pos = source.SavePos();
   source.RestorePos( data_beg_pos );
 
   if ( implicit && rows == 0 ) return;

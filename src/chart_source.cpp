@@ -89,9 +89,11 @@ void Source::ParseErr( const std::string& msg, bool show_ref )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void Source::SavePos( uint32_t context )
+uint32_t Source::SavePos()
 {
-  saved_pos[ context ] = cur_pos;
+  static uint32_t context = 0;
+  saved_pos[ ++context ] = cur_pos;
+  return context;
 }
 
 void Source::RestorePos( uint32_t context )
@@ -732,7 +734,7 @@ void Source::GetText( std::string& txt, bool multi_line )
   if ( !txt.empty() || !multi_line ) return;
 
   NextLine();
-  SavePos();
+  auto context = SavePos();
   size_t min_indent = 0;
   while ( !AtEOF() ) {
     size_t i = 0;
@@ -746,7 +748,7 @@ void Source::GetText( std::string& txt, bool multi_line )
     }
     NextLine();
   }
-  RestorePos();
+  RestorePos( context );
 
   while ( !AtEOF() ) {
     if ( !txt.empty() ) txt += '\n';

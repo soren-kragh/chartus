@@ -34,8 +34,8 @@ public:
   void Err( const std::string& msg );
   void ParseErr( const std::string& msg, bool show_ref = false );
 
-  void SavePos( uint32_t context = 0 );
-  void RestorePos( uint32_t context = 0 );
+  uint32_t SavePos();
+  void RestorePos( uint32_t context );
 
   void AddFile( std::string_view file_name );
   void ProcessSegment();
