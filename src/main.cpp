@@ -1778,12 +1778,17 @@ void do_Series_FillColor( void )
   if ( !state.defining_series ) {
     source.ParseErr( "FillColor outside defining series" );
   }
+  std::vector< uint32_t > base_stop_idx_list;
   auto series = state.series_list.back();
   series->fill_color_grad_dir_defined =
-    source.GetColorOrGradient( series->FillColor() );
+    source.GetColorOrGradient( series->FillColor(), base_stop_idx_list );
   series->FillColor()->Lighten( state.lighten );
   if ( state.fill_transparency >= 0 ) {
     series->FillColor()->SetTransparency( state.fill_transparency );
+  }
+  series->FillColorBaseStopIdxClr();
+  for ( auto idx : base_stop_idx_list ) {
+    series->FillColorBaseStopIdxAdd( idx );
   }
 }
 

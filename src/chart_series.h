@@ -71,6 +71,8 @@ public:
   void SetLineDash( SVG::U dash, SVG::U hole );
 
   SVG::Color* FillColor( void ) { return &fill_color; }
+  void FillColorBaseStopIdxClr();
+  void FillColorBaseStopIdxAdd( uint32_t idx );
 
   void SetMarkerSize( SVG::U size );
   void SetMarkerShape( MarkerShape shape );
@@ -335,6 +337,7 @@ public:
 
   SVG::Color fill_color;
   bool fill_color_grad_dir_defined = false;
+  std::vector< uint32_t > fill_color_base_stop_idx_list;
 
   // Used for floating point precision issues.
   double e1 = 0;

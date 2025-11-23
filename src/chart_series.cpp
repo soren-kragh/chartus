@@ -215,6 +215,18 @@ void Series::SetMarkerShape( MarkerShape shape )
 
 //------------------------------------------------------------------------------
 
+void Series::FillColorBaseStopIdxClr()
+{
+  fill_color_base_stop_idx_list.clear();
+}
+
+void Series::FillColorBaseStopIdxAdd( uint32_t idx )
+{
+  fill_color_base_stop_idx_list.push_back( idx );
+}
+
+//------------------------------------------------------------------------------
+
 void Series::ApplyFillStyle( SVG::Object* obj )
 {
   obj->Attr()->LineColor()->Clear();

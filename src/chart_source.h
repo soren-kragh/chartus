@@ -139,6 +139,9 @@ public:
     double& x1, double& y1, double& x2, double& y2
   );
   // Returns true if a gradient direction was specified.
+  bool GetColorOrGradient(
+    SVG::Color* color, std::vector< uint32_t >& base_stop_idx_list
+  );
   bool GetColorOrGradient( SVG::Color* color );
 
   void GetSwitch( bool& flag );

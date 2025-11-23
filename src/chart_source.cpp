@@ -922,7 +922,9 @@ void Source::ParseGradientDirection(
   ExpectEOL();
 }
 
-bool Source::GetColorOrGradient( SVG::Color* color )
+bool Source::GetColorOrGradient(
+  SVG::Color* color, std::vector< uint32_t >& base_stop_idx_list
+)
 {
   bool dir_given = false;
 
@@ -948,6 +950,7 @@ bool Source::GetColorOrGradient( SVG::Color* color )
       return mobsc;
     };
 
+  uint32_t stop_num = 0;
   double min_stop_ofs = 0.0;
 
   auto get_stop_color = [&]( double& stop_ofs, SVG::Color* color )
@@ -963,8 +966,16 @@ bool Source::GetColorOrGradient( SVG::Color* color )
           ParseErr( "backwards gradient position", true );
         }
         min_stop_ofs = stop_ofs;
+      } else {
+        std::string id{ GetIdentifier() };
+        if ( id == "Base" && AtWS() ) {
+          base_stop_idx_list.push_back( stop_num );
+        } else {
+          cur_pos.loc.char_idx = ref_idx;
+        }
       }
       GetColor( color );
+      stop_num++;
     };
 
   color->Clear();
@@ -1010,6 +1021,12 @@ bool Source::GetColorOrGradient( SVG::Color* color )
   }
 
   return dir_given;
+}
+
+bool Source::GetColorOrGradient( SVG::Color* color )
+{
+  std::vector< uint32_t > base_stop_idx_list;
+  return GetColorOrGradient( color, base_stop_idx_list );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
