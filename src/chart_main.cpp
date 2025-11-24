@@ -1831,6 +1831,9 @@ void Main::Build( void )
 
   SeriesPrepare( &lb_list );
   AxisPrepare( tag_g );
+  for ( auto series : series_list ) {
+    series->UpdateBaseStopIdx();
+  }
 
   std::vector< SVG::Object* > avoid_objects;
 

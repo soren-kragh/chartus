@@ -380,6 +380,9 @@ public:
   // Compute derived marker_* variables and other visual properties.
   void DetermineVisualProperties( void );
 
+  // Update gradient colors that use base as gradient position.
+  void UpdateBaseStopIdx();
+
   // Returns true if the two given series have the same legend.
   static bool SameLegend( Series* s1, Series* s2 );
 

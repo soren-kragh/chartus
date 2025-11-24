@@ -845,6 +845,46 @@ void Series::DetermineVisualProperties( void )
 
 ////////////////////////////////////////////////////////////////////////////////
 
+void Series::UpdateBaseStopIdx()
+{
+  if ( !is_cat || !datum_def_y ) return;
+  if ( !axis_y->Valid( base ) ) return;
+
+  U min_coor       = 0;
+  U max_coor       = axis_y->length;
+  U datum_min_coor = axis_y->Coor( datum_min_y );
+  U datum_max_coor = axis_y->Coor( datum_max_y );
+  U base_coor      = axis_y->Coor( base );
+  U coor_beg       = min_coor;
+  U coor_end       = max_coor;
+
+  base_coor = std::min( std::max( base_coor, min_coor ), max_coor );
+
+  if ( axis_y->reverse ) {
+    coor_beg = std::max( std::min( datum_min_coor, max_coor ), base_coor );
+    coor_end = std::min( std::max( datum_max_coor, min_coor ), base_coor );
+  } else {
+    coor_beg = std::min( std::max( datum_min_coor, min_coor ), base_coor );
+    coor_end = std::max( std::min( datum_max_coor, max_coor ), base_coor );
+  }
+
+  if ( std::abs( coor_beg - coor_end ) < epsilon ) return;
+
+  float base_stop_ofs = (coor_beg - base_coor) / (coor_beg - coor_end);
+  base_stop_ofs = std::min( std::max( base_stop_ofs, 0.0f ), 1.0f );
+
+  auto update = [&]( Color* color )
+    {
+      for ( auto idx : fill_color_base_stop_idx_list ) {
+        color->SetStopOfs( idx, base_stop_ofs );
+      }
+    };
+
+  if ( !fill_color_grad_dir_defined ) update( FillColor() );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 bool Series::SameLegend( Series* s1, Series* s2 )
 {
   auto is_point = []( Series* s )
