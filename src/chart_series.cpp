@@ -278,6 +278,7 @@ void Series::ApplyHoleStyle( SVG::Object* obj )
   obj->Attr()->FillColor()->Set( &fill_color );
   if ( type != SeriesType::Scatter && type != SeriesType::Point ) {
     obj->Attr()->FillColor()->SetOpacity( 1.0 );
+    obj->Attr()->FillColor()->SetOpacity( 1.0, true );
   }
 }
 
