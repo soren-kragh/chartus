@@ -72,14 +72,16 @@ std::cout << R"EOF(
 #BoxColor skyblue 0 0.3
 #BoxColor yellow -0.4 0.7
 #
-# Some colors can also be a gradient (mentioned explicitly if so), which is
-# specified as two colors on two separate lines; a gradient position (0.0 to
-# 1.0) may optionally be specified before each of these colors. An optional
-# extra line consists of four numbers defining a vector direction along which
-# the gradient is applied; vector coordinates 0.0 to 1.0 refer to the boundary
-# of the object. Alternatively, a direction can also be given as e.g. "Left to
-# Right". If no vector direction is given, a default context dependent direction
-# is used.
+# Colors can also be a gradient, which is specified as two or more colors each
+# on separate lines; a gradient position (0.0 to 1.0) may optionally be
+# specified in front of each of these colors. An optional extra line consists of
+# four numbers defining a vector direction along which the gradient is applied;
+# vector coordinates 0.0 to 1.0 refer to the boundary of the object.
+# Alternatively, a direction can also be given as e.g. "Left to Right". If no
+# vector direction is given, a default context dependent direction is used. The
+# special gradient position Base may be used for Series.FillColor and can be
+# used to e.g. color negative and positive bars or areas differently. See
+# examples below and for Series.FillColor.
 #
 # Example (invisible 50% light blue transitioning to fully opaque):
 #BoxColor:
@@ -107,6 +109,14 @@ std::cout << R"EOF(
 #   red 0 0.8
 #   red 0 0.2
 #   Bottom Left to Top
+#
+# Show red gradient for negative numbers (or rather, numbers below the
+# Series.Base) and seagreen gradient for positive numbers:
+#Series.FillColor:
+#   red
+#   Base red 0 0.5
+#   Base seagreen 0 0.5
+#   seagreen
 #
 
 # The HTML tab title to show in the HTML browser. Cannot be multi-line.
