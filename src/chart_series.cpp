@@ -225,6 +225,16 @@ void Series::FillColorBaseStopIdxAdd( uint32_t idx )
   fill_color_base_stop_idx_list.push_back( idx );
 }
 
+void Series::LineColorBaseStopIdxClr()
+{
+  line_color_base_stop_idx_list.clear();
+}
+
+void Series::LineColorBaseStopIdxAdd( uint32_t idx )
+{
+  line_color_base_stop_idx_list.push_back( idx );
+}
+
 //------------------------------------------------------------------------------
 
 void Series::ApplyFillStyle( SVG::Object* obj )
@@ -2065,6 +2075,9 @@ void Series::Build(
     if ( agg_bb.Defined() ) {
       if ( !fill_color_grad_dir_defined ) {
         UpdateBaseStopIdx( FillColor(), fill_color_base_stop_idx_list, agg_bb );
+      }
+      if ( !line_color_grad_dir_defined ) {
+        UpdateBaseStopIdx( LineColor(), line_color_base_stop_idx_list, agg_bb );
       }
       if ( fill_g && !fill_g->Empty() ) {
         create_demarcation( fill_g );

@@ -1769,8 +1769,14 @@ void do_Series_LineColor( void )
     source.ParseErr( "LineColor outside defining series" );
   }
   auto series = state.series_list.back();
-  source.GetColor( series->LineColor() );
+  std::vector< uint32_t > base_stop_idx_list;
+  series->line_color_grad_dir_defined =
+    source.GetColorOrGradient( series->LineColor(), base_stop_idx_list );
   series->LineColor()->Lighten( state.lighten );
+  series->LineColorBaseStopIdxClr();
+  for ( auto idx : base_stop_idx_list ) {
+    series->LineColorBaseStopIdxAdd( idx );
+  }
 }
 
 void do_Series_FillColor( void )
@@ -1778,8 +1784,8 @@ void do_Series_FillColor( void )
   if ( !state.defining_series ) {
     source.ParseErr( "FillColor outside defining series" );
   }
-  std::vector< uint32_t > base_stop_idx_list;
   auto series = state.series_list.back();
+  std::vector< uint32_t > base_stop_idx_list;
   series->fill_color_grad_dir_defined =
     source.GetColorOrGradient( series->FillColor(), base_stop_idx_list );
   series->FillColor()->Lighten( state.lighten );

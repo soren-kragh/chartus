@@ -66,6 +66,8 @@ public:
 
   // Line width also affects outline of hollow markers.
   SVG::Color* LineColor( void ) { return &line_color; }
+  void LineColorBaseStopIdxClr();
+  void LineColorBaseStopIdxAdd( uint32_t idx );
   void SetLineWidth( SVG::U width );
   void SetLineDash( SVG::U dash );
   void SetLineDash( SVG::U dash, SVG::U hole );
@@ -331,6 +333,8 @@ public:
 
   std::vector< SVG::Color > color_list;
   SVG::Color line_color;
+  bool line_color_grad_dir_defined = false;
+  std::vector< uint32_t > line_color_base_stop_idx_list;
   SVG::U line_width;
   SVG::U line_dash;
   SVG::U line_hole;

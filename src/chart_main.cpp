@@ -1262,24 +1262,31 @@ void Main::SeriesPrepare(
       series->tag_enable = false;
     }
 
-    if ( series->FillColor()->IsGradient() ) {
-      if ( !series->fill_color_grad_dir_defined ) {
-        float x1, y1, x2, y2;
-        x1 = y1 = x2 = y2 = 0.5;
-        if ( axis_x->angle == 0 ) {
-          if ( series->axis_y->reverse ) {
-            y1 = 1; y2 = 0;
-          } else {
-            y1 = 0; y2 = 1;
-          }
+    {
+      float x1, y1, x2, y2;
+      x1 = y1 = x2 = y2 = 0.5;
+      if ( axis_x->angle == 0 ) {
+        if ( series->axis_y->reverse ) {
+          y1 = 1; y2 = 0;
         } else {
-          if ( series->axis_y->reverse ) {
-            x1 = 1; x2 = 0;
-          } else {
-            x1 = 0; x2 = 1;
-          }
+          y1 = 0; y2 = 1;
         }
-        series->FillColor()->SetGradientDir( x1, y1, x2, y2 );
+      } else {
+        if ( series->axis_y->reverse ) {
+          x1 = 1; x2 = 0;
+        } else {
+          x1 = 0; x2 = 1;
+        }
+      }
+      if ( series->FillColor()->IsGradient() ) {
+        if ( !series->fill_color_grad_dir_defined ) {
+          series->FillColor()->SetGradientDir( x1, y1, x2, y2 );
+        }
+      }
+      if ( series->LineColor()->IsGradient() ) {
+        if ( !series->line_color_grad_dir_defined ) {
+          series->LineColor()->SetGradientDir( x1, y1, x2, y2 );
+        }
       }
     }
 
@@ -1835,6 +1842,11 @@ void Main::Build( void )
     if ( !series->fill_color_grad_dir_defined ) {
       series->UpdateBaseStopIdx(
         series->FillColor(), series->fill_color_base_stop_idx_list
+      );
+    }
+    if ( !series->line_color_grad_dir_defined ) {
+      series->UpdateBaseStopIdx(
+        series->LineColor(), series->line_color_base_stop_idx_list
       );
     }
   }
