@@ -1832,7 +1832,11 @@ void Main::Build( void )
   SeriesPrepare( &lb_list );
   AxisPrepare( tag_g );
   for ( auto series : series_list ) {
-    series->UpdateBaseStopIdx();
+    if ( !series->fill_color_grad_dir_defined ) {
+      series->UpdateBaseStopIdx(
+        series->FillColor(), series->fill_color_base_stop_idx_list
+      );
+    }
   }
 
   std::vector< SVG::Object* > avoid_objects;
