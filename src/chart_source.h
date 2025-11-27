@@ -133,7 +133,6 @@ public:
     bool no_x, uint32_t y_idx
   );
 
-  void GetColor( SVG::Color* color, double& transparency );
   void GetColor( SVG::Color* color );
   void ParseGradientDirection(
     double& x1, double& y1, double& x2, double& y2

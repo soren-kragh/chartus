@@ -811,7 +811,7 @@ void Source::GetDatum(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void Source::GetColor( SVG::Color* color, double& transparency )
+void Source::GetColor( SVG::Color* color )
 {
   SkipWS();
   std::string color_id{ GetIdentifier() };
@@ -861,6 +861,7 @@ void Source::GetColor( SVG::Color* color, double& transparency )
     if ( !AtEOL() ) {
       ExpectWS();
       if ( !AtEOL() ) {
+        double transparency;
         GetDouble( transparency );
         if ( transparency < 0.0 || transparency > 1.0 ) {
           ParseErr( "transparency value out of range [0.0;1.0]", true );
@@ -871,12 +872,6 @@ void Source::GetColor( SVG::Color* color, double& transparency )
   }
 
   ExpectEOL();
-}
-
-void Source::GetColor( SVG::Color* color )
-{
-  double transparency;
-  GetColor( color, transparency );
 }
 
 void Source::ParseGradientDirection(

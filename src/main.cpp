@@ -1491,6 +1491,10 @@ void AddSeries( std::string name = "" )
   series->SetAxisY( state.axis_y_n );
   series->SetBase( state.series_base );
   series->SetStyle( state.style );
+  series->fill_color_grad_dir_defined =
+  series->line_color_grad_dir_defined = false;
+  series->FillColorBaseStopIdxClr();
+  series->LineColorBaseStopIdxClr();
   NextSeriesStyle();
   series->SetMarkerShape( state.marker_shape );
   ApplyMarkerSize( series );
@@ -1623,13 +1627,18 @@ void do_Series_Style( void )
   }
   source.ExpectEOL();
   if ( state.defining_series ) {
-    state.series_list.back()->SetStyle( state.style );
+    auto series = state.series_list.back();
+    series->SetStyle( state.style );
+    series->LineColor()->Lighten( state.lighten );
+    series->FillColor()->Lighten( state.lighten );
+    series->TagTextColor()->Undef();
+    series->TagFillColor()->Undef();
+    series->TagLineColor()->Undef();
+    series->fill_color_grad_dir_defined =
+    series->line_color_grad_dir_defined = false;
+    series->FillColorBaseStopIdxClr();
+    series->LineColorBaseStopIdxClr();
     NextSeriesStyle();
-    state.series_list.back()->LineColor()->Lighten( state.lighten );
-    state.series_list.back()->FillColor()->Lighten( state.lighten );
-    state.series_list.back()->TagTextColor()->Undef();
-    state.series_list.back()->TagFillColor()->Undef();
-    state.series_list.back()->TagLineColor()->Undef();
   }
   state.marker_size = -1;
   state.line_width = -1;
@@ -1751,15 +1760,30 @@ void do_Series_Color( void )
     source.ParseErr( "Color outside defining series" );
   }
   auto series = state.series_list.back();
-  double transparency = -1.0;
-  source.GetColor( series->LineColor(), transparency );
-  series->LineColor()->Lighten( state.lighten )->SetTransparency( 0.0 );
-  series->SetDefaultFillColor();
-  if ( transparency >= 0.0 ) {
-    series->FillColor()->SetTransparency( transparency );
-  } else
+  std::vector< uint32_t > base_stop_idx_list;
+  series->fill_color_grad_dir_defined =
+  series->line_color_grad_dir_defined =
+    source.GetColorOrGradient( series->LineColor(), base_stop_idx_list );
+  series->FillColorBaseStopIdxClr();
+  series->LineColorBaseStopIdxClr();
+  for ( auto idx : base_stop_idx_list ) {
+    series->FillColorBaseStopIdxAdd( idx );
+    series->LineColorBaseStopIdxAdd( idx );
+  }
+  series->LineColor()->Lighten( state.lighten );
+  if ( series->LineColor()->IsGradient() ) {
+    series->FillColor()->Set( series->LineColor() );
+    series->LineColor()->SetTransparency( 0.0f, true );
+  } else {
+    auto transparency = series->LineColor()->GetTransparency();
+    series->LineColor()->SetTransparency( 0.0f );
+    series->SetDefaultFillColor();
+    if ( transparency > 0.0f ) {
+      series->FillColor()->SetTransparency( transparency );
+    }
+  }
   if ( state.fill_transparency >= 0 ) {
-    series->FillColor()->SetTransparency( state.fill_transparency );
+    series->FillColor()->Transparify( state.fill_transparency );
   }
 }
 
