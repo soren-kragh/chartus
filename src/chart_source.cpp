@@ -866,6 +866,10 @@ void Source::GetColor( SVG::Color* color )
         if ( transparency < 0.0 || transparency > 1.0 ) {
           ParseErr( "transparency value out of range [0.0;1.0]", true );
         }
+        // Ensure minimum very small non-zero value to indicate that a
+        // transparency value was given (in the SVG the value becomes "0" due to
+        // rounding).
+        transparency = std::max( 1e-6, transparency );
         color->SetTransparency( transparency );
       }
     }
