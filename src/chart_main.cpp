@@ -154,23 +154,23 @@ void Main::SetLegendPos( Pos pos1, Pos pos2, uint32_t force_nx )
   legend_obj->force_nx = force_nx;
 }
 
-void Main::SetLegendSize( float size )
+void Main::SetLegendSize( double size )
 {
   legend_obj->size = size;
 }
 
-void Main::SetBarWidth( float one_width, float all_width )
+void Main::SetBarWidth( double one_width, double all_width )
 {
   bar_one_width = one_width;
   bar_all_width = all_width;
 }
 
-void Main::SetLayeredBarWidth( float width )
+void Main::SetLayeredBarWidth( double width )
 {
   bar_layered_width = width;
 }
 
-void Main::SetBarMargin( float margin )
+void Main::SetBarMargin( double margin )
 {
   bar_margin = margin;
 }
@@ -1263,7 +1263,7 @@ void Main::SeriesPrepare(
     }
 
     {
-      float x1, y1, x2, y2;
+      double x1, y1, x2, y2;
       x1 = y1 = x2 = y2 = 0.5;
       if ( axis_x->angle == 0 ) {
         if ( series->axis_y->reverse ) {

@@ -898,8 +898,8 @@ void Series::UpdateBaseStopIdx(
 
   if ( std::abs( coor_beg - coor_end ) < epsilon ) return;
 
-  float base_stop_ofs = (coor_beg - base_coor) / (coor_beg - coor_end);
-  base_stop_ofs = std::min( std::max( base_stop_ofs, 0.0f ), 1.0f );
+  double base_stop_ofs = (coor_beg - base_coor) / (coor_beg - coor_end);
+  base_stop_ofs = std::min( std::max( base_stop_ofs, 0.0 ), 1.0 );
 
   for ( auto idx : base_stop_idx_list ) {
     color->SetStopOfs( idx, base_stop_ofs );

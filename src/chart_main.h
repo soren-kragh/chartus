@@ -64,7 +64,7 @@ public:
   void SetSubSubTitle( const std::string& txt );
   void SetTitlePos( Pos pos1 = Pos::Undef, Pos pos2 = Pos::Undef );
   void SetTitleInside( bool inside = true );
-  void SetTitleSize( float size ) { title_size = size; }
+  void SetTitleSize( double size ) { title_size = size; }
 
   // Force the title box or not instead of it being determined automatically.
   void SetTitleBox( bool enable = true );
@@ -83,17 +83,17 @@ public:
   void SetLegendPos( Pos pos1, Pos pos2 = Pos::Undef, uint32_t force_nx = 0 );
 
   // Legend text size scaling factor.
-  void SetLegendSize( float size );
+  void SetLegendSize( double size );
 
   // Specify the relative width of bars (0.0 to 1.0) and the relative width (0.0
   // to 1.0) of all bars belonging to the same X-value.
-  void SetBarWidth( float one_width, float all_width );
+  void SetBarWidth( double one_width, double all_width );
 
   // Specify the relative width of the topmost layered bar.
-  void SetLayeredBarWidth( float width );
+  void SetLayeredBarWidth( double width );
 
   // Set extra start/end margin in units of bar buckets.
-  void SetBarMargin( float margin );
+  void SetBarMargin( double margin );
 
   Axis* AxisX( void ) { return axis_x; }
   Axis* AxisY( int n = 0 ) { return axis_y[ n ]; }
@@ -187,7 +187,7 @@ public:
   Pos         title_pos_x;
   Pos         title_pos_y;
   bool        title_inside;
-  float       title_size;
+  double      title_size;
   bool        title_box;
   bool        title_box_specified;
 
@@ -198,10 +198,10 @@ public:
   bool    legend_box;
   bool    legend_box_specified;
 
-  float bar_one_width     = 1.00;
-  float bar_all_width     = 0.85;
-  float bar_layered_width = 0.50;
-  float bar_margin        = 0.00;
+  double bar_one_width     = 1.00;
+  double bar_all_width     = 0.85;
+  double bar_layered_width = 0.50;
+  double bar_margin        = 0.00;
 
   Label* label_db;
   Tag* tag_db;

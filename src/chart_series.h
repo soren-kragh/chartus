@@ -87,7 +87,7 @@ public:
   void SetTagPos( Pos pos ) { tag_pos = pos; }
 
   // Tag size scaling factor.
-  void SetTagSize( float size ) { tag_size = size; }
+  void SetTagSize( double size ) { tag_size = size; }
 
   // Show the tag in a small box.
   void SetTagBox( bool enable = true ) { tag_box = enable; }
@@ -299,7 +299,7 @@ public:
 
   bool tag_enable;
   Pos tag_pos;
-  float tag_size;
+  double tag_size;
   bool tag_box;
   SVG::Color tag_text_color;
   SVG::Color tag_fill_color;

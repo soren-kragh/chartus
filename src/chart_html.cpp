@@ -362,8 +362,8 @@ void HTML::GenChartData( Main* main, std::ostringstream& oss )
         if ( !series->fill_color_shown ) c2.Set( &bg_color );
         c1.SetTransparency( 0.0 );
         c2.SetTransparency( 0.0 );
-        float d1 = Color::Diff( &c1, &bg_color );
-        float d2 = Color::Diff( &c2, &bg_color );
+        double d1 = Color::Diff( &c1, &bg_color );
+        double d2 = Color::Diff( &c2, &bg_color );
         fg.Set( &c1 );
         if ( series->fill_color_shown ) {
           if (

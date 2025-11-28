@@ -151,7 +151,7 @@ bool Ensemble::NewChart(
 ////////////////////////////////////////////////////////////////////////////////
 
 void Ensemble::SetLetterSpacing(
-  float width_adj, float height_adj, float baseline_adj
+  double width_adj, double height_adj, double baseline_adj
 )
 {
   this->width_adj    = width_adj;
@@ -261,7 +261,7 @@ bool Ensemble::SetLegendPos(
   return true;
 }
 
-void Ensemble::SetLegendSize( float size )
+void Ensemble::SetLegendSize( double size )
 {
   legend_obj->size = size;
 }

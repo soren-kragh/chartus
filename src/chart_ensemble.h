@@ -41,7 +41,7 @@ public:
   );
 
   void SetLetterSpacing(
-    float width_adj, float height_adj = 1.0, float baseline_adj = 1.0
+    double width_adj, double height_adj = 1.0, double baseline_adj = 1.0
   );
   void SetZeroToO( bool zero_to_o ) { this->zero_to_o = zero_to_o; }
 
@@ -53,7 +53,7 @@ public:
   void SetSubTitle( const std::string& txt );
   void SetSubSubTitle( const std::string& txt );
   void SetTitlePos( Pos pos ) { title_pos = pos; }
-  void SetTitleSize( float size ) { title_size = size; }
+  void SetTitleSize( double size ) { title_size = size; }
 
   // A line below the title.
   void SetTitleLine( bool line = true ) { title_line = line; }
@@ -88,7 +88,7 @@ public:
     Chart::Pos pos1 = Pos::Auto,
     Chart::Pos pos2 = Pos::Auto
   );
-  void SetLegendSize( float size );
+  void SetLegendSize( double size );
   SVG::Color* LegendColor( void ) { return &legend_color; }
 
   void AddFootnote( std::string& txt );
@@ -100,7 +100,7 @@ public:
   void SetFootnoteLine( bool footnote_line = true );
 
   // Footnote size scaling factor.
-  void SetFootnoteSize( float size ) { footnote_size = size; }
+  void SetFootnoteSize( double size ) { footnote_size = size; }
 
   // Called each time current position is at a new streak of global annotation
   // specifiers.
@@ -117,9 +117,9 @@ public:
   bool enable_html = false;
   HTML* html_db = nullptr;
 
-  float width_adj    = 1.0;
-  float height_adj   = 1.0;
-  float baseline_adj = 1.0;
+  double width_adj    = 1.0;
+  double height_adj   = 1.0;
+  double baseline_adj = 1.0;
   bool zero_to_o     = true;
 
   SVG::Color foreground_color;
@@ -145,7 +145,7 @@ public:
   std::string sub_sub_title;
   Pos         title_pos  = Pos::Center;
   bool        title_line = false;
-  float       title_size = 1.0;
+  double      title_size = 1.0;
 
   Legend*    legend_obj;
   bool       legend_box;
@@ -158,7 +158,7 @@ public:
   };
   std::vector< footnote_t > footnotes;
   bool footnote_line = false;
-  float footnote_size = 1.0;
+  double footnote_size = 1.0;
 
   SVG::BoundaryBox TopBB( void );
 

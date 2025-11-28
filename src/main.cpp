@@ -1773,12 +1773,12 @@ void do_Series_Color( void )
   series->LineColor()->Lighten( state.lighten );
   if ( series->LineColor()->IsGradient() ) {
     series->FillColor()->Set( series->LineColor() );
-    series->LineColor()->SetTransparency( 0.0f, true );
+    series->LineColor()->SetTransparency( 0.0, true );
   } else {
     auto transparency = series->LineColor()->GetTransparency();
-    series->LineColor()->SetTransparency( 0.0f );
+    series->LineColor()->SetTransparency( 0.0 );
     series->SetDefaultFillColor();
-    if ( transparency > 0.0f ) {
+    if ( transparency > 0.0 ) {
       series->FillColor()->SetTransparency( transparency );
     }
   }
