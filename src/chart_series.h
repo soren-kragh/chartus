@@ -157,8 +157,8 @@ public:
 
   void ApplyFillStyle( SVG::Object* obj );
   void ApplyLineStyle( SVG::Object* obj );
-  void ApplyMarkStyle( SVG::Object* obj );
-  void ApplyHoleStyle( SVG::Object* obj );
+  void ApplyMarkStyle( SVG::Object* obj, bool legend );
+  void ApplyHoleStyle( SVG::Object* obj, bool legend );
   void ApplyTagStyle ( SVG::Object* obj );
 
   // Pruning removes data points that do not contribute significantly to the

@@ -260,7 +260,7 @@ void Series::ApplyLineStyle( SVG::Object* obj )
   obj->Attr()->FillColor()->Clear();
 }
 
-void Series::ApplyMarkStyle( SVG::Object* obj )
+void Series::ApplyMarkStyle( SVG::Object* obj, bool legend )
 {
   obj->Attr()->LineColor()->Clear();
   if (
@@ -273,6 +273,9 @@ void Series::ApplyMarkStyle( SVG::Object* obj )
   } else {
     if ( line_width > 0 ) {
       obj->Attr()->FillColor()->Set( &line_color );
+      if ( legend ) {
+        obj->Attr()->FillColor()->RemoveGradient( 1 );
+      }
       if ( type != SeriesType::Scatter && type != SeriesType::Point ) {
         obj->Attr()->FillColor()->SetOpacity( 1.0 );
       }
@@ -282,10 +285,13 @@ void Series::ApplyMarkStyle( SVG::Object* obj )
   }
 }
 
-void Series::ApplyHoleStyle( SVG::Object* obj )
+void Series::ApplyHoleStyle( SVG::Object* obj, bool legend )
 {
   obj->Attr()->LineColor()->Clear();
   obj->Attr()->FillColor()->Set( &fill_color );
+  if ( legend ) {
+    obj->Attr()->FillColor()->RemoveGradient( 1 );
+  }
   if ( type != SeriesType::Scatter && type != SeriesType::Point ) {
     obj->Attr()->FillColor()->SetOpacity( 1.0 );
     obj->Attr()->FillColor()->SetOpacity( 1.0, true );
@@ -2089,11 +2095,11 @@ void Series::Build(
       }
       if ( hole_g && !hole_g->Empty() ) {
         create_demarcation( hole_g );
-        ApplyHoleStyle( hole_g );
+        ApplyHoleStyle( hole_g, false );
       }
       if ( mark_g && !mark_g->Empty() ) {
         create_demarcation( mark_g );
-        ApplyMarkStyle( mark_g );
+        ApplyMarkStyle( mark_g, false );
       }
       if ( tbar_g && !tbar_g->Empty() ) {
         create_demarcation( tbar_g );
