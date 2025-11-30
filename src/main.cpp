@@ -54,7 +54,7 @@ struct state_t {
   double line_dash = -1;
   double line_hole = -1;
   double lighten = 0.0;
-  double fill_transparency = -1;
+  double fill_transparify = 0.0;
   bool tag_enable = false;
   Chart::Pos tag_pos = Chart::Pos::Auto;
   double tag_size = 1.0;
@@ -1504,9 +1504,9 @@ void AddSeries( std::string name = "" )
   if ( state.line_dash >= 0 ) {
     series->SetLineDash( state.line_dash, state.line_hole );
   }
-  if ( state.fill_transparency >= 0 ) {
-    series->FillColor()->SetTransparency( state.fill_transparency );
-  }
+  series->FillColor()->Transparify(
+    state.fill_transparify, series->FillColor()->IsGradient()
+  );
   series->LineColor()->Lighten( state.lighten );
   series->FillColor()->Lighten( state.lighten );
   series->SetTagEnable( state.tag_enable );
@@ -1644,7 +1644,7 @@ void do_Series_Style( void )
   state.line_width = -1;
   state.line_dash = -1;
   state.line_hole = -1;
-  state.fill_transparency = -1;
+  state.fill_transparify = 0.0;
   state.tag_text_color.Undef();
   state.tag_fill_color.Undef();
   state.tag_line_color.Undef();
@@ -1743,14 +1743,16 @@ void do_Series_FillTransparency( void )
 {
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "transparency value expected" );
-  source.GetDouble( state.fill_transparency );
-  if ( state.fill_transparency < 0.0 || state.fill_transparency > 1.0 ) {
+  source.GetDouble( state.fill_transparify );
+  if ( state.fill_transparify < -1.0 || state.fill_transparify > 1.0 ) {
     source.ParseErr( "transparency value out of range [-1.0;1.0]", true );
   }
   source.ExpectEOL();
   if ( state.defining_series ) {
-    state.series_list.back()->
-      FillColor()->SetTransparency( state.fill_transparency );
+    state.series_list.back()->FillColor()->Transparify(
+      state.fill_transparify,
+      state.series_list.back()->FillColor()->IsGradient()
+    );
   }
 }
 
@@ -1782,9 +1784,9 @@ void do_Series_Color( void )
       series->FillColor()->SetTransparency( transparency );
     }
   }
-  if ( state.fill_transparency >= 0 ) {
-    series->FillColor()->Transparify( state.fill_transparency );
-  }
+  series->FillColor()->Transparify(
+    state.fill_transparify, series->FillColor()->IsGradient()
+  );
 }
 
 void do_Series_LineColor( void )
@@ -1813,9 +1815,9 @@ void do_Series_FillColor( void )
   series->fill_color_grad_dir_defined =
     source.GetColorOrGradient( series->FillColor(), base_stop_idx_list );
   series->FillColor()->Lighten( state.lighten );
-  if ( state.fill_transparency >= 0 ) {
-    series->FillColor()->SetTransparency( state.fill_transparency );
-  }
+  series->FillColor()->Transparify(
+    state.fill_transparify, series->FillColor()->IsGradient()
+  );
   series->FillColorBaseStopIdxClr();
   for ( auto idx : base_stop_idx_list ) {
     series->FillColorBaseStopIdxAdd( idx );

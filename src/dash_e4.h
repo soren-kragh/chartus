@@ -23,11 +23,11 @@ NewChartInGrid: 1 1
 Title: LayeredBar
 SubTitle:
   LayeredBarWidth: 1.0
-  Series.FillTransparency: 0.7
+  Series.FillTransparency: 0.5
 Series.Type: LayeredBar
 Macro: Setup
 LayeredBarWidth: 1.0
-Series.FillTransparency: 0.7
+Series.FillTransparency: 0.5
 Macro: Series
 
 NewChartInGrid: 2 0

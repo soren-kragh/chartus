@@ -684,10 +684,10 @@ SubSubTitle:
 # subsequent series, or until it is redefined.
 #Series.Lighten: 0
 
-# This value (0.0 to 1.0) specifies the transparency to be used for Bar and Area
-# fill color; it acts as a persistent override modifier to the current Style.
-# This attribute applies to the current series and all subsequent series, or
-# until it is redefined.
+# This value (-1.0 to 1.0) specifies extra transparency to be used for Bar and
+# Area fill color; it acts as a persistent modifier to the current Style. This
+# attribute applies to the current series and all subsequent series, or until it
+# is redefined. Setting a value of -1 removes any transparency entirely.
 #Series.FillTransparency: 0
 
 # This specifies the color; it acts as a one-time modifier to the current Style.
