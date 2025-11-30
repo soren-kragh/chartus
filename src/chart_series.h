@@ -389,9 +389,6 @@ public:
     SVG::Color* color, const std::vector< uint32_t >& base_stop_idx_list,
     SVG::BoundaryBox& bb
   );
-  void UpdateBaseStopIdx(
-    SVG::Color* color, const std::vector< uint32_t >& base_stop_idx_list
-  );
 
   // Returns true if the two given series have the same legend.
   static bool SameLegend( Series* s1, Series* s2 );

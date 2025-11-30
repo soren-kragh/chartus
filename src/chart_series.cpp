@@ -863,14 +863,6 @@ void Series::DetermineVisualProperties( void )
 ////////////////////////////////////////////////////////////////////////////////
 
 void Series::UpdateBaseStopIdx(
-  SVG::Color* color, const std::vector< uint32_t >& base_stop_idx_list
-)
-{
-  BoundaryBox bb;
-  UpdateBaseStopIdx( color, base_stop_idx_list, bb );
-}
-
-void Series::UpdateBaseStopIdx(
   SVG::Color* color, const std::vector< uint32_t >& base_stop_idx_list,
   SVG::BoundaryBox& bb
 )
