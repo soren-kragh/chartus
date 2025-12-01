@@ -251,6 +251,17 @@ FootnotePos: Right
 # for the chart X-coordinates used in the annotations below X = Year - 1850.
 
 @Context: {
+@Layer: Bottom
+@LineColor: None
+# Scary gradient:
+@FillColor:
+  0.6 yellow 0 1.0
+  1.0 red 0 0.8
+  Bottom to Top
+@Rect: L B R T
+@Context: }
+
+@Context: {
 @LineDash: 12 4
 @LineWidth: 4
 
@@ -307,17 +318,6 @@ FootnotePos: Right
 @TextBox: 109 315.5
   CO₂ data collection starts
   at the Mauna Loa Observatory
-@Context: }
-
-@Context: {
-@Layer: Bottom
-@LineColor: None
-# Scary gradient:
-@FillColor:
-  0.6 white 0 1.0
-  1.0 red 0 0.8
-  Bottom to Top
-@Rect: L B R T
 @Context: }
 
 )EOF";
