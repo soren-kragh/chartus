@@ -31,7 +31,6 @@ Axis::Axis( bool is_x_axis, Label* label_db )
   y_dual = false;
   orth_dual = false;
   length = 0;
-  chart_box = false;
   style = AxisStyle::Auto;
   pos = Pos::Auto;
   pos_base_axis_y_n = 0;
@@ -622,7 +621,7 @@ void Axis::LegalizeMinMax(
         orth_axis_cross = min;
       } else {
         orth_axis_cross = (max <= 0) ? max : min;
-        if ( min < 0 && max > 0 && !chart_box ) orth_axis_cross = 0;
+        if ( min < 0 && max > 0 && !main->chart_box ) orth_axis_cross = 0;
         if ( log_scale ) orth_axis_cross = min;
       }
     }
@@ -937,8 +936,8 @@ void Axis::BuildTicksHelper(
   bool not_near_crossing_axis =
     !near_crossing_axis[ 0 ] && !near_crossing_axis[ 1 ];
 
-  bool near_chart_box_min = chart_box && CoorNear( v_coor, 0 );
-  bool near_chart_box_max = chart_box && CoorNear( v_coor, length );
+  bool near_chart_box_min = main->chart_box && CoorNear( v_coor, 0 );
+  bool near_chart_box_max = main->chart_box && CoorNear( v_coor, length );
   bool not_near_chart_box = !near_chart_box_min && !near_chart_box_max;
 
   bool centered_tick =
@@ -1432,8 +1431,8 @@ void Axis::BuildCategories(
       }
       bool not_near_crossing_axis =
         !near_crossing_axis[ 0 ] && !near_crossing_axis[ 1 ];
-      bool near_chart_box_min = chart_box && CoorNear( v_coor, 0 );
-      bool near_chart_box_max = chart_box && CoorNear( v_coor, length );
+      bool near_chart_box_min = main->chart_box && CoorNear( v_coor, 0 );
+      bool near_chart_box_max = main->chart_box && CoorNear( v_coor, length );
       bool not_near_chart_box = !near_chart_box_min && !near_chart_box_max;
       if ( not_near_crossing_axis && not_near_chart_box ) {
         if ( major_grid_enable ) {
@@ -1482,7 +1481,7 @@ void Axis::BuildUnit(
     outer_max += tick_major_len;
     outer_min -= tick_major_len;
   }
-  if ( chart_box ) {
+  if ( main->chart_box ) {
     inner_max -= tick_major_len;
     inner_min += tick_major_len;
   } else {
@@ -1567,7 +1566,7 @@ void Axis::BuildUnit(
       ay = AnchorY::Mid;
     }
 
-    if ( chart_box ) {
+    if ( main->chart_box ) {
       if ( angle == 0 ) {
         if ( cy < 0 || cy > orth_length ) {
           if ( cx == inner_max ) cx = outer_max;
@@ -1618,7 +1617,7 @@ void Axis::BuildUnit(
       }
       collision = true;
     }
-    if ( chart_box ) {
+    if ( main->chart_box ) {
       U mx = std::abs( dist_x ) - epsilon;
       U my = std::abs( dist_y ) - epsilon;
       bb.min.x -= mx; bb.max.x += mx;
@@ -1655,7 +1654,7 @@ void Axis::BuildUnit(
         unit_pos = reverse ? Pos::Left : Pos::Right;
       } else {
         unit_pos = (number_pos == Pos::Bottom) ? Pos::Top : Pos::Bottom;
-        if ( chart_box ) {
+        if ( main->chart_box ) {
           if ( at_orth_min && number_pos == Pos::Top ) {
             unit_pos = Pos::Top;
           }
@@ -1701,7 +1700,7 @@ void Axis::BuildUnit(
         unit_pos = Pos::Top;
       } else {
         unit_pos = (number_pos == Pos::Left) ? Pos::Right : Pos::Left;
-        if ( chart_box ) {
+        if ( main->chart_box ) {
           if ( at_orth_min && number_pos == Pos::Right ) {
             unit_pos = Pos::Right;
           }
@@ -1842,7 +1841,8 @@ void Axis::Build(
   U ex = (angle == 0) ? ae : orth_coor;
   U ey = (angle == 0) ? orth_coor : ae;
 
-  bool axis_at_chart_box = chart_box && (orth_coor_is_min || orth_coor_is_max);
+  bool axis_at_chart_box =
+    main->chart_box && (orth_coor_is_min || orth_coor_is_max);
 
   if ( style != AxisStyle::None ) {
     if ( style == AxisStyle::Arrow ) {
@@ -1900,7 +1900,7 @@ void Axis::Build(
 
   // Add DMZ rectangles for chart box to trigger collision for numbers that are
   // too close.
-  if ( chart_box ) {
+  if ( main->chart_box ) {
     for ( int i : { 0, 1 } ) {
       U oc = (i == 0) ? U( 0 ) : length;
       U zc = tick_major_len;

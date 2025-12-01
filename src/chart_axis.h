@@ -173,9 +173,6 @@ public:
 
   SVG::U length;
 
-  // Indicates that we have a chart box.
-  bool chart_box;
-
   AxisStyle style;
   Pos        pos;
   SVG::Color grid_color;

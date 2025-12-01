@@ -703,12 +703,10 @@ void Main::AxisPrepare( SVG::Group* tag_g )
   axis_x->main        = this;
   axis_x->length      = (axis_x->angle == 0) ? chart_w : chart_h;
   axis_x->orth_length = (axis_x->angle == 0) ? chart_h : chart_w;
-  axis_x->chart_box   = chart_box;
   for ( auto a : axis_y ) {
     a->main        = this;
     a->length      = (a->angle == 0) ? chart_w : chart_h;
     a->orth_length = (a->angle == 0) ? chart_h : chart_w;
-    a->chart_box   = chart_box;
   }
 
   if ( axis_x->angle == 0 ) {
