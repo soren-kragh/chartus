@@ -1385,8 +1385,9 @@ void Axis::BuildCategories(
         } else {
           plc_vld = true;
           plc_idx = cat_idx;
-          U mx = (angle == 0) ? 4 : 0;
-          if ( commit && Chart::Collides( obj, avoid_objects, mx, 0 ) ) {
+          U mx = num_space_x * number_size;
+          U my = num_space_y;
+          if ( commit && Chart::Collides( obj, avoid_objects, mx, my ) ) {
             cat_g->DeleteFront();
           } else {
             cat_objects.push_back( obj );
@@ -1481,12 +1482,23 @@ void Axis::BuildUnit(
     outer_max += tick_major_len;
     outer_min -= tick_major_len;
   }
-  if ( main->chart_box ) {
-    inner_max -= tick_major_len;
+
+  // This relies on the X-axis being built (from Main::Build) before the Y-axes,
+  // and thus the cat_coor_is_min/cat_coor_is_max will have been computed.
+  bool cat_is_at_min_coor =
+    !is_x_axis && main->axis_x->category_axis && main->axis_x->cat_coor_is_min;
+  bool cat_is_at_max_coor =
+    !is_x_axis && main->axis_x->category_axis && main->axis_x->cat_coor_is_max;
+
+  if ( main->chart_box || cat_is_at_min_coor ) {
     inner_min += tick_major_len;
   } else {
-    inner_max = outer_max;
     inner_min = outer_min;
+  }
+  if ( main->chart_box || cat_is_at_max_coor ) {
+    inner_max -= tick_major_len;
+  } else {
+    inner_max = outer_max;
   }
 
   Object* obj = label_db->CreateInDB( unit_g, unit, 16 * number_size );
