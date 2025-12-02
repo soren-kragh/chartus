@@ -489,6 +489,7 @@ void Legend::BuildLegends(
         )
       );
       series->ApplyLineStyle( g->Last() );
+      g->Last()->Attr()->LineColor()->RemoveGradient( 1 );
     }
 
     if (
