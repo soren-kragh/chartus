@@ -250,9 +250,7 @@ void Series::ApplyLineStyle( SVG::Object* obj )
     if ( line_dash > 0 ) {
       obj->Attr()->SetLineDash( line_dash, line_hole );
     }
-    if ( marker_show ) {
-      obj->Attr()->SetLineJoin( LineJoin::Round );
-    }
+    obj->Attr()->SetLineJoin( LineJoin::Round );
     obj->Attr()->LineColor()->Set( LineColor() );
   } else {
     obj->Attr()->LineColor()->Clear();
