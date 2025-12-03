@@ -43,6 +43,12 @@ public:
   // final position in the grid,
   void Move( SVG::U dx, SVG::U dy );
 
+  // Inform that this is an embedded chart.
+  void SetEmbedded( bool embedded = true )
+  {
+    this->embedded = embedded;
+  }
+
   void SetPadding( SVG::U full_padding, SVG::U area_padding );
   void SetFrame( SVG::U width, SVG::U padding, SVG::U radius );
 
@@ -136,9 +142,10 @@ public:
   SVG::Color frame_color;
   SVG::Color canvas_color;
 
-  SVG::U chart_w   = 1000;
-  SVG::U chart_h   = 600;
-  bool   chart_box = false;
+  SVG::U chart_w       = 1000;
+  SVG::U chart_h       = 600;
+  bool   chart_box     = false;
+  bool   chart_box_set = false;
 
   void CalcLegendBoxes(
     SVG::Group* g, std::vector< LegendBox >& lb_list,
@@ -175,6 +182,9 @@ public:
 
   // Transfer various information to the HTML object (ensemble->html_db).
   void PrepareHTML( void );
+
+  // Indicates that this is an embedded chart.
+  bool embedded = false;
 
   SVG::Color chart_area_color;
   SVG::Color axis_color;

@@ -58,6 +58,8 @@ Series.LineWidth: 1.5
 
 MacroEnd: MainSetup
 
+########################################
+
 MacroDef: EmbeddedSetup
 
 ChartArea: 240 120

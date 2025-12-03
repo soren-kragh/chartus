@@ -30,7 +30,7 @@ Main::Main( Ensemble* ensemble, SVG::Group* svg_g )
 
   this->ensemble = ensemble;
   this->svg_g = svg_g;
-  chart_area_color.Clear();
+  chart_area_color.Undef();
   box_color.Undef();
   title_pos_x  = Pos::Center;
   title_pos_y  = Pos::Top;
@@ -92,6 +92,7 @@ void Main::SetChartArea( SVG::U width, SVG::U height )
 void Main::SetChartBox( bool chart_box )
 {
   this->chart_box = chart_box;
+  this->chart_box_set = true;
 }
 
 void Main::SetTitle( const std::string& txt )
@@ -1789,6 +1790,14 @@ void Main::Build( void )
   }
   if ( !CanvasColor()->IsDefined() ) {
     CanvasColor()->Set( ensemble->BackgroundColor() );
+  }
+  if ( embedded && frame_width < 0 && !chart_box_set ) chart_box = true;
+  if ( !ChartAreaColor()->IsDefined() ) {
+    if ( embedded && chart_box && frame_width < 0 ) {
+      ChartAreaColor()->Set( ensemble->BackgroundColor() );
+    } else {
+      ChartAreaColor()->Clear();
+    }
   }
 
   if ( !AxisColor()->IsDefined() ) {

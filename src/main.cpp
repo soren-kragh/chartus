@@ -30,6 +30,15 @@ Chart::Ensemble ensemble{ &source };
 bool grid_max_defined = false;
 uint32_t grid_max_row = 0;
 uint32_t grid_max_col = 0;
+
+bool cur_chart_in_chart = false;
+uint32_t embedding_row1 = 0;
+uint32_t embedding_col1 = 0;
+uint32_t embedding_row2 = 0;
+uint32_t embedding_col2 = 0;
+int64_t chart_area_w = 1000;
+int64_t chart_area_h = 600;
+
 Chart::Pos footnote_pos = Chart::Pos::Auto;
 
 struct state_t {
@@ -502,6 +511,8 @@ Chart::Main* CurChart( void )
 
 void do_NewChart( bool chart_in_chart )
 {
+  cur_chart_in_chart = chart_in_chart && grid_max_defined;
+
   Chart::Pos pos1 = Chart::Pos::Undef;
   Chart::Pos pos2 = Chart::Pos::Undef;
 
@@ -520,23 +531,37 @@ void do_NewChart( bool chart_in_chart )
 
   source.ExpectEOL();
 
-  if ( !grid_given && grid_max_defined ) {
-    row1 = grid_max_row + 1;
-    row2 = row1;
-    col1 = 0;
-    col2 = grid_max_col;
-  }
-
-  if ( row1 > row2 || col1 > col2 ) {
-    source.ParseErr( "malformed grid location" );
-  }
-
   if ( non_newed_chart ) {
     source.RestorePos( context_chart );
     source.ToSOL();
     source.ParseErr(
       "chart specifiers must be preceded by NewChartInGrid for multi chart plots"
     );
+  }
+
+  if ( !grid_given && grid_max_defined ) {
+    if ( chart_in_chart ) {
+      row1 = embedding_row1;
+      col1 = embedding_col1;
+      row2 = embedding_row2;
+      col2 = embedding_col2;
+    } else {
+      row1 = grid_max_row + 1;
+      row2 = row1;
+      col1 = 0;
+      col2 = grid_max_col;
+    }
+  }
+
+  if ( row1 > row2 || col1 > col2 ) {
+    source.ParseErr( "malformed grid location" );
+  }
+
+  if ( cur_chart_in_chart ) {
+    if ( pos1 == Chart::Pos::Undef && pos2 == Chart::Pos::Undef ) {
+      pos1 = Chart::Pos::Bottom;
+      pos2 = Chart::Pos::Left;
+    }
   }
 
   bool ok =
@@ -546,11 +571,21 @@ void do_NewChart( bool chart_in_chart )
     source.ParseErr( "grid collision" );
   }
 
+  state = {};
+
+  if ( !cur_chart_in_chart ) {
+    chart_area_w = 1000;
+    chart_area_h = 600;
+    CurChart()->SetChartArea( chart_area_w, chart_area_h );
+    embedding_row1 = row1;
+    embedding_col1 = col1;
+    embedding_row2 = row2;
+    embedding_col2 = col2;
+  }
+
   grid_max_row = std::max( grid_max_row, static_cast<uint32_t>( row2 ) );
   grid_max_col = std::max( grid_max_col, static_cast<uint32_t>( col2 ) );
   grid_max_defined = true;
-
-  state = {};
 }
 
 void do_NewChartInGrid( void )
@@ -561,7 +596,9 @@ void do_NewChartInGrid( void )
 void do_NewChartInChart( void )
 {
   do_NewChart( true );
+  CurChart()->SetEmbedded();
   CurChart()->SetPadding( 12, 0 );
+  CurChart()->SetChartArea( chart_area_w / 4, chart_area_h / 4 );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -811,6 +848,11 @@ void do_ChartArea( void )
 
   source.ExpectEOL();
   CurChart()->SetChartArea( w, h );
+
+  if ( !cur_chart_in_chart ) {
+    chart_area_w = w;
+    chart_area_h = h;
+  }
 }
 
 void do_ChartBox( void )
