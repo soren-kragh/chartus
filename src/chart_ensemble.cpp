@@ -26,6 +26,7 @@ Ensemble::Ensemble( Source* source )
   this->source = source;
 
   canvas = new Canvas();
+  canvas->settings.indent = false;
   top_g = canvas->TopGroup()->AddNewGroup();
   html_db = new HTML( this );
   legend_obj = new Legend( this );
