@@ -475,6 +475,8 @@ std::string HTML::GenHTML( SVG::Canvas* canvas )
 
   {
     Canvas cursor_canvas;
+    cursor_canvas.settings.indent = false;
+    cursor_canvas.settings.math_coor = true;
     Group* g = cursor_canvas.TopGroup();
     g->Add( new Rect( ensemble_bb.min, ensemble_bb.max ) );
     g->Attr()->SetLineWidth( 0 );
@@ -485,6 +487,8 @@ std::string HTML::GenHTML( SVG::Canvas* canvas )
 
   {
     Canvas snap_canvas;
+    snap_canvas.settings.indent = false;
+    snap_canvas.settings.math_coor = true;
     Group* g = snap_canvas.TopGroup();
     g->Add( new Rect( ensemble_bb.min, ensemble_bb.max ) );
     g->Attr()->SetLineWidth( 0 );
