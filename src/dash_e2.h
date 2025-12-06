@@ -36,11 +36,12 @@ Series.New:
 # Change bar starting base as the default base
 # of zero does not map well to logarithmic Y-axis.
 Series.Base: 0.5
-# Use a gradient fill from invisible blue to darkened almost opaque red; make
-# the red more prominent by completing the transition at 0.9 instead of 1.0:
-Series.FillColor:
-  blue 0.0 1.0
-  0.9 red -0.2 0.3
+# Use a gradient color from highly transparent blue to darkened almost opaque
+# red; make the red more prominent by completing the transition at 0.9 instead
+# of at 1.0:
+Series.Color:
+  royalblue 0.0 0.8
+  0.9 red -0.2 0.2
 Series.Tag: On
 Series.TagBox: Off
 Series.TagSize: 0.9
