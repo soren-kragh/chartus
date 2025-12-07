@@ -46,7 +46,7 @@ Series.New:
   with 95% confidence interval
 # Scary gradient:
 Series.LineColor:
-  deepskyblue
+  crimson 0.5
   crimson
   Left to Right
 Series.LineWidth: 2
@@ -55,7 +55,7 @@ Series.Snap: On
 
 Series.New:
   Mauna Loa atmospheric CO₂
-Series.LineColor: brown
+Series.LineColor: skyblue
 Series.LineWidth: 4
 Series.Axis: Y2
 
@@ -313,8 +313,7 @@ FootnotePos: Right
 @Axis: Y2
 @TextArrow: 30 15 5
 @TextAnchor: Bottom Right
-@FillColor: brown 0.5
-@TextColor: white
+@FillColor: skyblue 0.5
 @TextBox: 109 315.5
   CO₂ data collection starts
   at the Mauna Loa Observatory

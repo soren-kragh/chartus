@@ -40,7 +40,7 @@ Series.Base: 0.5
 # red; make the red more prominent by completing the transition at 0.9 instead
 # of at 1.0:
 Series.Color:
-  royalblue 0.0 0.8
+  royalblue 0.2 0.8
   0.9 red -0.2 0.2
 Series.Tag: On
 Series.TagBox: Off
