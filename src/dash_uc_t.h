@@ -298,6 +298,9 @@ FootnotePos: Right
 # when aligning relative the core chart area.
 # You typically use ChartPadding to adjust placement of embedded charts (see
 # NewChartInChart).
+# Trick: You can also use invisible annotations outside the core chart area to
+# affect what is considered the outer edge of all chart elements (assuming that
+# the first number to ChartPadding is not negative).
 # The NewChartInGrid and NewChartInChart defaults respectively are shown below.
 #ChartPadding: -1 0
 #ChartPadding: 12 0
@@ -307,8 +310,8 @@ FootnotePos: Right
 # the frame. When organizing framed charts in a grid you probably want to align
 # relative to the frames rather than the core chart areas, use ChartPadding
 # for this (e.g. ChartPadding: 0).
-# Trick: You can also use an invisible annotation to manually control where the
-# frame is drawn relative to the core chart area.
+# Trick: You can also use an invisible annotation outside the core chart area to
+# manually control where the frame is drawn relative to the core chart area.
 #ChartFrame: 5 8 0
 
 # Specifies the color of the chart frame and the color of the canvas within the
