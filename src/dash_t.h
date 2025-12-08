@@ -124,9 +124,9 @@ Series.Data :
 # MacroEnd: MyMacro
 # Macro: MyMacro
 #
+# @Layer: Top
 # @PointCoor: Off
 # @Axis: Y1
-# @Layer: Top
 # @LineWidth: Width
 # @LineDash: Dash [Hole]
 # @LineColor: black
@@ -150,4 +150,9 @@ Series.Data :
 # @ArrowWidth: 0
 # @Context: {
 # @Context: }
+#
+# @@Layer: Top
+# @@Axis: 0:Y2
+# @@...
+#
 )EOF";

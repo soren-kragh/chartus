@@ -797,7 +797,7 @@ Series.Data:
 # Coordinates with point displacement can for example be used to place text near
 # to but displaced from interesting data points. The special coordinates Left,
 # Right, Top, Bottom can be used to indicate the edges of the chart area.
-# Non-XY-coordinates like Radius is always in points.
+# Non-XY-coordinates like Radius are always in points.
 #
 # Note that for annotations, the X- and Y-coordinates always follow the
 # horizontal and vertical orientations respectively. This means that if the
@@ -818,6 +818,10 @@ Series.Data:
 # compile, like X1 instead of actual coordinate etc.
 MacroDef: AnnotationDocumentation
 
+# May be Top or Bottom and determines if annotations are placed above or below
+# the plots. Applies to all subsequent annotations.
+@Layer: Top
+
 # Selects if coordinates are in points (pixels) or in chart values; may be
 # On or Off, default if Off. Applies to all subsequent annotations.
 @PointCoor: Off
@@ -829,10 +833,6 @@ MacroDef: AnnotationDocumentation
 # rotated charts that Y-axis chart-coordinates are used for annotation
 # X-coordinates and vice versa.
 @Axis: Y1
-
-# May be Top or Bottom and determines if annotations are placed above or below
-# the plots. Applies to all subsequent annotations.
-@Layer: Top
 
 # Width/Dash/Hole in points. Applies to all subsequent annotations.
 @LineWidth: Width
@@ -918,12 +918,12 @@ MacroDef: AnnotationDocumentation
 #
 #-------------------------------------------------------------------------------
 
+# Only the Top layer is allowed for global annotations.
+@@Layer: Top
+
 # For the default axis specifier, the chart number must be specified for global
 # annotations.
 @@Axis: 0:Y2
-
-# Only the Top layer is allowed for global annotations.
-@@Layer: Top
 
 MacroEnd: AnnotationDocumentation
 
