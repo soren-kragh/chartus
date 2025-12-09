@@ -298,12 +298,14 @@ FootnotePos: Right
 # when aligning relative the core chart area.
 # You typically use ChartPadding to adjust placement of embedded charts (see
 # NewChartInChart).
-# Trick: You can also use invisible annotations outside the core chart area to
-# affect what is considered the outer edge of all chart elements (assuming that
-# the first number to ChartPadding is not negative).
 # The NewChartInGrid and NewChartInChart defaults respectively are shown below.
 #ChartPadding: -1 0
 #ChartPadding: 12 0
+
+# Same as ChartPadding, but only for the X (left/right) or Y (bottom/top)
+# direction. This allows finer control especially for embedded charts.
+#ChartPaddingX: 12 0
+#ChartPaddingY: 12 0
 
 # Add a frame around the chart. First number is the frame width; second optional
 # number is the inside padding; third optional number is the corner radius of

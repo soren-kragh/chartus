@@ -70,12 +70,6 @@ void Main::Move( SVG::U dx, SVG::U dy )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void Main::SetPadding( SVG::U full_padding, SVG::U area_padding )
-{
-  this->full_padding = full_padding;
-  this->area_padding = area_padding;
-}
-
 void Main::SetFrame( SVG::U width, SVG::U padding, SVG::U radius )
 {
   this->frame_width   = width;

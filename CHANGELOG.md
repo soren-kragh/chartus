@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 - Support annotations
 - Add NewChartInChart
 - Add ChartPadding
+- Add ChartPaddingX
+- Add ChartPaddingY
 - Add ChartFrame
 - Add ChartFrameColor
 - Add ChartCanvasColor

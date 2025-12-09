@@ -327,28 +327,32 @@ void Ensemble::InitGrid( void )
       } else {
         elem.full_bb = full_bb;
       }
-      if ( elem.chart->area_padding > 0 ) {
-        elem.area_bb.min.x -= elem.chart->area_padding;
-        elem.area_bb.min.y -= elem.chart->area_padding;
-        elem.area_bb.max.x += elem.chart->area_padding;
-        elem.area_bb.max.y += elem.chart->area_padding;
+      if ( elem.chart->area_padding_x > 0 ) {
+        elem.area_bb.min.x -= elem.chart->area_padding_x;
+        elem.area_bb.max.x += elem.chart->area_padding_x;
       }
-      if ( elem.chart->full_padding >= 0 ) {
+      if ( elem.chart->area_padding_y > 0 ) {
+        elem.area_bb.min.y -= elem.chart->area_padding_y;
+        elem.area_bb.max.y += elem.chart->area_padding_y;
+      }
+      if ( elem.chart->full_padding_x >= 0 ) {
         elem.area_bb.min.x =
           std::min(
-            +elem.area_bb.min.x, full_bb.min.x - elem.chart->full_padding
-          );
-        elem.area_bb.min.y =
-          std::min(
-            +elem.area_bb.min.y, full_bb.min.y - elem.chart->full_padding
+            +elem.area_bb.min.x, full_bb.min.x - elem.chart->full_padding_x
           );
         elem.area_bb.max.x =
           std::max(
-            +elem.area_bb.max.x, full_bb.max.x + elem.chart->full_padding
+            +elem.area_bb.max.x, full_bb.max.x + elem.chart->full_padding_x
+          );
+      }
+      if ( elem.chart->full_padding_y >= 0 ) {
+        elem.area_bb.min.y =
+          std::min(
+            +elem.area_bb.min.y, full_bb.min.y - elem.chart->full_padding_y
           );
         elem.area_bb.max.y =
           std::max(
-            +elem.area_bb.max.y, full_bb.max.y + elem.chart->full_padding
+            +elem.area_bb.max.y, full_bb.max.y + elem.chart->full_padding_y
           );
       }
       elem.full_bb.Update( elem.area_bb );

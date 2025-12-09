@@ -49,7 +49,21 @@ public:
     this->embedded = embedded;
   }
 
-  void SetPadding( SVG::U full_padding, SVG::U area_padding );
+  void SetPadding( SVG::U full_padding, SVG::U area_padding )
+  {
+    SetPaddingX( full_padding, area_padding );
+    SetPaddingY( full_padding, area_padding );
+  }
+  void SetPaddingX( SVG::U full_padding, SVG::U area_padding )
+  {
+    full_padding_x = full_padding;
+    area_padding_x = area_padding;
+  }
+  void SetPaddingY( SVG::U full_padding, SVG::U area_padding )
+  {
+    full_padding_y = full_padding;
+    area_padding_y = area_padding;
+  }
   void SetFrame( SVG::U width, SVG::U padding, SVG::U radius );
 
   SVG::Color* FrameColor( void ) { return &frame_color; }
@@ -133,8 +147,10 @@ public:
   SVG::U g_dx = 0;
   SVG::U g_dy = 0;
 
-  SVG::U full_padding = -1;
-  SVG::U area_padding = 0;
+  SVG::U full_padding_x = -1;
+  SVG::U area_padding_x = 0;
+  SVG::U full_padding_y = -1;
+  SVG::U area_padding_y = 0;
 
   SVG::U frame_width   = -1;
   SVG::U frame_padding = 8;

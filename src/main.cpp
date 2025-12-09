@@ -763,10 +763,10 @@ void do_ZeroToO( void )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void do_ChartPadding( void )
+void GetChartPadding( double& full_padding, double& area_padding )
 {
-  double full_padding = -1;
-  double area_padding = 0;
+  full_padding = -1;
+  area_padding = 0;
 
   source.SkipWS();
   if ( source.AtEOL() ) source.ParseErr( "chart padding expected" );
@@ -784,7 +784,27 @@ void do_ChartPadding( void )
   }
 
   source.ExpectEOL();
+}
+
+void do_ChartPadding( void )
+{
+  double full_padding, area_padding;
+  GetChartPadding( full_padding, area_padding );
   CurChart()->SetPadding( full_padding, area_padding );
+}
+
+void do_ChartPaddingX( void )
+{
+  double full_padding, area_padding;
+  GetChartPadding( full_padding, area_padding );
+  CurChart()->SetPaddingX( full_padding, area_padding );
+}
+
+void do_ChartPaddingY( void )
+{
+  double full_padding, area_padding;
+  GetChartPadding( full_padding, area_padding );
+  CurChart()->SetPaddingY( full_padding, area_padding );
 }
 
 void do_ChartFrame( void )
@@ -2121,6 +2141,8 @@ std::unordered_map< std::string_view, ChartAction > chart_actions = {
   { "NewChartInGrid"         , do_NewChartInGrid          },
   { "NewChartInChart"        , do_NewChartInChart         },
   { "ChartPadding"           , do_ChartPadding            },
+  { "ChartPaddingX"          , do_ChartPaddingX           },
+  { "ChartPaddingY"          , do_ChartPaddingY           },
   { "ChartFrame"             , do_ChartFrame              },
   { "ChartFrameColor"        , do_ChartFrameColor         },
   { "ChartCanvasColor"       , do_ChartCanvasColor        },
