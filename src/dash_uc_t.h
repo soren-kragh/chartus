@@ -208,15 +208,15 @@ FootnotePos: Right
 # chart areas.
 #GridPadding: 12
 
-# Start creation of of new chart; not needed if you only have one chart. When
-# having multiple charts, these are organized in a grid as specified. The first
-# two numbers specify the row and column of the upper left corner, and the
-# second optional two numbers specify the row and column of the lower right
-# corner; the new chart may span multiple grid cells in either direction. If no
-# grid location is given, the new chart is just added below any existing charts
-# in the grid. After the optional grid location follows the optional
-# horizontal/vertical alignment within the allocated grid cell(s); the default
-# alignment will push charts located at a grid edge towards that edge.
+# Start creation of of new chart with NewChartInGrid; not needed if you only
+# have one chart. When having multiple charts, these are organized in a grid as
+# specified. The first two numbers specify the row and column of the upper left
+# corner, and the second optional two numbers specify the row and column of the
+# lower right corner; the new chart may span multiple grid cells in either
+# direction. If no grid location is given, the new chart is just added below any
+# existing charts in the grid. After the optional grid location follows the
+# optional horizontal/vertical alignment within the allocated grid cell(s); the
+# default alignment will push charts located at a grid edge towards that edge.
 #
 # The chart edges of the same row/column will be aligned if possible, empty
 # rows/columns can however be inserted to avoid this, for example:
@@ -259,7 +259,8 @@ FootnotePos: Right
 #
 # When using NewChartInGrid, most state is reset as if a new blank file is
 # started; use macros to easily repeat specifiers shared among multiple charts
-# in the grid.
+# in the grid. Note that the aligment hints only has any effect if the
+# row/column is wider (due to other larger charts) than the new chart.
 #NewChartInGrid: 0 0 1 1 Right Top
 
 # NewChartInChart has the same syntax as NewChartInGrid but with grid collision
