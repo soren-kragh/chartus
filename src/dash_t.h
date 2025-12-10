@@ -52,6 +52,9 @@ Series.Data :
 # ChartPadding: -1 0
 # ChartPaddingX: 12
 # ChartPaddingY: 12
+# ChartFrame: 5 8 0
+# ChartFrameColor: red
+# ChartCanvasColor: white
 # ChartArea: 1000 600
 # ChartBox: On
 # ChartAreaColor: dimgray
