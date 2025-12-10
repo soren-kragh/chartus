@@ -621,7 +621,7 @@ std::string_view Source::GetIdentifier()
   const char* ptr = cur;
   while ( true ) {
     char c = *ptr;
-    if ( IsLetter( c ) || IsDigit( c ) || c == '_' ) {
+    if ( IsLetter( c ) || IsDigit( c ) || c == '_' || c == '#' ) {
       ++ptr;
     } else {
       break;
