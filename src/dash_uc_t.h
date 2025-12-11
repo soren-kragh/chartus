@@ -435,7 +435,7 @@ SubSubTitle:
 #Axis.X.Pos: Top
 #Axis.Y.Pos: Right
 
-# Define axis ticks.
+# Define axis ticks for numerical axis.
 # Linear scale:
 #   First number is the major tick interval and the second number is an integer
 #   specifying the number of minor sub-intervals per major tick (ignored for
@@ -447,6 +447,7 @@ SubSubTitle:
 #   factors of 100.
 # Tick intervals are determined automatically if no Tick specifier is given
 # (recommended).
+# Tick has no effect on textual X-axis (see TickSpacing).
 #Axis.X.Tick: 10.0 4
 #Axis.Y.Tick: 1.0 0
 
@@ -459,6 +460,7 @@ SubSubTitle:
 # When stacking charts (see NewChartInGrid) sharing the same textual X-axis, a
 # trick to not show the categories for the stacked charts, is to set the
 # TickSpacing start position really high for all but the bottom chart.
+# TickSpacing has no effect on numerical X-axis or Y-axis.
 #Axis.X.TickSpacing: 0 10
 
 # Turn grid lines on/off for major and minor ticks; may be On or Off. Unless
@@ -481,6 +483,7 @@ SubSubTitle:
 # Number format may be None, Fixed, Scientific, or Magnitude. Default is Fixed
 # for linear scale and Magnitude for logarithmic scale. Magnitude means showing
 # e.g. "10k" instead of "10000" etc.
+# For textual X-axis, None will hide the textual categories.
 #Axis.X.NumberFormat: Fixed
 #Axis.Y.NumberFormat: Fixed
 #Axis.Y2.NumberFormat: Magnitude

@@ -168,9 +168,9 @@ void gen_example( int N )
         }
       }
       std::cout << '\n';
-      std::cout << "# In case Condensed layout is used (see above) make\n";
+      std::cout << "# In case Abutted layout is used (see above) make\n";
       std::cout << "# sure we get the hour ticks for the last chart.\n";
-      std::cout << "Axis.X.TickSpacing: 0 6\n";
+      std::cout << "Axis.X.NumberFormat: Auto\n";
       break;
     }
     case 4:

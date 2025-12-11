@@ -251,14 +251,7 @@ void Axis::LegalizeMinor( void ) {
 void Axis::LegalizeMajor( void ) {
   double mag = std::max( std::abs( min ), std::abs( max ) );
 
-  while ( true ) {
-
-    if ( category_axis ) {
-      number_format = NumberFormat::None;
-      if ( major < 1 ) major = 1;
-      sub_divs = 0;
-      break;
-    }
+  while ( !category_axis ) {
 
     if (
       mag < num_lo || mag > num_hi || (max - min) < num_lo ||
@@ -355,6 +348,14 @@ void Axis::LegalizeMajor( void ) {
     break;
   }
 
+  if ( category_axis ) {
+    major = 1;
+    sub_divs = 0;
+    log_scale = false;
+    if ( number_format != NumberFormat::None ) {
+      number_format = NumberFormat::Auto;
+    }
+  } else
   if ( major == 0 ) {
     log_scale = false;
     if ( number_format != NumberFormat::None ) {
@@ -461,7 +462,7 @@ void Axis::LegalizeMinMax(
                 ? series->tag_dist_y
                 : series->tag_dist_x
               );
-            {
+            if ( min != series->base ) {
               U coor = Coor( series->datum_min_y ) + (reverse ? +mrg : -mrg);
               if ( coor < 0 || coor > length ) {
                 if ( log_scale ) {
@@ -472,7 +473,7 @@ void Axis::LegalizeMinMax(
                 ok = false;
               }
             }
-            {
+            if ( max != series->base ) {
               U coor = Coor( series->datum_max_y ) + (reverse ? -mrg : +mrg);
               if ( coor < 0 || coor > length ) {
                 if ( log_scale ) {
@@ -1332,13 +1333,14 @@ void Axis::BuildCategories(
   }
 
   std::vector< SVG::Object* > cat_objects;
-  std::vector< uint32_t > mn_list;
+  std::vector< cat_idx_t > cat_idx_list;
 
-  uint32_t min_stride =
+  cat_idx_t min_stride =
     std::ceil( cat_char_h / std::abs( Coor( 0 ) - Coor( 1 ) ) );
 
   uint32_t trial = 0;
   for ( bool commit : { false, true } ) {
+    if ( number_format == NumberFormat::None ) break;
     while ( true ) {
       bool collision = false;
       bool plc_vld = false;
@@ -1392,7 +1394,7 @@ void Axis::BuildCategories(
           } else {
             cat_objects.push_back( obj );
           }
-          if ( commit ) mn_list.push_back( cat_idx );
+          if ( commit ) cat_idx_list.push_back( cat_idx );
         }
       }
       if ( commit ) break;
@@ -1407,12 +1409,26 @@ void Axis::BuildCategories(
     }
   }
 
-  if ( (minor_grid_enable || major_grid_enable) && major > 0 ) {
-    uint32_t mm = std::llround( major );
-    if ( mm < 1 ) mm = 1;
-    for ( uint32_t mn : mn_list ) {
-      if ( mn % mm ) continue;
-      double v = mn;
+  if ( minor_grid_enable || major_grid_enable ) {
+    cat_idx_t cs =
+      std::max(
+        std::ceil( 4.0 / std::abs( Coor( 0 ) - Coor( 1 ) ) ),
+        static_cast< double >( cat_stride )
+      );
+    cat_idx_t ci = cat_start;
+    auto cat_idx_list_it = cat_idx_list.begin();
+    bool first = true;
+    while ( true ) {
+      if ( number_format == NumberFormat::None ) {
+        if ( !first ) ci += cs;
+      } else {
+        if ( cat_idx_list_it == cat_idx_list.end() ) break;
+        ci = *cat_idx_list_it;
+        cat_idx_list_it++;
+      }
+      first = false;
+      if ( ci >= main->category_num ) break;
+      double v = ci;
       if ( v > max ) break;
       U v_coor = Coor( v );
       U gx1 = 0;
@@ -1442,7 +1458,6 @@ void Axis::BuildCategories(
           minor_g->Add( new Line( gx2, gy2, gx1, gy1 ) );
         }
       }
-      mn++;
     }
   }
 

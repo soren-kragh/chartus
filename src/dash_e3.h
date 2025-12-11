@@ -20,8 +20,9 @@ BoxColor: white 0.0 0.3
 Series.GlobalLegend: On
 
 # When there is no room to show all the X-axis bins, TickSpacing is very useful
-# to control what is shown. Here we choose to only show every 6th hour.
-Axis.X.TickSpacing: 0 6
+# to control what is shown. Here we choose to only show every 4th hour.
+Axis.X.TickSpacing: 0 4
+Axis.X.Grid: On
 Axis.X.Unit: hour
 Axis.X.UnitPos: Above
 
@@ -31,7 +32,7 @@ Axis.Y1.Label: Load
 Axis.Y2.Label: Users
 
 # Try this.
-#Macro: Condensed
+#Macro: Abutted
 
 # Make it a little easier to see area plot through the bar plot by
 # making the bars a little thinner.
@@ -52,9 +53,9 @@ Series.FillColor: orange 0 0.5
 MacroEnd: Setup
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
-# Optional condensed layout example (see above macro call).
+# Optional abutted layout example (see above macro call).
 #vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv#
-MacroDef: Condensed
+MacroDef: Abutted
 
 # Zero padding so chart boxes abut.
 GridPadding: 0
@@ -63,13 +64,13 @@ ChartBox: On
 
 # Don't show hours for abutted charts, we show it only for
 # the last chart (see bottom of this file).
-Axis.X.TickSpacing: 999
+Axis.X.NumberFormat: None
 
 # Flip axis numbers into chart area.
 Axis.Y1.NumberPos: Right
 Axis.Y2.NumberPos: Left
 
-MacroEnd: Condensed
+MacroEnd: Abutted
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
 Footnote: https://github.com/soren-kragh/chartus
