@@ -1535,10 +1535,11 @@ void Main::BuildTitle(
 
   if ( boxed ) {
     bb = text_g->GetBB();
+    U spc = box_spacing * std::max( 0.5, +title_size );
     text_g->Add(
       new Rect(
-        bb.min.x - box_spacing, bb.min.y - box_spacing,
-        bb.max.x + box_spacing, bb.max.y + box_spacing,
+        bb.min.x - spc, bb.min.y - spc,
+        bb.max.x + spc, bb.max.y + spc,
         box_spacing
       )
     );
