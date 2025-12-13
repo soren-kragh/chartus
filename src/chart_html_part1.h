@@ -13,6 +13,9 @@ oss << R"EOF(
       margin: 0;
       padding: 0;
     }
+    body{
+      background-color: #DDDDDD;
+    }
     .hide-cursor {
       cursor: none;
     }
@@ -24,6 +27,11 @@ oss << R"EOF(
     }
     #svgChart {
       transform: translateZ(0);
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #112222;
+      }
     }
   </style>
 )EOF";
