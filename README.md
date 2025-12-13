@@ -209,10 +209,15 @@ Series.Data :
 # FootnoteSize: 1.0
 # LetterSpacing: 1.8 1.1 0.8
 # ZeroToO: Off
-# GridPadding: 0 12
+# GridPadding: 0 50
 # NewChartInGrid: 0 0 3 0 Center Bottom
 # NewChartInChart: 0 0 Bottom Right
 # ChartPadding: -1 0
+# ChartPaddingX: 12
+# ChartPaddingY: 12
+# ChartFrame: 5 8 0
+# ChartFrameColor: red
+# ChartCanvasColor: white
 # ChartArea: 1000 600
 # ChartBox: On
 # ChartAreaColor: dimgray
@@ -287,9 +292,9 @@ Series.Data :
 # MacroEnd: MyMacro
 # Macro: MyMacro
 #
+# @Layer: Top
 # @PointCoor: Off
 # @Axis: Y1
-# @Layer: Top
 # @LineWidth: Width
 # @LineDash: Dash [Hole]
 # @LineColor: black
@@ -313,6 +318,11 @@ Series.Data :
 # @ArrowWidth: 0
 # @Context: {
 # @Context: }
+#
+# @@Layer: Top
+# @@Axis: 0:Y2
+# @@...
+#
 ```
 
 ## Full Documentation
@@ -329,9 +339,8 @@ Series.Data :
 # The UTF-8 character encoding standard is used.
 #
 # The input file consists of a number of specifiers. Any line starting with a
-# '#' at column 0 is ignored, empty lines are also ignored. The simplest input
-# file consists only of data values, the Series.Data key is implicit in this
-# special case.
+# '#' at column 0 is ignored. The simplest input file consists only of data
+# values, the Series.Data key is implicit in this special case.
 #
 # A specifier takes the form:
 # KEY: VALUE(s)
@@ -342,8 +351,7 @@ Series.Data :
 #   ...
 #
 # The KEY must be unindented and any VALUE(s) on the following lines must be
-# indented, preferably by the same amount (important for text VALUEs). Multiple
-# VALUEs on the same line must be whitespace separated.
+# indented. Multiple VALUEs on the same line must be whitespace separated.
 #
 # Text VALUEs such as titles and labels may span multiple lines, in which case
 # they should be uniformly indented. Please observe the LetterSpacing specifier
@@ -355,12 +363,6 @@ Series.Data :
 # other hand, a textual X-axis has text strings as "values". If just one series
 # is defined which uses textual X-values (e.g. a Bar plot), then the X-axis as a
 # whole becomes textual. See Series.Type for more information.
-#
-# A color can be any of the 147 named SVG colors (google "svg colors") or a
-# hexadecimal RGB value of the form #rrggbb; None means no color. The optional
-# 2nd value (-1.0 to 1.0) specifies by how much to lighten the color (or darken
-# if negative). The third optional value specifies the transparency of the color
-# (0.0 to 1.0).
 #
 # Defining one or more charts generally follows this sequence:
 #
@@ -388,6 +390,67 @@ Series.Data :
 # Everything has been commented out in this file, so it will not do anything if
 # used directly as input to Chartus. Please refer to the built-in inspirational
 # examples (chartus -eN) for actual working input files.
+#
+
+# Color specifiers are used throughout in the following and the syntax is
+# described here. A color can be any of the 147 named SVG colors (google "svg
+# colors") or a hexadecimal RGB value of the form #rrggbb; None means no color.
+# The optional 2nd value (-1.0 to 1.0) specifies by how much to lighten the
+# color (or darken if negative). The third optional value specifies the
+# transparency of the color (0.0 to 1.0).
+#
+# Examples:
+#BoxColor brown
+#BoxColor skyblue 0 0.3
+#BoxColor yellow -0.4 0.7
+#
+
+# Some colors can also be a gradient (mentioned explicitly if so), which is
+# specified as two or more colors each on separate lines; a gradient position
+# (0.0 to 1.0) may optionally be specified in front of each of these colors. An
+# optional extra line consists of four numbers defining a vector direction along
+# which the gradient is applied; vector coordinates 0.0 to 1.0 refer to the
+# boundary of the object. Alternatively, a direction can also be given as e.g.
+# "Left to Right". If no vector direction is given, a default context dependent
+# direction is used. The special gradient position Base may be used for
+# Series.Color, Series.FillColor, and Series.LineColor, which can be used to
+# e.g. color negative and positive bars or areas differently. See examples
+# below.
+#
+# Example (invisible 50% light blue transitioning to fully opaque):
+#Series.Color:
+#   blue 0.5 1
+#   blue 0.5
+#
+# Example (yellow to red, transition starting midway):
+#Series.Color:
+#   0.5 yellow
+#   1.0 red
+# With direction and transient part in a narrow band midway:
+#Series.Color:
+#   0.4 yellow
+#   0.6 red
+#   Top to Bottom
+#
+# Example (red transitioning to less and less transparent along a bottom-left to
+# top-center direction):
+#Series.Color:
+#   red 0 0.8
+#   red 0 0.2
+#   0.0 0.0 0.5 1.2
+# Simpler more readable (but less flexible) syntax:
+#Series.Color:
+#   red 0 0.8
+#   red 0 0.2
+#   Bottom Left to Top
+#
+# Show red gradient for negative numbers (or rather, numbers below the
+# Series.Base) and seagreen gradient for positive numbers:
+#Series.FillColor:
+#   red
+#   Base red 0 0.5
+#   Base seagreen 0 0.5
+#   seagreen
 #
 
 # The HTML tab title to show in the HTML browser. Cannot be multi-line.
@@ -437,6 +500,7 @@ Series.Data :
 #GlobalLegendSize: 1.0
 
 # The background color of the global legend box.
+# Color gradient allowed.
 #GlobalLegendColor: darkseagreen
 
 # Adds a footnote. Footnotes are placed below everything. Multiple footnotes
@@ -476,15 +540,15 @@ FootnotePos: Right
 # chart areas.
 #GridPadding: 12
 
-# Start creation of of new chart; not needed if you only have one chart. When
-# having multiple charts, these are organized in a grid as specified. The first
-# two numbers specify the row and column of the upper left corner, and the
-# second optional two numbers specify the row and column of the lower right
-# corner; the new chart may span multiple grid cells in either direction. If no
-# grid location is given, the new chart is just added below any existing charts
-# in the grid. After the optional grid location follows the optional
-# horizontal/vertical alignment within the allocated grid cell(s); the default
-# alignment will push charts located at a grid edge towards that edge.
+# Start creation of of new chart with NewChartInGrid; not needed if you only
+# have one chart. When having multiple charts, these are organized in a grid as
+# specified. The first two numbers specify the row and column of the upper left
+# corner, and the second optional two numbers specify the row and column of the
+# lower right corner; the new chart may span multiple grid cells in either
+# direction. If no grid location is given, the new chart is just added below any
+# existing charts in the grid. After the optional grid location follows the
+# optional horizontal/vertical alignment within the allocated grid cell(s); the
+# default alignment will push charts located at a grid edge towards that edge.
 #
 # The chart edges of the same row/column will be aligned if possible, empty
 # rows/columns can however be inserted to avoid this, for example:
@@ -527,7 +591,8 @@ FootnotePos: Right
 #
 # When using NewChartInGrid, most state is reset as if a new blank file is
 # started; use macros to easily repeat specifiers shared among multiple charts
-# in the grid.
+# in the grid. Note that the aligment hints only has any effect if the
+# row/column is wider (due to other larger charts) than the new chart.
 #NewChartInGrid: 0 0 1 1 Right Top
 
 # NewChartInChart has the same syntax as NewChartInGrid but with grid collision
@@ -536,6 +601,23 @@ FootnotePos: Right
 # with NewChartInChart, the ChartPadding (see below) defaults to 12 0. Please
 # note that the new chart is just placed on top of whatever previous charts were
 # drawn before, so more manual adjustments than usual might be needed.
+# As for the positional alignment, please note that these are relative to the
+# row / column in which the chart is placed - a larger chart elsewhere in the
+# grid might expand those. You can however use extra rows or columns in the grid
+# to avoid this expansion, e.g.:
+#
+# # Wide chart taking up three columns:
+# NewChartInGrid: 0 0 0 2
+# ChartArea: 1000 400
+#
+# # Not so wide chart placed in column 1:
+# NewChartInGrid: 1 1 1 1
+# ChartArea: 700 400
+#
+# # This embedded chart will be aligned relative to column 1, which is exactly
+# # as wide as the previous not so wide chart:
+# NewChartInChart: Bottom Left
+#
 #NewChartInChart: 0 0 Left Top
 
 # Defines the padding for the current chart, it works somewhat like GridPadding
@@ -553,13 +635,18 @@ FootnotePos: Right
 #ChartPadding: -1 0
 #ChartPadding: 12 0
 
+# Same as ChartPadding, but only for the X (left/right) or Y (bottom/top)
+# direction. This allows finer control especially for embedded charts.
+#ChartPaddingX: 12 0
+#ChartPaddingY: 12 0
+
 # Add a frame around the chart. First number is the frame width; second optional
 # number is the inside padding; third optional number is the corner radius of
 # the frame. When organizing framed charts in a grid you probably want to align
 # relative to the frames rather than the core chart areas, use ChartPadding
 # for this (e.g. ChartPadding: 0).
-# Trick: You can also use an invisible annotation to manually control where the
-# frame is drawn relative to the core chart area.
+# Trick: You can also use an invisible annotation outside the core chart area to
+# manually control where the frame is drawn relative to the core chart area.
 #ChartFrame: 5 8 0
 
 # Specifies the color of the chart frame and the color of the canvas within the
@@ -584,6 +671,7 @@ FootnotePos: Right
 #TextColor: lightyellow
 
 # The background color of legend box and title box (when these are shown).
+# Color gradient allowed.
 #BoxColor: aqua 0 0.5
 
 # Titles are normally placed at the top of the chart.
@@ -679,7 +767,7 @@ SubSubTitle:
 #Axis.X.Pos: Top
 #Axis.Y.Pos: Right
 
-# Define axis ticks.
+# Define axis ticks for numerical axis.
 # Linear scale:
 #   First number is the major tick interval and the second number is an integer
 #   specifying the number of minor sub-intervals per major tick (ignored for
@@ -691,6 +779,7 @@ SubSubTitle:
 #   factors of 100.
 # Tick intervals are determined automatically if no Tick specifier is given
 # (recommended).
+# Tick has no effect on textual X-axis (see TickSpacing).
 #Axis.X.Tick: 10.0 4
 #Axis.Y.Tick: 1.0 0
 
@@ -703,6 +792,7 @@ SubSubTitle:
 # When stacking charts (see NewChartInGrid) sharing the same textual X-axis, a
 # trick to not show the categories for the stacked charts, is to set the
 # TickSpacing start position really high for all but the bottom chart.
+# TickSpacing has no effect on numerical X-axis or Y-axis.
 #Axis.X.TickSpacing: 0 10
 
 # Turn grid lines on/off for major and minor ticks; may be On or Off. Unless
@@ -725,6 +815,7 @@ SubSubTitle:
 # Number format may be None, Fixed, Scientific, or Magnitude. Default is Fixed
 # for linear scale and Magnitude for logarithmic scale. Magnitude means showing
 # e.g. "10k" instead of "10000" etc.
+# For textual X-axis, None will hide the textual categories.
 #Axis.X.NumberFormat: Fixed
 #Axis.Y.NumberFormat: Fixed
 #Axis.Y2.NumberFormat: Magnitude
@@ -955,23 +1046,27 @@ SubSubTitle:
 # subsequent series, or until it is redefined.
 #Series.Lighten: 0
 
-# This value (0.0 to 1.0) specifies the transparency to be used for Bar and Area
-# fill color; it acts as a persistent override modifier to the current Style.
-# This attribute applies to the current series and all subsequent series, or
-# until it is redefined.
+# This value (-1.0 to 1.0) specifies extra transparency to be used for Bar and
+# Area fill color; it acts as a persistent modifier to the current Style. This
+# attribute applies to the current series and all subsequent series, or until it
+# is redefined. Setting a value of -1 removes any transparency entirely.
 #Series.FillTransparency: 0
 
 # This specifies the color; it acts as a one-time modifier to the current Style.
 # The Color attribute applies to the current series only.
+# Color gradient allowed.
 #Series.Color: lightsteelblue
 
 # This specifies the line color; it acts as a one-time modifier to the current
 # Style. The LineColor attribute applies to the current series only.
+# Color gradient allowed.
 #Series.LineColor: darkorange -0.2 0.7
 
 # This specifies the fill color used for bars, areas, marker interiors, etc.; it
 # acts as a one-time modifier to the current Style. The FillColor attribute
 # applies to the current series only.
+# Gradient allowed.
+# Color gradient allowed.
 #Series.FillColor: None
 
 # Enable tagging of data points, that is, showing the data values near the data
@@ -1043,7 +1138,7 @@ Series.Data:
 # Coordinates with point displacement can for example be used to place text near
 # to but displaced from interesting data points. The special coordinates Left,
 # Right, Top, Bottom can be used to indicate the edges of the chart area.
-# Non-XY-coordinates like Radius is always in points.
+# Non-XY-coordinates like Radius are always in points.
 #
 # Note that for annotations, the X- and Y-coordinates always follow the
 # horizontal and vertical orientations respectively. This means that if the
@@ -1064,6 +1159,10 @@ Series.Data:
 # compile, like X1 instead of actual coordinate etc.
 MacroDef: AnnotationDocumentation
 
+# May be Top or Bottom and determines if annotations are placed above or below
+# the plots. Applies to all subsequent annotations.
+@Layer: Top
+
 # Selects if coordinates are in points (pixels) or in chart values; may be
 # On or Off, default if Off. Applies to all subsequent annotations.
 @PointCoor: Off
@@ -1076,16 +1175,13 @@ MacroDef: AnnotationDocumentation
 # X-coordinates and vice versa.
 @Axis: Y1
 
-# May be Top or Bottom and determines if annotations are placed above or below
-# the plots. Applies to all subsequent annotations.
-@Layer: Top
-
 # Width/Dash/Hole in points. Applies to all subsequent annotations.
 @LineWidth: Width
 @LineDash: Dash [Hole]
 
 # See earlier description of color format. Applies to all subsequent
 # annotations.
+# Color gradient allowed.
 @LineColor: black
 @FillColor: None
 @TextColor: black
@@ -1163,12 +1259,12 @@ MacroDef: AnnotationDocumentation
 #
 #-------------------------------------------------------------------------------
 
+# Only the Top layer is allowed for global annotations.
+@@Layer: Top
+
 # For the default axis specifier, the chart number must be specified for global
 # annotations.
 @@Axis: 0:Y2
-
-# Only the Top layer is allowed for global annotations.
-@@Layer: Top
 
 MacroEnd: AnnotationDocumentation
 
