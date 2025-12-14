@@ -297,7 +297,7 @@ FootnotePos: Right
 
 @Context: {
 @Layer: Top
-@RectCornerRadius: 5
+@BoxCornerRadius: 5
 @TextSize: 0.75
 @LineWidth: 2
 @TextBold: On

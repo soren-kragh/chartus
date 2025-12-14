@@ -93,6 +93,7 @@ public:
     { "TextBold"        , &Annotate::do_TextBold                },
     { "LetterSpacing"   , &Annotate::do_LetterSpacing           },
     { "RectCornerRadius", &Annotate::do_RectCornerRadius        },
+    { "BoxCornerRadius" , &Annotate::do_RectCornerRadius        },
     { "Line"            , &Annotate::do_Line                    },
     { "Rect"            , &Annotate::do_Rect                    },
     { "Circle"          , &Annotate::do_Circle                  },

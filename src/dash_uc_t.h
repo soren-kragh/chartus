@@ -864,8 +864,9 @@ MacroDef: AnnotationDocumentation
 @LetterSpacing: 1.8 1.1 0.8
 
 # Rounded corners for rectangles; is used for all subsequent @Rect and @TextBox
-# elements.
+# elements. BoxCornerRadius is just an alias.
 @RectCornerRadius: 10
+@BoxCornerRadius: 10
 
 @Line: X1 Y1 X2 Y2
 @Rect: X1 Y1 X2 Y2

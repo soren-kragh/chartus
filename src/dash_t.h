@@ -142,6 +142,7 @@ Series.Data :
 # @TextBold: On
 # @LetterSpacing: 1.8 1.1 0.8
 # @RectCornerRadius: 10
+# @BoxCornerRadius: 10
 # @Line: X1 Y1 X2 Y2
 # @Rect: X1 Y1 X2 Y2
 # @Circle: X Y Radius
