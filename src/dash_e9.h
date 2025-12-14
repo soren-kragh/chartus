@@ -94,7 +94,7 @@ FootnotePos: Right
 @Context: }
 
 @Context: {
-@TextSize: 24
+@TextSize: 1.5
 @Text: 3000 4
   Cosmic stability
 @Text: 300e3 400

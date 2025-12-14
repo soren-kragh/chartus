@@ -41,7 +41,7 @@ Series.LineWidth: 1.5
 @LineColor: black
 
 @TextArrow: 20 0
-@TextSize: 14
+@TextSize: 0.9
 @TextBold: On
 @TextAnchor: Left
 @Text: 2025 C-20

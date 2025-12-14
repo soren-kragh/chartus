@@ -162,12 +162,14 @@ void Annotate::do_TextAnchor( )
 
 void Annotate::do_TextSize()
 {
+  double size;
   source->SkipWS();
   if ( source->AtEOL() ) source->ParseErr( "text size expected" );
-  source->GetDouble( state.text_size );
-  if ( state.text_size <= 0 ) {
-    source->ParseErr( "invalid text size", true );
+  source->GetDouble( size );
+  if ( size < 0.01 || size > 100 ) {
+    source->ParseErr( "text size value out of range", true );
   }
+  state.text_size = 16.0 * size;
   source->ExpectEOL();
 }
 
