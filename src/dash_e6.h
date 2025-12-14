@@ -17,6 +17,10 @@ Axis.Y2.Tick: 10 1
 
 Axis.X.Unit: Year
 
+# Place legends where they do not obscure the custom annotations (see end of
+# this file).
+LegendPos: Bottom Right 1
+
 # For the uncertainty interval, StackedBar could also be used instead of
 # StackedArea in which case BarWidth defines the width of these error bars.
 BarWidth: 0.7
