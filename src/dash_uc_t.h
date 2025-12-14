@@ -870,7 +870,7 @@ MacroDef: AnnotationDocumentation
 @Line: X1 Y1 X2 Y2
 @Rect: X1 Y1 X2 Y2
 @Circle: X Y Radius
-@Ellipse: X Y RadiusX RadiusY
+@Ellipse: X1 Y1 X2 Y2
 @Polyline: X1 Y1 X2 Y2 X3 Y3 ...
 @Polygon: X1 Y1 X2 Y2 X3 Y3 ...
 

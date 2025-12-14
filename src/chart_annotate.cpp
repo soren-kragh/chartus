@@ -381,17 +381,17 @@ void Annotate::do_Circle()
 
 void Annotate::do_Ellipse()
 {
-  Point p;
-  p.x = GetCoor( true );
-  p.y = GetCoor();
-  double rx = 0;
-  double ry = 0;
-  source->SkipWS();
-  source->GetDouble( rx );
-  source->SkipWS();
-  source->GetDouble( ry );
+  Point p1;
+  Point p2;
+  p1.x = GetCoor( true );
+  p1.y = GetCoor();
+  p2.x = GetCoor( true );
+  p2.y = GetCoor();
   source->ExpectEOL();
-  CurGroup()->Add( new Ellipse( p, rx, ry ) );
+  Point pc{ (p1.x + p2.x) * 0.5, (p1.y + p2.y) * 0.5 };
+  U rx = std::abs( (p1.x - p2.x) * 0.5 );
+  U ry = std::abs( (p1.y - p2.y) * 0.5 );
+  CurGroup()->Add( new Ellipse( pc, rx, ry ) );
 }
 
 void Annotate::BuildPoly( bool polygon )
