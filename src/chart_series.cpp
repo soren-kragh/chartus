@@ -250,7 +250,13 @@ void Series::ApplyLineStyle( SVG::Object* obj )
     if ( line_dash > 0 ) {
       obj->Attr()->SetLineDash( line_dash, line_hole );
     }
-    obj->Attr()->SetLineJoin( LineJoin::Round );
+    if (
+      type != SeriesType::Bar &&
+      type != SeriesType::StackedBar &&
+      type != SeriesType::LayeredBar
+    ) {
+      obj->Attr()->SetLineJoin( LineJoin::Round );
+    }
     obj->Attr()->LineColor()->Set( LineColor() );
   } else {
     obj->Attr()->LineColor()->Clear();
