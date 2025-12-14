@@ -856,7 +856,7 @@ MacroDef: AnnotationDocumentation
 
 # Applies to all subsequent annotations.
 @TextAnchor: Top Center
-@TextSize: 24
+@TextSize: 1.5
 @TextBold: On
 
 # The LetterSpacing (see earler description) is used for all subsequent @Text

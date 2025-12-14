@@ -138,7 +138,7 @@ Series.Data :
 # @FillColor: None
 # @TextColor: black
 # @TextAnchor: Top Center
-# @TextSize: 24
+# @TextSize: 1.5
 # @TextBold: On
 # @LetterSpacing: 1.8 1.1 0.8
 # @RectCornerRadius: 10
