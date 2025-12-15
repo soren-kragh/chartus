@@ -25,7 +25,7 @@ See [examples](#built-in-examples) below.
 ```sh
 git clone --recurse-submodules https://github.com/soren-kragh/chartus.git
 cd chartus
-git checkout VERSION    # Replace VERSION with actual release tag, e.g. v1.0.0
+git checkout VERSION    # Replace VERSION with actual release tag, e.g. v2.0.0
 git submodule update --init --recursive
 make
 ```
@@ -211,7 +211,7 @@ Series.Data :
 # ZeroToO: Off
 # GridPadding: 0 50
 # NewChartInGrid: 0 0 3 0 Center Bottom
-# NewChartInChart: 0 0 Bottom Right
+# NewChartOnGrid: Bottom Right
 # ChartPadding: -1 0
 # ChartPaddingX: 12
 # ChartPaddingY: 12
@@ -301,10 +301,11 @@ Series.Data :
 # @FillColor: None
 # @TextColor: black
 # @TextAnchor: Top Center
-# @TextSize: 24
+# @TextSize: 1.5
 # @TextBold: On
 # @LetterSpacing: 1.8 1.1 0.8
 # @RectCornerRadius: 10
+# @BoxCornerRadius: 10
 # @Line: X1 Y1 X2 Y2
 # @Rect: X1 Y1 X2 Y2
 # @Circle: X Y Radius
@@ -595,10 +596,10 @@ FootnotePos: Right
 # row/column is wider (due to other larger charts) than the new chart.
 #NewChartInGrid: 0 0 1 1 Right Top
 
-# NewChartInChart has the same syntax as NewChartInGrid but with grid collision
+# NewChartOnGrid has the same syntax as NewChartInGrid but with grid collision
 # check disabled. A typical (if not only) use case for this is to embed a
 # smaller chart within and on top of another chart. When starting a new chart
-# with NewChartInChart, the ChartPadding (see below) defaults to 12 0. Please
+# with NewChartOnGrid, the ChartPadding (see below) defaults to 12 0. Please
 # note that the new chart is just placed on top of whatever previous charts were
 # drawn before, so more manual adjustments than usual might be needed.
 # As for the positional alignment, please note that these are relative to the
@@ -616,9 +617,9 @@ FootnotePos: Right
 #
 # # This embedded chart will be aligned relative to column 1, which is exactly
 # # as wide as the previous not so wide chart:
-# NewChartInChart: Bottom Left
+# NewChartOnGrid: Bottom Left
 #
-#NewChartInChart: 0 0 Left Top
+#NewChartOnGrid: 0 0 Left Top
 
 # Defines the padding for the current chart, it works somewhat like GridPadding
 # but applies to the current chart only. Normally charts arranged in a grid are
@@ -630,8 +631,8 @@ FootnotePos: Right
 # behavior). The second optional number specifies the additional extra margin
 # when aligning relative the core chart area.
 # You typically use ChartPadding to adjust placement of embedded charts (see
-# NewChartInChart).
-# The NewChartInGrid and NewChartInChart defaults respectively are shown below.
+# NewChartOnGrid).
+# The NewChartInGrid and NewChartOnGrid defaults respectively are shown below.
 #ChartPadding: -1 0
 #ChartPadding: 12 0
 
@@ -1188,7 +1189,7 @@ MacroDef: AnnotationDocumentation
 
 # Applies to all subsequent annotations.
 @TextAnchor: Top Center
-@TextSize: 24
+@TextSize: 1.5
 @TextBold: On
 
 # The LetterSpacing (see earler description) is used for all subsequent @Text
@@ -1196,13 +1197,14 @@ MacroDef: AnnotationDocumentation
 @LetterSpacing: 1.8 1.1 0.8
 
 # Rounded corners for rectangles; is used for all subsequent @Rect and @TextBox
-# elements.
+# elements. BoxCornerRadius is just an alias.
 @RectCornerRadius: 10
+@BoxCornerRadius: 10
 
 @Line: X1 Y1 X2 Y2
 @Rect: X1 Y1 X2 Y2
 @Circle: X Y Radius
-@Ellipse: X Y RadiusX RadiusY
+@Ellipse: X1 Y1 X2 Y2
 @Polyline: X1 Y1 X2 Y2 X3 Y3 ...
 @Polygon: X1 Y1 X2 Y2 X3 Y3 ...
 

@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+---
+
+
+## [2.0.0] - 2025-12-15
+
 ### Added
 - Add Series.Color
 - Support annotations
@@ -26,14 +42,8 @@ All notable changes to this project will be documented in this file.
 - TitleFrame renamed TitleBox
 - LegendFrame renamed LegendBox
 
-### Deprecated
-
-### Removed
-
-### Fixed
-
----
 
 ## [1.0.0] - 2025-07-14
+
 ### Added
 - Initial release
