@@ -263,10 +263,10 @@ FootnotePos: Right
 # row/column is wider (due to other larger charts) than the new chart.
 #NewChartInGrid: 0 0 1 1 Right Top
 
-# NewChartInChart has the same syntax as NewChartInGrid but with grid collision
+# NewChartOnGrid has the same syntax as NewChartInGrid but with grid collision
 # check disabled. A typical (if not only) use case for this is to embed a
 # smaller chart within and on top of another chart. When starting a new chart
-# with NewChartInChart, the ChartPadding (see below) defaults to 12 0. Please
+# with NewChartOnGrid, the ChartPadding (see below) defaults to 12 0. Please
 # note that the new chart is just placed on top of whatever previous charts were
 # drawn before, so more manual adjustments than usual might be needed.
 # As for the positional alignment, please note that these are relative to the
@@ -284,9 +284,9 @@ FootnotePos: Right
 #
 # # This embedded chart will be aligned relative to column 1, which is exactly
 # # as wide as the previous not so wide chart:
-# NewChartInChart: Bottom Left
+# NewChartOnGrid: Bottom Left
 #
-#NewChartInChart: 0 0 Left Top
+#NewChartOnGrid: 0 0 Left Top
 
 # Defines the padding for the current chart, it works somewhat like GridPadding
 # but applies to the current chart only. Normally charts arranged in a grid are
@@ -298,8 +298,8 @@ FootnotePos: Right
 # behavior). The second optional number specifies the additional extra margin
 # when aligning relative the core chart area.
 # You typically use ChartPadding to adjust placement of embedded charts (see
-# NewChartInChart).
-# The NewChartInGrid and NewChartInChart defaults respectively are shown below.
+# NewChartOnGrid).
+# The NewChartInGrid and NewChartOnGrid defaults respectively are shown below.
 #ChartPadding: -1 0
 #ChartPadding: 12 0
 

@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Add Series.Color
 - Support annotations
-- Add NewChartInChart
+- Add NewChartOnGrid
 - Add ChartPadding
 - Add ChartPaddingX
 - Add ChartPaddingY

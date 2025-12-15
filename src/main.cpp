@@ -593,7 +593,7 @@ void do_NewChartInGrid( void )
   do_NewChart( false );
 }
 
-void do_NewChartInChart( void )
+void do_NewChartOnGrid( void )
 {
   do_NewChart( true );
   CurChart()->SetEmbedded();
@@ -2139,7 +2139,7 @@ std::unordered_map< std::string_view, ChartAction > chart_actions = {
   { "LetterSpacing"          , do_LetterSpacing           },
   { "ZeroToO"                , do_ZeroToO                 },
   { "NewChartInGrid"         , do_NewChartInGrid          },
-  { "NewChartInChart"        , do_NewChartInChart         },
+  { "NewChartOnGrid"         , do_NewChartOnGrid          },
   { "ChartPadding"           , do_ChartPadding            },
   { "ChartPaddingX"          , do_ChartPaddingX           },
   { "ChartPaddingY"          , do_ChartPaddingY           },

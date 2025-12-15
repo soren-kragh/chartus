@@ -48,7 +48,7 @@ Series.Data :
 # ZeroToO: Off
 # GridPadding: 0 50
 # NewChartInGrid: 0 0 3 0 Center Bottom
-# NewChartInChart: 0 0 Bottom Right
+# NewChartOnGrid: Bottom Right
 # ChartPadding: -1 0
 # ChartPaddingX: 12
 # ChartPaddingY: 12

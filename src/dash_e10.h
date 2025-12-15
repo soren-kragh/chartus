@@ -62,6 +62,9 @@ MacroEnd: MainSetup
 
 MacroDef: EmbeddedSetup
 
+# NewChartOnGrid defaults to using the same
+# grid location as the last NewChartInGrid.
+NewChartOnGrid: Top Left
 ChartArea: 240 120
 ChartFrame: 1 5 5
 ChartCanvasColor: mediumaquamarine 0.5
@@ -84,7 +87,6 @@ Series.New:
 Series.Data:
 Macro: CO2_DATA
 
-NewChartInChart: 0 0 Top Left
 Macro: EmbeddedSetup
 Axis.Y.Unit:
   parts per
@@ -102,7 +104,6 @@ Series.New: Global Monthly Mean CH₄
 Series.Data:
 Macro: CH4_DATA
 
-NewChartInChart: 0 1 Top Left
 Macro: EmbeddedSetup
 Axis.Y.Unit:
   parts per
@@ -120,7 +121,6 @@ Series.New: Global Monthly Mean N₂O
 Series.Data:
 Macro: N2O_DATA
 
-NewChartInChart: 1 0 Top Left
 Macro: EmbeddedSetup
 Axis.Y.Unit:
   parts per
@@ -138,7 +138,6 @@ Series.New: Global Monthly Mean SF₆
 Series.Data:
 Macro: SF6_DATA
 
-NewChartInChart: 1 1 Top Left
 Macro: EmbeddedSetup
 Axis.Y.Unit:
   parts per
