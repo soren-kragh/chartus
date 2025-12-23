@@ -536,7 +536,7 @@ void Annotate::BuildText( bool boxed )
   lab_g->Attr()->TextFont()->SetBold( state.text_bold );
   lab_g->Attr()->TextColor()->Set( &state.text_color );
   BoundaryBox bb = lab_g->GetBB();
-  U mx = state.text_size / 3;
+  U mx = TextPadding( state.text_size );
   U my = mx;
   // Add temporary dummy to get margin when not boxed.
   txt_g->Add(

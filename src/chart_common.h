@@ -74,6 +74,9 @@ namespace Chart {
 
   enum class GridStyle { Auto, Dash, Solid };
 
+  // Return the padding to be used around some text elements.
+  SVG::U TextPadding( double font_size );
+
   enum class SeriesType {
     XY, Scatter, Line, Point, Lollipop,
     Bar, StackedBar, LayeredBar,

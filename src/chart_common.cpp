@@ -17,6 +17,13 @@ using namespace SVG;
 
 ////////////////////////////////////////////////////////////////////////////////
 
+SVG::U Chart::TextPadding( double font_size )
+{
+  return std::max( font_size * 0.25, 5.0 );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 Object* Chart::Collides(
   SVG::Object* obj, const std::vector< SVG::Object* >& objects,
   SVG::U margin_x, SVG::U margin_y
