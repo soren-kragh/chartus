@@ -379,10 +379,18 @@ void Axis::LegalizeMinMax(
       data_min = data_min / 10;
       data_max = data_max * 10;
     } else {
+      double v = data_min;
       double d = std::abs( data_min );
       if ( d < num_lo ) d = 1.0;
       data_min -= d;
       data_max += d;
+      if ( !is_x_axis && main->axis_x->category_axis ) {
+        if ( v < 0 ) {
+          if ( data_max > 0 ) data_max = 0;
+        } else {
+          if ( data_min < 0 ) data_min = 0;
+        }
+      }
     }
     data_min_is_base = false;
     data_max_is_base = false;
