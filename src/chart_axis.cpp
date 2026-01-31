@@ -94,7 +94,7 @@ void Axis::SetReverse( bool reverse )
 void Axis::SetStyle( AxisStyle style )
 {
   this->style = style;
-  show = true;
+  if ( style != AxisStyle::None ) show = true;
 }
 
 void Axis::SetPos( Pos pos, int axis_y_n )
@@ -112,7 +112,7 @@ void Axis::SetLogScale( bool log_scale )
 void Axis::SetNumberFormat( NumberFormat number_format )
 {
   this->number_format = number_format;
-  show = true;
+  if ( number_format != NumberFormat::None ) show = true;
 }
 
 void Axis::SetNumberSign( bool number_sign )

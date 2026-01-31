@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Adjust text-box padding
 - Fix min/max adjustment issue
+- Support bare ChartArea
 
 ---
 

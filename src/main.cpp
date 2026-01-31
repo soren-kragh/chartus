@@ -79,7 +79,7 @@ state_t state;
 
 void show_version( void )
 {
-  std::cout << R"EOF(chartus v2.0.1
+  std::cout << R"EOF(chartus v2.1.0
 This is free software: you are free to change and redistribute it.
 
 Written by Soren Kragh
@@ -864,6 +864,23 @@ void do_ChartArea( void )
   if ( !source.GetInt64( h ) ) source.ParseErr( "malformed height" );
   if ( h < 10 || h > 100000 ) {
     source.ParseErr( "height out of range [10;100000]", true );
+  }
+
+  source.SkipWS();
+  if ( !source.AtEOL() ) {
+    std::string_view id = source.GetIdentifier();
+    if ( id == "Bare" ) {
+      CurChart()->AxisX()->SetStyle( Chart::AxisStyle::None );
+      CurChart()->AxisX()->SetNumberFormat( Chart::NumberFormat::None );
+      CurChart()->AxisX()->SetGrid( false );
+      for ( size_t i : { 0, 1 } ) {
+        CurChart()->AxisY( i )->SetStyle( Chart::AxisStyle::None );
+        CurChart()->AxisY( i )->SetNumberFormat( Chart::NumberFormat::None );
+        CurChart()->AxisY( i )->SetGrid( false );
+      }
+    } else {
+      source.ParseErr( "'Bare' expected", true );
+    }
   }
 
   source.ExpectEOL();

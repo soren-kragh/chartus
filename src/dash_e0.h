@@ -1,22 +1,16 @@
 std::cout << R"EOF(
-BackgroundColor: None
-
-Title: Chartus
-SubSubTitle: A command line charting tool
-TitleInside: On
-TitleSize: 2
-BoxColor: darkcyan
-TextColor: cyan
-
-ChartBox: Off
-ChartArea: 460 140
-
-Axis.X.Style: None
-Axis.Y.Style: None
-
-Axis.X.NumberFormat: None
-Axis.Y.NumberFormat: None
-
-Axis.X.Grid: Off
-Axis.Y.Grid: Off
+BorderWidth: 0 30
+Padding: 10
+ChartFrame: 5 20 20
+BackgroundColor: darkcyan
+ChartArea: 10 10 Bare
+@TextColor: cyan
+@TextBold: On
+@TextSize: 5
+@Text: C C
+  Chartus
+@TextSize: 2
+@TextBold: Off
+@Text: C C-60
+  A command line charting tool
 )EOF";
