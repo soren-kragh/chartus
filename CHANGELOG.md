@@ -5,7 +5,6 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- Support bare ChartArea
 
 ### Changed
 
@@ -14,10 +13,17 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 ### Fixed
-- Adjust text-box padding
-- Fix min/max adjustment issue
 
 ---
+
+## [2.1.0] - 2026-02-09
+
+### Added
+- Support bare ChartArea
+
+### Fixed
+- Adjust text-box padding
+- Fix min/max adjustment issue
 
 
 ## [2.0.0] - 2025-12-15

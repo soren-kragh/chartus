@@ -1,7 +1,7 @@
 //
 //  MIT No Attribution License
 //
-//  Copyright 2025, Soren Kragh
+//  Copyright 2026, Soren Kragh
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the
