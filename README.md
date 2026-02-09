@@ -659,8 +659,10 @@ FootnotePos: Right
 # The values are in points and should typically be around 1000. Since SVG is
 # scalable these dimensions primarily determine the relative size of text
 # annotations and line thicknesses; texts will appear relatively larger if the
-# core chart area is small and vice versa.
+# core chart area is small and vice versa. If the optional keyword Bare is
+# given, axes etc. are disabled.
 #ChartArea: 1000 600
+#ChartArea: 1000 600 Bare
 
 # Draw a box around chart area; may be On or Off.
 #ChartBox: On
