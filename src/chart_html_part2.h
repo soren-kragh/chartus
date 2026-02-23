@@ -676,7 +676,7 @@ function createCategoryBoxes(x, y, axis) {
     }
     lst.forEach(e => {
       const snapPoint = chart.snapPoints[e.snapIdx];
-      const res = createInfoBox(snapPoint, e.x, e.y, anchor, false);
+      const res = createInfoBox(snapPoint, e.x, e.y, anchor);
       boxes.push({
         cx: res.cx, cy: res.cy,
         ox: res.cx, oy: res.cy,
@@ -740,10 +740,8 @@ function createSeriesHighlight(series) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-function createInfoBox(snapPoint, x, y, anchor, highlightSeries = true) {
-  let series = chart.seriesList[snapPoint.s]
-
-  if (highlightSeries) createSeriesHighlight(series);
+function createInfoBox(snapPoint, x, y, anchor) {
+  let series = chart.seriesList[snapPoint.s];
 
   // Create a group (<g>) to hold the box and text
   const group = newObj("g", true);
@@ -897,6 +895,10 @@ svg_snap.addEventListener("mousemove", (event) => {
       if (inCat) {
         createCategoryBoxes(x, y, catAxis);
       } else {
+        if (atPoint) {
+          const series = chart.seriesList[snapPoint.s];
+          createSeriesHighlight(series);
+        }
         createCrosshair(x, y, atPoint);
         let showX = [true, true];
         let showY = [true, true];

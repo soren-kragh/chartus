@@ -6,11 +6,11 @@ BackgroundColor: darkcyan
 ChartArea: 10 10 Bare
 @TextColor: cyan
 @TextBold: On
-@TextSize: 5
+@TextSize: 4
 @Text: C C
   Chartus
-@TextSize: 2
+@TextSize: 1.5
 @TextBold: Off
-@Text: C C-60
+@Text: C C-50
   A command line charting tool
 )EOF";

@@ -159,20 +159,52 @@ void HTML::CommitSnapPoints( Series* series, bool force )
 
 ////////////////////////////////////////////////////////////////////////////////
 
+std::string escapeHTML( std::string_view s ) {
+  std::ostringstream oss;
+
+  for ( unsigned char c : s ) {
+    switch ( c ) {
+      case '<'  : oss << "&lt;"; break;
+      case '>'  : oss << "&gt;"; break;
+      case '&'  : oss << "&amp;"; break;
+      case '\'' : oss << "&apos;"; break;
+      case '"'  : oss << "&quot;"; break;
+      default: {
+        if ( c < ' ' || c == 0x7F ) {
+          oss << ' ';
+        } else {
+          oss << c;
+        }
+      }
+    }
+  }
+
+  return oss.str();
+}
+
+//------------------------------------------------------------------------------
+
 std::string quoteJS( std::string_view s ) {
   std::ostringstream oss;
   oss << '"';
-  for ( char c : s ) {
-    if ( static_cast<unsigned char>( c ) < ' ' ) {
-        oss << ' ';
-    } else if ( c == '"' ) {
-        oss << "\\\"";
-    } else if ( c == '\\' ) {
-        oss << "\\\\";
-    } else {
-        oss << c;
+
+  for ( unsigned char c : s ) {
+    switch ( c ) {
+      case '"'  : oss << "\\\""; break;
+      case '\\' : oss << "\\\\"; break;
+      case '<'  : oss << "\\u003C"; break;
+      case '>'  : oss << "\\u003E"; break;
+      case '&'  : oss << "\\u0026"; break;
+      default: {
+        if ( c < ' ' || c == 0x7F ) {
+          oss << ' ';
+        } else {
+          oss << c;
+        }
+      }
     }
   }
+
   oss << '"';
   return oss.str();
 }
@@ -456,7 +488,7 @@ std::string HTML::GenHTML( SVG::Canvas* canvas )
 
   #include <chart_html_part1.h>
 
-  oss << "<title>" << ensemble->title_html << "</title>\n";
+  oss << "<title>" << escapeHTML( ensemble->title_html ) << "</title>\n";
   oss << "</head>\n";
   oss << "<body>\n";
 

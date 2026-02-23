@@ -8,6 +8,7 @@ oss << R"EOF(
   <style>
     text {
       font-family: monospace;
+      white-space: pre;
     }
     html, body {
       margin: 0;

@@ -16,6 +16,14 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2.1.1] - 2026-02-23
+
+### Fixed
+- Fix XSS injection vulnerability
+- Fix text spacing issue
+- Fix HTML highlight issue
+
+
 ## [2.1.0] - 2026-02-09
 
 ### Added

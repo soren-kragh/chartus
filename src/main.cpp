@@ -79,7 +79,7 @@ state_t state;
 
 void show_version( void )
 {
-  std::cout << R"EOF(chartus v2.1.0
+  std::cout << R"EOF(chartus v2.1.1
 This is free software: you are free to change and redistribute it.
 
 Written by Soren Kragh

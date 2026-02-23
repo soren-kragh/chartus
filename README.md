@@ -2,6 +2,8 @@
   <img src="assets/e0.png" alt="Chartus">
 </div>
 
+&nbsp;
+
 Chartus is a simple Linux command line tool to generate basic charts in SVG or
 HTML format.
 
